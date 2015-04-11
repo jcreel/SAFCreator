@@ -13,6 +13,46 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+  <build>
+  	<plugins>
+  	<!-- Make this jar executable -->
+	<plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-jar-plugin</artifactId>
+		<configuration>
+		  <!-- DO NOT include log4j.properties file in your Jar -->
+		  <excludes>
+			<exclude>**/log4j.properties</exclude>
+		  </excludes>
+		  <archive>
+			<manifest>
+				<!-- Jar file entry point -->
+				<mainClass>edu.tamu.di.SAFCreator.App</mainClass>
+			</manifest>
+		  </archive>
+		</configuration>
+	</plugin>
+			
+			
+	<!-- Includes the runtime dependencies -->
+	<plugin>
+		<groupId>org.dstovall</groupId>
+		<artifactId>onejar-maven-plugin</artifactId>
+		<version>1.4.4</version>
+		<executions>
+		  <execution>
+			<goals>
+				<goal>one-jar</goal>
+			</goals>
+		  </execution>
+		</executions>
+	</plugin>
+
+			
+			
+	</plugins>
+  </build>
 
 <dependencies>
 	<dependency>
@@ -35,4 +75,16 @@
 	</dependency>
     
   </dependencies>
+  
+  
+    <!-- One-Jar is in the googlecode repository -->
+  <pluginRepositories>
+	<pluginRepository>
+		<id>onejar-maven-plugin.googlecode.com</id>
+		<url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+	</pluginRepository>
+  </pluginRepositories>
+  
+  
+  
 </project>
