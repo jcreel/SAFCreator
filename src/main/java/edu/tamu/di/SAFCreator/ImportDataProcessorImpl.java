@@ -159,7 +159,8 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							Bitstream bitstream = new Bitstream();
 							bitstream.setBundle(bundle);
 							bitstream.setSource(new File(batch.getinputFilesDir()+"/"+value));
-							bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
+							bitstream.setRelativePath(value);
+							//bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
 							bitstream.setColumn(columnCounter);
 							bitstream.setRow(linenumber);
 							bundle.addBitstream(bitstream);

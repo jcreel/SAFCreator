@@ -9,6 +9,7 @@ public class Bitstream extends CellDatumImpl
 {
 	private Bundle bundle;
 	private File source;
+	private String relativePath;
 	private File destination;
 	private String readPolicyGroupName = null;
 
@@ -32,9 +33,9 @@ public class Bitstream extends CellDatumImpl
 		return destination;
 	}
 
-	public void setDestination(File destination) {
-		this.destination = destination;
-	}
+//	public void setDestination(File destination) {
+//		this.destination = destination;
+//	}
 
 	public String getReadPolicyGroupName() {
 		return readPolicyGroupName;
@@ -58,6 +59,17 @@ public class Bitstream extends CellDatumImpl
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public void setRelativePath(String value) {
+		relativePath = value;
+		destination = new File(bundle.getItem().getSAFDirectory()+relativePath);
+		
+	}
+	
+	public String getRelativePath()
+	{
+		return relativePath;
 	}
 
 }
