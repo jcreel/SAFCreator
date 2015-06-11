@@ -47,7 +47,7 @@ public class Bitstream extends CellDatumImpl
 	
 	public String getContentsManifestLine()
 	{
-		String line = source.getName() + "\tBUNDLE:" + bundle.getName() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n"; 
+		String line = getRelativePath() + "\tBUNDLE:" + bundle.getName() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n"; 
 		return line;
 	}
 	
@@ -63,7 +63,7 @@ public class Bitstream extends CellDatumImpl
 
 	public void setRelativePath(String value) {
 		relativePath = value;
-		destination = new File(bundle.getItem().getSAFDirectory()+relativePath);
+		destination = new File(bundle.getItem().getSAFDirectory()+"/"+relativePath);
 		
 	}
 	

@@ -69,6 +69,7 @@ public class Item {
 		
 		Bundle bundle = new Bundle();
 		bundle.setName(bundleName);
+		bundle.setItem(this);
 		bundles.add(bundle);
 		return bundle;
 	}
