@@ -2,3 +2,4 @@ target
 .classpath
 .project
 .settings
+src/main/resources/SAF/test-output
