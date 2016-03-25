@@ -73,6 +73,13 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					fileLabel.setRow(1);
 					columnLabels.add(fileLabel);	
 				}
+				else if(cell.contains("filename"))
+				{
+					FileLabel fileLabel = new FileLabel("ORIGINAL");
+					fileLabel.setColumn(columnCounter);
+					fileLabel.setRow(1);
+					columnLabels.add(fileLabel);
+				}
 				else if(cell.contains("."))
 				{
 					FieldLabel fieldLabel = new FieldLabel();
@@ -128,6 +135,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						String schemaName = Util.getSchemaName(fieldLabel.getSchema());
 						SchematicFieldSet schema = item.getOrCreateSchema(schemaName);
 						
+						//eliminate trailing ||
+						if( cell.endsWith("||") ) cell = cell.substring(0, cell.length()-2);
+						
 						//create Field(s) within the schema
 						int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
 						String[] values = cell.split("\\|\\|");
@@ -156,14 +166,36 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
 						{
 							String value = values[valueCounter];
-							Bitstream bitstream = new Bitstream();
-							bitstream.setBundle(bundle);
-							bitstream.setSource(new File(batch.getinputFilesDir()+"/"+value));
-							bitstream.setRelativePath(value);
-							//bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
-							bitstream.setColumn(columnCounter);
-							bitstream.setRow(linenumber);
-							bundle.addBitstream(bitstream);
+							//if the value is of the form foo/* then get all the files in foo
+							//otherwise, just get the single named file
+							if(value.endsWith("/*"))
+							{
+								String directoryName = value.substring(0, value.length()-2);
+								File directory = new File(batch.getinputFilesDir() + "/" + directoryName);
+								File[] files = directory.listFiles();
+								System.out.println("Getting all files in " + directoryName);
+								for(File file : files)
+								{
+									Bitstream bitstream = new Bitstream();
+									bitstream.setBundle(bundle);
+									bitstream.setSource(file);
+									bitstream.setRelativePath(directoryName+"/"+file.getName());
+									bitstream.setColumn(columnCounter);
+									bitstream.setRow(linenumber);
+									bundle.addBitstream(bitstream);
+								}
+							}
+							else
+							{
+								Bitstream bitstream = new Bitstream();
+								bitstream.setBundle(bundle);
+								bitstream.setSource(new File(batch.getinputFilesDir()+"/"+value));
+								bitstream.setRelativePath(value);
+								//bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
+								bitstream.setColumn(columnCounter);
+								bitstream.setRow(linenumber);
+								bundle.addBitstream(bitstream);
+							}
 						}
 					}
 					else
