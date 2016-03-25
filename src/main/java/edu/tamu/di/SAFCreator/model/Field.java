@@ -55,10 +55,15 @@ public class Field extends CellDatumImpl
 
 	public String getXMLSnippet()
 	{
-		return "<dcvalue element=\""+label.getElement()+"\"" +
-				(label.getQualifier()==null?"":" qualifier=\""+label.getQualifier()+"\"") + 
-				(label.getLanguage()==null?"":" language=\""+label.getLanguage()+"\"") + 
-				">" + Util.escapeForXML(value) + "</dcvalue>";
+		if(value != "")
+		{
+			return "<dcvalue element=\""+label.getElement()+"\"" +
+					(label.getQualifier()==null?"":" qualifier=\""+label.getQualifier()+"\"") + 
+					(label.getLanguage()==null?"":" language=\""+label.getLanguage()+"\"") + 
+					">" + Util.escapeForXML(value) + "</dcvalue>";
+		}
+		else
+			return "";
 	}
 
 }
