@@ -168,10 +168,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							String value = values[valueCounter];
 							//if the value is of the form foo/* then get all the files in foo
 							//otherwise, just get the single named file
-							if(value.endsWith("/*"))
+							if(value.endsWith(File.separator + "*"))
 							{
 								String directoryName = value.substring(0, value.length()-2);
-								File directory = new File(batch.getinputFilesDir() + "/" + directoryName);
+								File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
 								File[] files = directory.listFiles();
 								System.out.println("Getting all files in " + directoryName);
 								for(File file : files)
@@ -179,7 +179,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 									Bitstream bitstream = new Bitstream();
 									bitstream.setBundle(bundle);
 									bitstream.setSource(file);
-									bitstream.setRelativePath(directoryName+"/"+file.getName());
+									bitstream.setRelativePath(directoryName + File.separator + file.getName());
 									bitstream.setColumn(columnCounter);
 									bitstream.setRow(linenumber);
 									bundle.addBitstream(bitstream);
@@ -189,7 +189,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							{
 								Bitstream bitstream = new Bitstream();
 								bitstream.setBundle(bundle);
-								bitstream.setSource(new File(batch.getinputFilesDir()+"/"+value));
+								bitstream.setSource(new File(batch.getinputFilesDir() + File.separator + value));
 								bitstream.setRelativePath(value);
 								//bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
 								bitstream.setColumn(columnCounter);
