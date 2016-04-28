@@ -1,11 +1,12 @@
 package edu.tamu.di.SAFCreator;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,16 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-
-	public static String escapeForXML(String value)
-	{
-		value = value.replace("&", "&amp;");
-		value = value.replace("\"", "&quot;");
-		value = value.replace("<", "&lt;");
-		value = value.replace(">", "&gt;");
-		value = value.replace("'", "&apos;");
-		return value;
-	}
 	
 	public static String getDateTime() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
@@ -123,9 +114,9 @@ public class Util {
 	    }
 
 	    //use buffering
-	    Writer output = new BufferedWriter(new FileWriter(aFile));
+	    Writer output = new OutputStreamWriter(new FileOutputStream(aFile), Charset.forName("UTF-8"));
 	    try {
-	      //FileWriter always assumes default encoding is OK!
+	      //Writer always uses UTF-8 as XML is dependent on this!
 	      output.write( aContents );
 	    }
 	    finally {
