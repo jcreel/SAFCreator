@@ -13,8 +13,8 @@ public class App
 	
     public static void main( String[] args )
     {
-    	gui.setSize(800,640);
-    	gui.setResizable(false);
-        gui.setVisible(true);
+		gui.setSize(800,640);
+		gui.setResizable(false);
+		gui.setVisible(true);
     }
 }

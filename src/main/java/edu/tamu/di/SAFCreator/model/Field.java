@@ -1,6 +1,7 @@
 package edu.tamu.di.SAFCreator.model;
 
-import edu.tamu.di.SAFCreator.Util;
+import org.apache.commons.lang.StringEscapeUtils;
+
 
 public class Field extends CellDatumImpl
 {
@@ -55,10 +56,15 @@ public class Field extends CellDatumImpl
 
 	public String getXMLSnippet()
 	{
-		return "<dcvalue element=\""+label.getElement()+"\"" +
-				(label.getQualifier()==null?"":" qualifier=\""+label.getQualifier()+"\"") + 
-				(label.getLanguage()==null?"":" language=\""+label.getLanguage()+"\"") + 
-				">" + Util.escapeForXML(value) + "</dcvalue>";
+		if(value != "")
+		{
+			return "<dcvalue element=\""+label.getElement()+"\"" +
+					(label.getQualifier()==null?"":" qualifier=\""+label.getQualifier()+"\"") + 
+					(label.getLanguage()==null?"":" language=\""+label.getLanguage()+"\"") + 
+					">" + StringEscapeUtils.escapeXml(value) + "</dcvalue>";
+		}
+		else
+			return "";
 	}
 
 }
