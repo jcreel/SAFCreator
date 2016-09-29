@@ -9,7 +9,7 @@ import java.util.List;
 
 import javax.swing.JTextArea;
 
-import au.com.bytecode.opencsv.CSVReader;
+import com.opencsv.CSVReader;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
 import edu.tamu.di.SAFCreator.model.Bundle;
