@@ -143,7 +143,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						String[] values = cell.split("\\|\\|");
 						for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
 						{
-							String value = values[valueCounter];
+							String value = values[valueCounter].trim();
 							Field field = new Field();
 							field.setSchema(schema);
 							field.setLabel(fieldLabel);
@@ -165,7 +165,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						String[] values = cell.split("\\|\\|");
 						for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
 						{
-							String value = values[valueCounter];
+							String value = values[valueCounter].trim();
 							//if the value is of the form foo/* then get all the files in foo
 							//otherwise, just get the single named file
 							if(value.endsWith(File.separator + "*"))
