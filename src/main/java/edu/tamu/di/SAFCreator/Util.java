@@ -49,7 +49,7 @@ public class Util {
 	protected static String getSchemaName(String string)
 	{
 		string = removeLanguage(string);
-		return string.split("\\.")[0].trim();
+		return string.split("\\.")[0].trim().toLowerCase();
 	}
 	
 	protected static String getElementName(String string)
