@@ -49,7 +49,7 @@ public class Util {
 	protected static String getSchemaName(String string)
 	{
 		string = removeLanguage(string);
-		return string.split("\\.")[0].trim().toLowerCase();
+		return string.split("\\.")[0].trim();
 	}
 	
 	protected static String getElementName(String string)
@@ -60,7 +60,7 @@ public class Util {
 		if(string.lastIndexOf('.') != string.indexOf('.'))
 		{
 			String name = string.substring(string.indexOf('.')+1, string.lastIndexOf('.'));
-			name = name.trim().toLowerCase();
+			name = name.trim();
 			//System.out.println("Got name:"+name);
 			return name;
 		}
@@ -78,7 +78,7 @@ public class Util {
 		if(string.lastIndexOf('.') != string.indexOf('.'))
 		{	
 			String qualifier = string.substring(string.lastIndexOf('.')+1);
-			qualifier = qualifier.trim().toLowerCase();
+			qualifier = qualifier.trim();
 			//System.out.println("Got qualifier: "+qualifier);
 			return qualifier;
 		}
