@@ -15,16 +15,19 @@ public class FilesExistVerifierImpl implements Verifier {
 	{
 		List<Problem> missingFiles = new ArrayList<Problem>();
 		
-		for(Item item : batch.getItems())
+		if( ! batch.getIgnoreFiles())
 		{
-			for(Bundle bundle : item.getBundles())
+			for(Item item : batch.getItems())
 			{
-				for(Bitstream bitstream : bundle.getBitstreams())
+				for(Bundle bundle : item.getBundles())
 				{
-					if(!bitstream.getSource().exists())
+					for(Bitstream bitstream : bundle.getBitstreams())
 					{
-						Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file " + bitstream.getSource().getAbsolutePath() + " not found.");
-						missingFiles.add(missingFile);
+						if(!bitstream.getSource().exists())
+						{
+							Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file " + bitstream.getSource().getAbsolutePath() + " not found.");
+							missingFiles.add(missingFile);
+						}
 					}
 				}
 			}

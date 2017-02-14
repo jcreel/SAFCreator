@@ -16,6 +16,7 @@ public class Batch {
 	private List<Item> items = new ArrayList<Item>();
 	private License license;
 	private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
+	private Boolean ignoreFiles = false;
 	
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -150,6 +151,14 @@ public class Batch {
 			}
 		}
 		
+	}
+
+	public Boolean getIgnoreFiles() {
+		return ignoreFiles;
+	}
+
+	public void setIgnoreFiles(Boolean ignoreFiles) {
+		this.ignoreFiles = ignoreFiles;
 	}
 	
 }
