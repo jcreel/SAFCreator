@@ -34,6 +34,7 @@ public class ImporterGUI extends JFrame
 	private final JPanel mainTab = new JPanel();
 	private final JPanel licenseTab = new JPanel();
 	private final JPanel validationTab = new JPanel();
+	private final JPanel advancedSettingsTab = new JPanel();
 	
 	//Components of the Batch Detail tab
 	private final JButton chooseInputFileBtn = new JButton("Select metadata CSV file");
@@ -67,6 +68,9 @@ public class ImporterGUI extends JFrame
 	private final JButton verifyBatchBtn = new JButton("Verify Batch");
 	private JTable verifierTbl = null;
 	
+	//Components of the Advanced Settings tab
+	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
+	
 	
 	//Components shown under any tab
 	private final JPanel statusPanel = new JPanel();
@@ -93,6 +97,8 @@ public class ImporterGUI extends JFrame
 		createLicenseTab();
 		
 		createVerificationTab();
+		
+		createAdvancedSettingsTab();
 		
 		this.setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		
@@ -535,6 +541,42 @@ public class ImporterGUI extends JFrame
 						console.append("No new SAF data to write.\n");
 					}
 				}
+			}
+		);
+	}
+	
+	private void createAdvancedSettingsTab()
+	{
+		advancedSettingsTab.setLayout(new BoxLayout(advancedSettingsTab, BoxLayout.Y_AXIS));
+		advancedSettingsTab.add(ignoreFilesBox);
+		
+		tabs.addTab("Advanced Settings", advancedSettingsTab);
+		
+		ignoreFilesBox.addMouseListener
+		(
+			new MouseListener()
+			{
+				public void mouseClicked(MouseEvent e) 
+				{
+					if(ignoreFilesBox.isSelected())
+					{
+						console.append("Bitstream (content) files will be ommitted from generated SAF.\n");
+						batch.setIgnoreFiles(true);
+					}
+					else
+					{
+						console.append("Bitstream (content) files will be included in generated SAF.\n");
+						batch.setIgnoreFiles(false);
+					}
+				}
+
+				public void mousePressed(MouseEvent e) {}
+
+				public void mouseReleased(MouseEvent e) {}
+
+				public void mouseEntered(MouseEvent e) {}
+
+				public void mouseExited(MouseEvent e) {}
 			}
 		);
 	}

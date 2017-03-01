@@ -82,7 +82,10 @@ public class Item {
 			for(Bitstream bitstream : bundle.getBitstreams())
 			{
 				contentsString += bitstream.getContentsManifestLine();
-				bitstream.copyMe();
+				if( ! batch.getIgnoreFiles())
+				{
+					bitstream.copyMe();
+				}
 			}
 		}
 		
