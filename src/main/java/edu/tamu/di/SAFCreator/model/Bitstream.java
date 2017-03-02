@@ -47,7 +47,7 @@ public class Bitstream extends CellDatumImpl
 	
 	public String getContentsManifestLine()
 	{
-		String line = getRelativePath() + "\tBUNDLE:" + bundle.getName() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n"; 
+		String line = getRelativePath() + "\tbundle:" + bundle.getName().trim() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n"; 
 		return line;
 	}
 	
