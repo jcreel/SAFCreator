@@ -167,6 +167,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						{
 							String value = values[valueCounter].trim();
 							//if the value is of the form foo/* then get all the files in foo
+							//(note that at present this assumes no further subdirectories under foo)
 							//otherwise, just get the single named file
 							if(value.endsWith(File.separator + "*"))
 							{
@@ -191,7 +192,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bitstream.setBundle(bundle);
 								bitstream.setSource(new File(batch.getinputFilesDir() + File.separator + value));
 								bitstream.setRelativePath(value);
-								//bitstream.setDestination(new File(item.getSAFDirectory()+"/"+value));
 								bitstream.setColumn(columnCounter);
 								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
