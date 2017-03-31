@@ -66,7 +66,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			char columnCounter = 'A';
 			for(String cell : labelLine)
 			{
-				if(cell.toLowerCase().contains("bundle:") || cell.contains("group:"))
+				if(cell.toLowerCase().contains("bundle:") || cell.toLowerCase().contains("group:"))
 				{
 					String bundleName = cell.split(":")[1];
 					FileLabel fileLabel = new FileLabel(bundleName);
