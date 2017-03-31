@@ -13,6 +13,7 @@ public class Item {
 	private Batch batch;
 	private List<SchematicFieldSet> schemata;
 	private List<Bundle> bundles;
+	private String handle;
 	
 	private File itemDirectory;
 	
@@ -24,6 +25,8 @@ public class Item {
 		
 		itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + "/" + row);
 		itemDirectory.mkdir();
+		
+		handle = null;
 
 	}
 	
@@ -101,7 +104,7 @@ public class Item {
 			{
 				contentsFile.createNewFile();
 			}
-			Util.setContents(contentsFile, contentsString);
+			Util.setFileContents(contentsFile, contentsString);
 		} catch (FileNotFoundException e) {
 			System.err.println("Unable to write to missing contents file for item directory " + getSAFDirectory());
 			e.printStackTrace();
@@ -109,6 +112,24 @@ public class Item {
 			System.err.println("Error writing contents file for item directory " + getSAFDirectory());
 			e.printStackTrace();
 		}
+	}
+	
+	private void writeHandle()
+	{
+	        File handleFile = new File(itemDirectory.getAbsolutePath() + "/handle");
+	        try {
+                    if(!handleFile.exists())
+                    {
+                            handleFile.createNewFile();
+                    }
+                    Util.setFileContents(handleFile, getHandle());
+                } catch (FileNotFoundException e) {
+                        System.err.println("Unable to write to missing handle file for item directory " + getSAFDirectory());
+                        e.printStackTrace();
+                } catch (IOException e) {
+                        System.err.println("Error writing handle file for item directory " + getSAFDirectory());
+                        e.printStackTrace();
+                }
 	}
 	
 	private void writeMetadata()
@@ -122,7 +143,7 @@ public class Item {
 				{
 					metadataFile.createNewFile();
 				}
-				Util.setContents(metadataFile, schema.getXML());
+				Util.setFileContents(metadataFile, schema.getXML());
 			} catch (FileNotFoundException e) {
 				System.err.println("Unable to write to missing metadata file " + metadataFile.getAbsolutePath());
 				e.printStackTrace();
@@ -137,9 +158,18 @@ public class Item {
 	{
 		writeContents();
 		writeMetadata();
+		if(getHandle() != null) writeHandle();
 	}
 
 	public String getSAFDirectory() {
 		return itemDirectory.getAbsolutePath();
 	}
+
+    public void setHandle(String handle) {
+        this.handle = handle;        
+    }
+    
+    public String getHandle() {
+        return handle;
+    }
 }

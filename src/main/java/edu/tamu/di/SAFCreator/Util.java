@@ -100,7 +100,7 @@ public class Util {
 	  * @throws FileNotFoundException if the file does not exist.
 	  * @throws IOException if problem encountered during write.
 	  */
-	  static public void setContents(File aFile, String aContents)
+	  static public void setFileContents(File aFile, String aContents)
 	                                 throws FileNotFoundException, IOException {
 	    if (aFile == null) {
 	      throw new IllegalArgumentException("File should not be null.");

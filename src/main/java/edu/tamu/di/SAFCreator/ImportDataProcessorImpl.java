@@ -17,6 +17,7 @@ import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.Field;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
 import edu.tamu.di.SAFCreator.model.FileLabel;
+import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
 
@@ -65,7 +66,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			char columnCounter = 'A';
 			for(String cell : labelLine)
 			{
-				if(cell.contains("BUNDLE:") || cell.contains("GROUP:"))
+				if(cell.toLowerCase().contains("bundle:") || cell.toLowerCase().contains("group:"))
 				{
 					String bundleName = cell.split(":")[1];
 					FileLabel fileLabel = new FileLabel(bundleName);
@@ -73,12 +74,19 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					fileLabel.setRow(1);
 					columnLabels.add(fileLabel);	
 				}
-				else if(cell.contains("filename"))
+				else if(cell.toLowerCase().contains("filename"))
 				{
 					FileLabel fileLabel = new FileLabel("ORIGINAL");
 					fileLabel.setColumn(columnCounter);
 					fileLabel.setRow(1);
 					columnLabels.add(fileLabel);
+				}
+				else if(cell.toLowerCase().contains("handle"))
+				{
+				        HandleLabel handleLabel = new HandleLabel();
+				        handleLabel.setColumn(columnCounter);
+				        handleLabel.setRow(1);
+				        columnLabels.add(handleLabel);
 				}
 				else if(cell.contains("."))
 				{
@@ -197,6 +205,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bundle.addBitstream(bitstream);
 							}
 						}
+					}
+					else if(label.isHandle())
+					{
+					    item.setHandle(cell.trim());
 					}
 					else
 					{

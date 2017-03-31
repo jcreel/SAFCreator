@@ -15,7 +15,11 @@ public class FileLabel extends CellDatumImpl implements ColumnLabel
 	public void setBundleName(String bundleName) {
 		this.bundleName = bundleName;
 	}
-
+	
+	public boolean isHandle() {
+            return true;
+        }
+    
 	public boolean isField() {
 		return false;
 	}

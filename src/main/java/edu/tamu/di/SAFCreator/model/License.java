@@ -46,7 +46,7 @@ public class License
 				licenseFile.createNewFile();
 			}
 			
-			Util.setContents(licenseFile, licenseText);
+			Util.setFileContents(licenseFile, licenseText);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
