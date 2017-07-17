@@ -118,7 +118,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				return null;
 			}
 			
-			
 			int linenumber = 0;
 			while((nextLine = reader.readNext()) != null)
 			{
@@ -127,15 +126,12 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				Item item = new Item(linenumber, batch);
 				
 				
-				
-				
-				
 				columnCounter = 'A';
 				for(int columnIndex = 0; columnIndex < nextLine.length; columnIndex++)
 				{
 					ColumnLabel label = columnLabels.get(columnIndex);
 					String cell = nextLine[columnIndex];
-					
+					 
 					if(label.isField())
 					{
 						//get the Field's schema
@@ -174,6 +170,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
 						{
 							String value = values[valueCounter].trim();
+							
+							value = value.replace("/", File.separator);
+							
 							//if the value is of the form foo/* then get all the files in foo
 							//(note that at present this assumes no further subdirectories under foo)
 							//otherwise, just get the single named file
@@ -182,7 +181,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								String directoryName = value.substring(0, value.length()-2);
 								File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
 								File[] files = directory.listFiles();
-								System.out.println("Getting all files in " + directoryName);
 								for(File file : files)
 								{
 									Bitstream bitstream = new Bitstream();
