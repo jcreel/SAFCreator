@@ -23,7 +23,7 @@ public class Item {
 		schemata = new ArrayList<SchematicFieldSet>();
 		bundles = new ArrayList<Bundle>();
 		
-		itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + "/" + row);
+		itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + row);
 		itemDirectory.mkdir();
 		
 		handle = null;
