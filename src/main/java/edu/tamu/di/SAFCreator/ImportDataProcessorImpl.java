@@ -181,15 +181,22 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								String directoryName = value.substring(0, value.length()-2);
 								File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
 								File[] files = directory.listFiles();
-								for(File file : files)
+								if(files == null)
 								{
-									Bitstream bitstream = new Bitstream();
-									bitstream.setBundle(bundle);
-									bitstream.setSource(file);
-									bitstream.setRelativePath(directoryName + File.separator + file.getName());
-									bitstream.setColumn(columnCounter);
-									bitstream.setRow(linenumber);
-									bundle.addBitstream(bitstream);
+								        console.append("\n*** WARNING:  No files found for item directory " + directory.getPath() + " ***\n");
+								}
+								else
+								{
+        								for(File file : files)
+        								{
+        									Bitstream bitstream = new Bitstream();
+        									bitstream.setBundle(bundle);
+        									bitstream.setSource(file);
+        									bitstream.setRelativePath(directoryName + File.separator + file.getName());
+        									bitstream.setColumn(columnCounter);
+        									bitstream.setRow(linenumber);
+        									bundle.addBitstream(bitstream);
+        								}
 								}
 							}
 							else
