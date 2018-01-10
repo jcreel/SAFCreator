@@ -90,7 +90,12 @@
 		<artifactId>opencsv</artifactId>
 		<version>3.8</version>
 	</dependency>
-    
-  </dependencies>
+
+	<dependency>
+		<groupId>commons-net</groupId>
+		<artifactId>commons-net</artifactId>
+		<version>3.6</version>
+	</dependency>
+</dependencies>
 
 </project>

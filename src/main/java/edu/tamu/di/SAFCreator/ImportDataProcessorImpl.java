@@ -171,7 +171,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						
 						if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
 							String scheme = uri.getScheme().toString();
-							if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")) {
+							if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
 								Bitstream bitstream = new Bitstream();
 								bitstream.setBundle(bundle);
 								bitstream.setSource(uri);
@@ -181,7 +181,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bundle.addBitstream(bitstream);
 							}
 							else {
-								console.append("\n*** WARNING:  URL on line " + linenumber + " cell " + columnIndex + " must be either an HTTP or HTTPS URL. ***\n");
+								console.append("\n*** WARNING:  URL protocol on line " + linenumber + " cell " + columnIndex + " must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
 						}
 						else {

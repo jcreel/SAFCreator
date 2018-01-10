@@ -2,11 +2,15 @@ package edu.tamu.di.SAFCreator.verify;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.net.URI;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
@@ -31,28 +35,59 @@ public class FilesExistVerifierImpl implements Verifier {
 						URI source = bitstream.getSource();
 						if (source.isAbsolute() && !source.getScheme().toString().equalsIgnoreCase("file"))
 						{
-							HttpURLConnection conn = null;
+							if (source.getScheme().toString().equalsIgnoreCase("ftp")) {
+								FTPClient conn = new FTPClient();
 
-							try {
-								conn = (HttpURLConnection) source.toURL().openConnection();
-								conn.setRequestMethod("HEAD");
-								conn.getInputStream().close();
+								try {
+									conn.connect(source.toURL().getHost());
+									conn.enterLocalPassiveMode();
+									conn.login("anonymous", "");
 
-								int response = conn.getResponseCode();
+									String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "ASCII");
+									FTPFile[] files = conn.listFiles(decodedUrl);
 
-								if (response != 200) {
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Unable to validate file URL " + source.toString() + ", HTTP Response Code: " + response + ".");
-									missingFiles.add(missingFile);
+									if (files.length == 0) {
+										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "FTP file URL " + source.toString() + " was not found.");
+										missingFiles.add(missingFile);
+									}
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								}
-							} catch (MalformedURLException e) {
-								Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " is invalid, reason: " + e.getMessage() + ".");
-								missingFiles.add(missingFile);
-							} catch (IOException e) {
-								Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " had a connection error, message: " + e.getMessage() + ".");
-								missingFiles.add(missingFile);
-							} finally {
-								if (conn != null) {
-									conn.disconnect();
+
+								try {
+									if (conn.isConnected()) {
+										conn.disconnect();
+									}
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							else {
+								HttpURLConnection conn = null;
+
+								try {
+									conn = (HttpURLConnection) source.toURL().openConnection();
+									conn.setRequestMethod("HEAD");
+									conn.getInputStream().close();
+
+									int response = conn.getResponseCode();
+
+									if (response != 200) {
+										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Unable to validate file URL " + source.toString() + ", HTTP Response Code: " + response + ".");
+										missingFiles.add(missingFile);
+									}
+								} catch (MalformedURLException e) {
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " is invalid, reason: " + e.getMessage() + ".");
+									missingFiles.add(missingFile);
+								} catch (IOException e) {
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " had a connection error, message: " + e.getMessage() + ".");
+									missingFiles.add(missingFile);
+								} finally {
+									if (conn != null) {
+										conn.disconnect();
+									}
 								}
 							}
 						} else {

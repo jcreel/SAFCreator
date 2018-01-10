@@ -1,11 +1,18 @@
 package edu.tamu.di.SAFCreator.model;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+
 import edu.tamu.di.SAFCreator.model.CellDatumImpl;
 
 public class Bitstream extends CellDatumImpl
@@ -67,7 +74,35 @@ public class Bitstream extends CellDatumImpl
 
 			if (source.isAbsolute() && !source.getScheme().toString().equalsIgnoreCase("file")) {
 				URL url = source.toURL();
-				FileUtils.copyURLToFile(url, destination, TimeoutConnection, TimeoutRead);
+				if (source.getScheme().toString().equalsIgnoreCase("ftp")) {
+					FTPClient conn = new FTPClient();
+
+					try {
+						conn.connect(source.toURL().getHost());
+						conn.setFileType(FTP.BINARY_FILE_TYPE);
+						conn.enterLocalPassiveMode();
+						conn.login("anonymous", "");
+
+						String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "ASCII");
+						OutputStream output = new FileOutputStream(destination);
+						conn.retrieveFile(decodedUrl, output);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+					try {
+						if (conn.isConnected()) {
+							conn.disconnect();
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				else {
+					FileUtils.copyURLToFile(url, destination, TimeoutConnection, TimeoutRead);
+				}
 		    }
 			else {
 				File file = new File(source.getPath());
