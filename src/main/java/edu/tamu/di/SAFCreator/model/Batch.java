@@ -17,6 +17,7 @@ public class Batch {
 	private License license;
 	private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
 	private Boolean ignoreFiles = false;
+	private Boolean processUri = false;
 	
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -160,5 +161,13 @@ public class Batch {
 	public void setIgnoreFiles(Boolean ignoreFiles) {
 		this.ignoreFiles = ignoreFiles;
 	}
+
+        public Boolean getProcessUri() {
+                return processUri;
+        }
+
+        public void setProcessUri(Boolean processUri) {
+                this.processUri = processUri;
+        }
 	
 }

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URI;
 
 import javax.swing.JTextArea;
 
@@ -23,6 +24,8 @@ import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
 
 public class ImportDataProcessorImpl implements ImportDataProcessor 
 {
+	private static String PdfPrefix = "document-";
+	private static String PdfSuffix = ".pdf";
 
 	public Batch loadBatch(String metadataInputFileName,
 			String sourceDirectoryName, String outputDirectoryName,
@@ -83,10 +86,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				}
 				else if(cell.toLowerCase().contains("handle"))
 				{
-				        HandleLabel handleLabel = new HandleLabel();
-				        handleLabel.setColumn(columnCounter);
-				        handleLabel.setRow(1);
-				        columnLabels.add(handleLabel);
+					HandleLabel handleLabel = new HandleLabel();
+					handleLabel.setColumn(columnCounter);
+					handleLabel.setRow(1);
+					columnLabels.add(handleLabel);
 				}
 				else if(cell.contains("."))
 				{
@@ -164,50 +167,68 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						FileLabel fileLabel = (FileLabel) label;
 						String bundleName = fileLabel.getBundleName();
 						Bundle bundle = item.getOrCreateBundle(bundleName);
+						URI uri = URI.create(cell);
 						
-						int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
-						String[] values = cell.split("\\|\\|");
-						for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
-						{
-							String value = values[valueCounter].trim();
-							
-							value = value.replace("/", File.separator);
-							
-							//if the value is of the form foo/* then get all the files in foo
-							//(note that at present this assumes no further subdirectories under foo)
-							//otherwise, just get the single named file
-							if(value.endsWith(File.separator + "*"))
-							{
-								String directoryName = value.substring(0, value.length()-2);
-								File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
-								File[] files = directory.listFiles();
-								if(files == null)
-								{
-								        console.append("\n*** WARNING:  No files found for item directory " + directory.getPath() + " ***\n");
-								}
-								else
-								{
-        								for(File file : files)
-        								{
-        									Bitstream bitstream = new Bitstream();
-        									bitstream.setBundle(bundle);
-        									bitstream.setSource(file);
-        									bitstream.setRelativePath(directoryName + File.separator + file.getName());
-        									bitstream.setColumn(columnCounter);
-        									bitstream.setRow(linenumber);
-        									bundle.addBitstream(bitstream);
-        								}
-								}
-							}
-							else
-							{
+						if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
+							String scheme = uri.getScheme().toString();
+							if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")) {
 								Bitstream bitstream = new Bitstream();
 								bitstream.setBundle(bundle);
-								bitstream.setSource(new File(batch.getinputFilesDir() + File.separator + value));
-								bitstream.setRelativePath(value);
+								bitstream.setSource(uri);
+								bitstream.setRelativePath(PdfPrefix + linenumber + PdfSuffix);
 								bitstream.setColumn(columnCounter);
 								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
+							}
+							else {
+								console.append("\n*** WARNING:  URL on line " + linenumber + " cell " + columnIndex + " must be either an HTTP or HTTPS URL. ***\n");
+							}
+						}
+						else {
+							int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
+							String[] values = cell.split("\\|\\|");
+							for(int valueCounter = 0; valueCounter < numberOfValues; valueCounter++)
+							{
+								String value = values[valueCounter].trim();
+
+								value = value.replace("/", File.separator);
+
+								//if the value is of the form foo/* then get all the files in foo
+								//(note that at present this assumes no further subdirectories under foo)
+								//otherwise, just get the single named file
+								if(value.endsWith(File.separator + "*"))
+								{
+									String directoryName = value.substring(0, value.length()-2);
+									File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
+									File[] files = directory.listFiles();
+									if(files == null)
+									{
+									        console.append("\n*** WARNING:  No files found for item directory " + directory.getPath() + " ***\n");
+									}
+									else
+									{
+										for(File file : files)
+										{
+											Bitstream bitstream = new Bitstream();
+											bitstream.setBundle(bundle);
+											bitstream.setSource(file.toURI());
+											bitstream.setRelativePath(directoryName + File.separator + file.getName());
+											bitstream.setColumn(columnCounter);
+											bitstream.setRow(linenumber);
+											bundle.addBitstream(bitstream);
+										}
+									}
+								}
+								else
+								{
+									Bitstream bitstream = new Bitstream();
+									bitstream.setBundle(bundle);
+									bitstream.setSource(URI.create(batch.getinputFilesDir() + File.separator + value));
+									bitstream.setRelativePath(value);
+									bitstream.setColumn(columnCounter);
+									bitstream.setRow(linenumber);
+									bundle.addBitstream(bitstream);
+								}
 							}
 						}
 					}
@@ -253,7 +274,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		{
 			item.writeItemSAF();
 			console.append("\tWrote item " + item.getSAFDirectory() + "\n");
-		}	
+		}
 		console.append("Done writing SAF data.\n");
 	}
 
