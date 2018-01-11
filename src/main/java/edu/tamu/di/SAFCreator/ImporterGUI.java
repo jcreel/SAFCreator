@@ -502,6 +502,7 @@ public class ImporterGUI extends JFrame
 						{
 							console.append("success.\n");
 
+							ignoreFilesBox.setEnabled(true);
 							itemProcessDelayField.setEnabled(true);
 						}
 						else
@@ -517,6 +518,7 @@ public class ImporterGUI extends JFrame
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
 							
+							ignoreFilesBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
 
 							return;
@@ -571,6 +573,11 @@ public class ImporterGUI extends JFrame
 			{
 				public void mouseClicked(MouseEvent e) 
 				{
+					if (!ignoreFilesBox.isEnabled()) {
+						// checkbox mouse clicks still trigger even when set to disabled.
+						return;
+					}
+
 					if(ignoreFilesBox.isSelected())
 					{
 						console.append("Bitstream (content) files will be ommitted from generated SAF.\n");
@@ -599,6 +606,7 @@ public class ImporterGUI extends JFrame
 		advancedSettingsTab.add(itemProcessDelayPanel);
 
 		// initialize as disabled so that it will only be enable once a batch is assigned.
+		ignoreFilesBox.setEnabled(false);
 		itemProcessDelayField.setEnabled(false);
 		itemProcessDelayField.getDocument().addDocumentListener
 		(
