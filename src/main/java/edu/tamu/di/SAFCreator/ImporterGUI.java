@@ -441,9 +441,31 @@ public class ImporterGUI extends JFrame
 			    {   
 			        if( inputFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
 			        {
-			        	console.append("You have selected this input CSV file: " + inputFileChooser.getSelectedFile().getName() + ".\n");
-			        	metadataInputFileName = inputFileChooser.getSelectedFile().getAbsolutePath();
-			        	inputFileNameField.setText(metadataInputFileName);
+						console.append("You have selected this input CSV file: " + inputFileChooser.getSelectedFile().getName() + ".\n");
+						metadataInputFileName = inputFileChooser.getSelectedFile().getAbsolutePath();
+						inputFileNameField.setText(metadataInputFileName);
+
+						if (!actionStatus.equals(ActionStatus.NONE_LOADED)) {
+							console.append("Resetting due to new CSV file selection.\n");
+
+							batch = null;
+
+							statusIndicator.setText("No batch loaded.");
+							statusIndicator.setForeground(Color.white);
+							statusIndicator.setBackground(Color.blue);
+
+							statusIndicator.setText("Please load a batch for processing.");
+							actionStatusField.setForeground(Color.white);
+							actionStatusField.setBackground(Color.blue);
+
+							ignoreFilesBox.setEnabled(false);
+							ignoreFilesBox.setSelected(false);
+
+							itemProcessDelayField.setEnabled(false);
+							itemProcessDelayField.setText("0");
+
+							actionStatus = ActionStatus.NONE_LOADED;
+						}
 			        }
 			    }
 			}

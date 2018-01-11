@@ -277,5 +277,4 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		}
 		console.append("Done writing SAF data.\n");
 	}
-
 }
