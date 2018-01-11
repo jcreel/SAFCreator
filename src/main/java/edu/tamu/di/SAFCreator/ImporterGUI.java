@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Vector;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Verifier;
@@ -27,6 +31,9 @@ public class ImporterGUI extends JFrame
 	private enum ActionStatus {NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN};
 	private ActionStatus actionStatus = ActionStatus.NONE_LOADED;
 	
+	private enum FieldChangeStatus {NO_CHANGES, CHANGES};
+	private FieldChangeStatus itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES; 
+
 	private static final long serialVersionUID = 1L;
 	
 	//tabbed views
@@ -70,6 +77,8 @@ public class ImporterGUI extends JFrame
 	
 	//Components of the Advanced Settings tab
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
+	private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
+	private final JTextField itemProcessDelayField= new JTextField("0", 10);
 	
 	
 	//Components shown under any tab
@@ -492,6 +501,8 @@ public class ImporterGUI extends JFrame
 						if(batch != null)
 						{
 							console.append("success.\n");
+
+							itemProcessDelayField.setEnabled(true);
 						}
 						else
 						{
@@ -506,6 +517,8 @@ public class ImporterGUI extends JFrame
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
 							
+							itemProcessDelayField.setEnabled(false);
+
 							return;
 						}
 						
@@ -577,6 +590,78 @@ public class ImporterGUI extends JFrame
 				public void mouseEntered(MouseEvent e) {}
 
 				public void mouseExited(MouseEvent e) {}
+			}
+		);
+
+		JPanel itemProcessDelayPanel = new JPanel();
+		itemProcessDelayPanel.add(itemProcessDelayLabel);
+		itemProcessDelayPanel.add(itemProcessDelayField);
+		advancedSettingsTab.add(itemProcessDelayPanel);
+
+		// initialize as disabled so that it will only be enable once a batch is assigned.
+		itemProcessDelayField.setEnabled(false);
+		itemProcessDelayField.getDocument().addDocumentListener
+		(
+			new DocumentListener()
+			{
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+				}
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					if (batch == null) {
+						return;
+					}
+
+					itemProcessDelayFieldChangeStatus = FieldChangeStatus.CHANGES;
+				}
+
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					insertUpdate(e);
+				}
+			}
+		);
+
+		itemProcessDelayField.addFocusListener(
+			new FocusListener() {
+
+				@Override
+				public void focusGained(FocusEvent event) {
+				}
+
+				@Override
+				public void focusLost(FocusEvent event) {
+					if (itemProcessDelayFieldChangeStatus == FieldChangeStatus.CHANGES) {
+						String text = itemProcessDelayField.getText();
+						int delay = batch.getItemProcessDelay();
+
+						// enforce a default value of 0 when text box is empty.
+						if (text.length() == 0) {
+							text = "0";
+							itemProcessDelayField.setText(text);
+						}
+
+						try {
+							delay = Integer.parseInt(text);
+						} catch (NumberFormatException e) {
+							console.append("The specified Item Process Delay is invalid, resetting.\n");
+							itemProcessDelayField.setText(String.valueOf(batch.getItemProcessDelay()));
+						}
+
+						if (delay < 0) {
+							console.append("The Item Process Delay may not be a negative integer, resetting.\n");
+							itemProcessDelayField.setText(String.valueOf(batch.getItemProcessDelay()));
+						}
+						else {
+							batch.setItemProcessDelay(delay);
+							console.append("The Item Process Delay is now set to " + delay + " milliseconds.\n");
+						}
+
+						itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+					}
+				}
 			}
 		);
 	}

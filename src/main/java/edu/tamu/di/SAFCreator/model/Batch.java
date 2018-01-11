@@ -18,6 +18,7 @@ public class Batch {
 	private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
 	private Boolean ignoreFiles = false;
 	private Boolean processUri = false;
+	private int itemProcessDelay = 0;
 	
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -169,5 +170,24 @@ public class Batch {
         public void setProcessUri(Boolean processUri) {
                 this.processUri = processUri;
         }
+
+	/**
+	 * Set the item process delay time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setItemProcessDelay(int itemProcessDelay)
+	{
+		this.itemProcessDelay = itemProcessDelay;
+	}
+
+	/**
+	 * @return The item process delay time (in milliseconds).
+	 */
+	public int getItemProcessDelay()
+	{
+		return itemProcessDelay;
+	}
 	
 }

@@ -7,11 +7,11 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 
 import edu.tamu.di.SAFCreator.model.CellDatumImpl;
 
@@ -73,6 +73,11 @@ public class Bitstream extends CellDatumImpl
 			}
 
 			if (source.isAbsolute() && !source.getScheme().toString().equalsIgnoreCase("file")) {
+				int itemProcessDelay = bundle.getItem().getBatch().getItemProcessDelay();
+				if (itemProcessDelay > 0) {
+					TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
+				}
+
 				URL url = source.toURL();
 				if (source.getScheme().toString().equalsIgnoreCase("ftp")) {
 					FTPClient conn = new FTPClient();
@@ -109,6 +114,9 @@ public class Bitstream extends CellDatumImpl
 				FileUtils.copyFile(file, destination);
 		    }
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

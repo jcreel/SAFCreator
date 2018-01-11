@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -39,6 +40,11 @@ public class FilesExistVerifierImpl implements Verifier {
 								FTPClient conn = new FTPClient();
 
 								try {
+									int itemProcessDelay = batch.getItemProcessDelay();
+									if (itemProcessDelay > 0) {
+										TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
+									}
+
 									conn.connect(source.toURL().getHost());
 									conn.enterLocalPassiveMode();
 									conn.login("anonymous", "");
@@ -51,6 +57,9 @@ public class FilesExistVerifierImpl implements Verifier {
 										missingFiles.add(missingFile);
 									}
 								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
@@ -68,6 +77,11 @@ public class FilesExistVerifierImpl implements Verifier {
 								HttpURLConnection conn = null;
 
 								try {
+									int itemProcessDelay = batch.getItemProcessDelay();
+									if (itemProcessDelay > 0) {
+										TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
+									}
+
 									conn = (HttpURLConnection) source.toURL().openConnection();
 									conn.setRequestMethod("HEAD");
 									conn.getInputStream().close();
@@ -84,6 +98,9 @@ public class FilesExistVerifierImpl implements Verifier {
 								} catch (IOException e) {
 									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " had a connection error, message: " + e.getMessage() + ".");
 									missingFiles.add(missingFile);
+								} catch (InterruptedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								} finally {
 									if (conn != null) {
 										conn.disconnect();
