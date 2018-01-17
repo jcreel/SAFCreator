@@ -24,6 +24,8 @@ import edu.tamu.di.SAFCreator.model.Verifier;
 
 public class FilesExistVerifierImpl implements Verifier {
 	private static int MaxRedirects = 20;
+	private static int TimeoutConnection = 5000;
+	private static int TimeoutRead = 5000;
 
 	public List<Problem> verify(Batch batch) 
 	{
@@ -49,6 +51,8 @@ public class FilesExistVerifierImpl implements Verifier {
 										TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
 									}
 
+									conn.setConnectTimeout(TimeoutConnection);
+									conn.setDataTimeout(TimeoutRead);
 									conn.connect(source.toURL().getHost());
 									conn.enterLocalPassiveMode();
 									conn.login("anonymous", "");
@@ -61,8 +65,8 @@ public class FilesExistVerifierImpl implements Verifier {
 										missingFiles.add(missingFile);
 									}
 								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Connection problem for FTP file URL " + source.toString() + ", message: " + e.getMessage() + ".");
+									missingFiles.add(missingFile);
 								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();

@@ -83,6 +83,8 @@ public class Bitstream extends CellDatumImpl
 					FTPClient conn = new FTPClient();
 
 					try {
+						conn.setConnectTimeout(TimeoutConnection);
+						conn.setDataTimeout(TimeoutRead);
 						conn.connect(source.toURL().getHost());
 						conn.setFileType(FTP.BINARY_FILE_TYPE);
 						conn.enterLocalPassiveMode();

@@ -175,7 +175,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								Bitstream bitstream = new Bitstream();
 								bitstream.setBundle(bundle);
 								bitstream.setSource(uri);
-								bitstream.setRelativePath(PdfPrefix + linenumber + PdfSuffix);
+								bitstream.setRelativePath(PdfPrefix + columnIndex + PdfSuffix);
 								bitstream.setColumn(columnCounter);
 								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
@@ -183,6 +183,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							else {
 								console.append("\n*** WARNING:  URL protocol on line " + linenumber + " cell " + columnIndex + " must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
+						}
+						else if (cell.isEmpty()) {
+							continue;
 						}
 						else {
 							int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
@@ -221,13 +224,16 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								}
 								else
 								{
-									Bitstream bitstream = new Bitstream();
-									bitstream.setBundle(bundle);
-									bitstream.setSource(URI.create(batch.getinputFilesDir() + File.separator + value));
-									bitstream.setRelativePath(value);
-									bitstream.setColumn(columnCounter);
-									bitstream.setRow(linenumber);
-									bundle.addBitstream(bitstream);
+									URI fileUri = URI.create(batch.getinputFilesDir() + File.separator + value);
+									if (fileUri != null) {
+										Bitstream bitstream = new Bitstream();
+										bitstream.setBundle(bundle);
+										bitstream.setSource(fileUri);
+										bitstream.setRelativePath(value);
+										bitstream.setColumn(columnCounter);
+										bitstream.setRow(linenumber);
+										bundle.addBitstream(bitstream);
+									}
 								}
 							}
 						}
