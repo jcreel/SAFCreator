@@ -21,6 +21,7 @@ import edu.tamu.di.SAFCreator.model.FileLabel;
 import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
+import edu.tamu.di.SAFCreator.model.StubLabel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
@@ -106,8 +107,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				}
 				else
 				{
-					console.append("\nProblem encountered:  Ignoring invalid column label at column " + columnCounter + ": " + cell + "\n");
-					errorState = true;
+					console.append("\nWarning:  Ignoring invalid column label at column " + columnCounter + ": " + cell + "\n");
+					StubLabel stubLabel = new StubLabel();
+					stubLabel.setColumn(columnCounter);
+					stubLabel.setRow(1);
+					columnLabels.add(stubLabel);
 				}
 				columnCounter++;
 			}
@@ -246,7 +250,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					else
 					{
-						console.append("Ignoring line " + linenumber + " cell " + columnIndex + "\n");
+						console.append("Ignoring line " + linenumber + " column " + columnCounter + "\n");
 					}
 					columnCounter++;
 				}
