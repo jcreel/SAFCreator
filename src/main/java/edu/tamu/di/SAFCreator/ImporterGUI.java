@@ -97,7 +97,12 @@ public class ImporterGUI extends JFrame
 	private static String outputDirectoryName;
 	
 	private final ImportDataProcessor processor;
-	
+
+
+	// swing background process handling
+	private SwingWorker<Boolean, Void> backgroundVerifier;
+	private SwingWorker<Boolean, Void> backgroundWriter;
+
 	
 	public ImporterGUI(final ImportDataProcessor processor)
 	{	
@@ -203,30 +208,52 @@ public class ImporterGUI extends JFrame
 				{
 					if(actionStatus == ActionStatus.LOADED)
 					{
-					
-						boolean verified=true;
-						
-						List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
-						for(Verifier verifier : verifiers)
-						{
-							problems.addAll(verifier.verify(batch));
-						}
-						
-						for(Verifier.Problem problem : problems)
-						{
-							if(problem.isError()) verified = false;
-							console.append(problem.toString()+"\n");
-						}
-					
-						
-						if(verified)
-						{
-							transitionToVerifySuccess();
-						}
-						else
-						{
-							transitionToVerifyFailed();
-						}
+						loadBatchBtn.setEnabled(false);
+						chooseInputFileBtn.setEnabled(false);
+						writeSAFBtn.setEnabled(false);
+						verifyBatchBtn.setEnabled(false);
+						verifyBatchBtn.setText("Verifying..");
+
+						backgroundVerifier = new SwingWorker<Boolean, Void>() {
+							@Override
+							public Boolean doInBackground() {
+								boolean verified=true;
+
+								List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+								for(Verifier verifier : verifiers)
+								{
+									problems.addAll(verifier.verify(batch));
+								}
+
+								for(Verifier.Problem problem : problems)
+								{
+									if(problem.isError()) verified = false;
+									console.append(problem.toString()+"\n");
+								}
+
+								if(verified)
+								{
+									transitionToVerifySuccess();
+								}
+								else
+								{
+									transitionToVerifyFailed();
+								}
+
+								return verified;
+							}
+
+							@Override
+							public void done() {
+								verifyBatchBtn.setText("Verify Batch");
+								verifyBatchBtn.setEnabled(true);
+								loadBatchBtn.setEnabled(true);
+								chooseInputFileBtn.setEnabled(true);
+								writeSAFBtn.setEnabled(true);
+							}
+						};
+
+						backgroundVerifier.execute();
 					}
 					else
 					{
@@ -536,7 +563,7 @@ public class ImporterGUI extends JFrame
 							statusIndicator.setText("Please load a batch for processing.");
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
-							
+
 							ignoreFilesBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
 							userAgentField.setEnabled(false);
@@ -562,11 +589,32 @@ public class ImporterGUI extends JFrame
 	
 					if(actionStatus.equals(ActionStatus.VERIFIED))
 					{
-						//Write the batch and set status to WRITTEN
-						console.append("Parsing CSV file and writing output to DC XML files...\n");
-						processor.writeBatchSAF(batch, console);
-						
-						transitionToWritten();
+						loadBatchBtn.setEnabled(false);
+						verifyBatchBtn.setEnabled(false);
+						chooseInputFileBtn.setEnabled(false);
+						writeSAFBtn.setEnabled(false);
+						writeSAFBtn.setText("Writing..");
+
+						backgroundWriter = new SwingWorker<Boolean, Void>() {
+							@Override
+							public Boolean doInBackground() {
+								//Write the batch and set status to WRITTEN
+								console.append("Parsing CSV file and writing output to DC XML files...\n");
+								processor.writeBatchSAF(batch, console);
+								return true;
+							}
+
+							@Override
+							public void done() {
+								transitionToWritten();
+								writeSAFBtn.setEnabled(true);
+								loadBatchBtn.setEnabled(true);
+								verifyBatchBtn.setEnabled(true);
+								chooseInputFileBtn.setEnabled(true);
+							}
+						};
+
+						backgroundWriter.execute();
 					}
 					else if(actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
