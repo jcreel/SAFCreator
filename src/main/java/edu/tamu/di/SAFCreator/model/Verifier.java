@@ -9,12 +9,20 @@ public interface Verifier
 	
 	public class Problem 
 	{
-		private int rownumber;
-		private char columnletter;
+		private Integer rownumber = null;
+		private Character columnletter = null;
 		private boolean error;
 		private String note;
 		
 		
+		public Problem(boolean error, String note)
+		{
+			this.rownumber = null;
+			this.columnletter = null;
+			this.error = error;
+			this.note = note;
+		}
+
 		public Problem(int rownumber, char columnletter, boolean error, String note)
 		{
 			this.rownumber = rownumber;
@@ -26,6 +34,10 @@ public interface Verifier
 		@Override
 		public String toString()
 		{
+			if (rownumber == null) {
+				return (error?"ERROR":"WARNING") + ": " + note;
+			}
+
 			return (error?"ERROR at ":"WARNING at ") + "column " + columnletter + " row " + rownumber + ": " + note;
 		}
 		

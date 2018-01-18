@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.di.SAFCreator.Util;
+import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Item {
 	private Batch batch;
@@ -77,7 +78,7 @@ public class Item {
 		return bundle;
 	}
 	
-	private void writeContents()
+	private void writeContents(List<Problem> problems)
 	{
 		String contentsString = "";
 		for(Bundle bundle : bundles)
@@ -87,7 +88,7 @@ public class Item {
 				contentsString += bitstream.getContentsManifestLine();
 				if( ! batch.getIgnoreFiles())
 				{
-					bitstream.copyMe();
+					bitstream.copyMe(problems);
 				}
 			}
 		}
@@ -106,15 +107,15 @@ public class Item {
 			}
 			Util.setFileContents(contentsFile, contentsString);
 		} catch (FileNotFoundException e) {
-			System.err.println("Unable to write to missing contents file for item directory " + getSAFDirectory());
-			e.printStackTrace();
+			Problem problem = new Problem(true, "Unable to write to missing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+			problems.add(problem);
 		} catch (IOException e) {
-			System.err.println("Error writing contents file for item directory " + getSAFDirectory());
-			e.printStackTrace();
+			Problem problem = new Problem(true, "Error writing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+			problems.add(problem);
 		}
 	}
 	
-	private void writeHandle()
+	private void writeHandle(List<Problem> problems)
 	{
 	        File handleFile = new File(itemDirectory.getAbsolutePath() + "/handle");
 	        try {
@@ -124,15 +125,15 @@ public class Item {
                     }
                     Util.setFileContents(handleFile, getHandle());
                 } catch (FileNotFoundException e) {
-                        System.err.println("Unable to write to missing handle file for item directory " + getSAFDirectory());
-                        e.printStackTrace();
+					Problem problem = new Problem(true, "Unable to write to missing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+					problems.add(problem);
                 } catch (IOException e) {
-                        System.err.println("Error writing handle file for item directory " + getSAFDirectory());
-                        e.printStackTrace();
+					Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+					problems.add(problem);
                 }
 	}
 	
-	private void writeMetadata()
+	private void writeMetadata(List<Problem> problems)
 	{
 		for(SchematicFieldSet schema : schemata)
 		{
@@ -145,20 +146,22 @@ public class Item {
 				}
 				Util.setFileContents(metadataFile, schema.getXML());
 			} catch (FileNotFoundException e) {
-				System.err.println("Unable to write to missing metadata file " + metadataFile.getAbsolutePath());
-				e.printStackTrace();
+				Problem problem = new Problem(true, "Unable to write to missing metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
+				problems.add(problem);
 			} catch (IOException e) {
-				System.err.println("Unable to create metadata file " + metadataFile.getAbsolutePath());
-				e.printStackTrace();
+				Problem problem = new Problem(true, "Unable to create metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
+				problems.add(problem);
 			}
 		}
 	}
 	
-	public void writeItemSAF()
+	public List<Problem> writeItemSAF()
 	{
-		writeContents();
-		writeMetadata();
-		if(getHandle() != null) writeHandle();
+		List<Problem> problems = new ArrayList<Problem>();
+		writeContents(problems);
+		writeMetadata(problems);
+		if(getHandle() != null) writeHandle(problems);
+		return problems;
 	}
 
 	public String getSAFDirectory() {

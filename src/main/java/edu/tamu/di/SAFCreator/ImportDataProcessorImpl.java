@@ -21,6 +21,8 @@ import edu.tamu.di.SAFCreator.model.FileLabel;
 import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
+import edu.tamu.di.SAFCreator.model.Verifier;
+import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class ImportDataProcessorImpl implements ImportDataProcessor 
 {
@@ -278,8 +280,20 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 	{
 		for(Item item : batch.getItems())
 		{
-			item.writeItemSAF();
-			console.append("\tWrote item " + item.getSAFDirectory() + "\n");
+			boolean hasError = false;
+			List<Problem> problems = item.writeItemSAF();
+			for(Verifier.Problem problem : problems)
+			{
+				console.append(problem.toString()+"\n");
+				if (problem.isError()) {
+					hasError = true;
+				}
+			}
+			if (hasError) {
+				console.append("\tFailed to write item " + item.getSAFDirectory() + "\n");
+			} else {
+				console.append("\tWrote item " + item.getSAFDirectory() + "\n");
+			}
 		}
 		console.append("Done writing SAF data.\n");
 	}

@@ -19,6 +19,7 @@ public class Batch {
 	private Boolean ignoreFiles = false;
 	private Boolean processUri = false;
 	private int itemProcessDelay = 0;
+	private String userAgent = null;
 	
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -183,11 +184,41 @@ public class Batch {
 	}
 
 	/**
+	 * Set the item process delay time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setItemProcessDelay(String itemProcessDelay)
+	{
+		this.itemProcessDelay = Integer.parseInt(itemProcessDelay);
+	}
+
+	/**
 	 * @return The item process delay time (in milliseconds).
 	 */
 	public int getItemProcessDelay()
 	{
 		return itemProcessDelay;
+	}
+
+	/**
+	 * Set the user agent string.
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setUserAgent(String userAgent)
+	{
+		this.userAgent = userAgent;
+	}
+
+	/**
+	 * @return The item process delay time (in milliseconds).
+	 */
+	public String getUserAgent()
+	{
+		return userAgent;
 	}
 	
 }

@@ -25,16 +25,19 @@ import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
 public class ImporterGUI extends JFrame 
 {
 	private Batch batch;
-	
+
 	private List<Verifier> verifiers = new ArrayList<Verifier>();
-	
+
 	private enum ActionStatus {NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN};
 	private ActionStatus actionStatus = ActionStatus.NONE_LOADED;
-	
+
 	private enum FieldChangeStatus {NO_CHANGES, CHANGES};
-	private FieldChangeStatus itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES; 
+	private FieldChangeStatus itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+	private FieldChangeStatus userAgentFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 
 	private static final long serialVersionUID = 1L;
+	private static final String defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0";
+	private static final int defaultProcessDelay = 400;
 	
 	//tabbed views
 	private final JTabbedPane tabs = new JTabbedPane();
@@ -78,7 +81,9 @@ public class ImporterGUI extends JFrame
 	//Components of the Advanced Settings tab
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
 	private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
-	private final JTextField itemProcessDelayField= new JTextField("0", 10);
+	private final JTextField itemProcessDelayField= new JTextField(String.valueOf(defaultProcessDelay), 10);
+	private final JLabel userAgentLabel = new JLabel("User agent:");
+	private final JTextField userAgentField = new JTextField(defaultUserAgent, 48);
 	
 	
 	//Components shown under any tab
@@ -460,9 +465,8 @@ public class ImporterGUI extends JFrame
 
 							ignoreFilesBox.setEnabled(false);
 							ignoreFilesBox.setSelected(false);
-
 							itemProcessDelayField.setEnabled(false);
-							itemProcessDelayField.setText("0");
+							userAgentField.setEnabled(false);
 
 							actionStatus = ActionStatus.NONE_LOADED;
 						}
@@ -520,14 +524,7 @@ public class ImporterGUI extends JFrame
 						//Attempt to load the batch and set status to LOADED if successful, NONE_LOADED if failing
 						console.append("Loading batch for " + metadataInputFileName + "...");
 						batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName, console);
-						if(batch != null)
-						{
-							console.append("success.\n");
-
-							ignoreFilesBox.setEnabled(true);
-							itemProcessDelayField.setEnabled(true);
-						}
-						else
+						if(batch == null)
 						{
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
@@ -542,10 +539,13 @@ public class ImporterGUI extends JFrame
 							
 							ignoreFilesBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
+							userAgentField.setEnabled(false);
 
 							return;
 						}
-						
+
+						console.append("success.\n");
+
 						transitionToLoaded();
 					}										
 				}
@@ -627,6 +627,11 @@ public class ImporterGUI extends JFrame
 		itemProcessDelayPanel.add(itemProcessDelayField);
 		advancedSettingsTab.add(itemProcessDelayPanel);
 
+		JPanel userAgentPanel = new JPanel();
+		userAgentPanel.add(userAgentLabel);
+		userAgentPanel.add(userAgentField);
+		advancedSettingsTab.add(userAgentPanel);
+
 		// initialize as disabled so that it will only be enable once a batch is assigned.
 		ignoreFilesBox.setEnabled(false);
 		itemProcessDelayField.setEnabled(false);
@@ -694,6 +699,49 @@ public class ImporterGUI extends JFrame
 				}
 			}
 		);
+
+		userAgentField.setEnabled(false);
+		userAgentField.getDocument().addDocumentListener
+		(
+			new DocumentListener()
+			{
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+				}
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					if (batch == null) {
+						return;
+					}
+
+					userAgentFieldChangeStatus = FieldChangeStatus.CHANGES;
+				}
+
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					insertUpdate(e);
+				}
+			}
+		);
+
+		userAgentField.addFocusListener(
+			new FocusListener() {
+
+				@Override
+				public void focusGained(FocusEvent event) {
+				}
+
+				@Override
+				public void focusLost(FocusEvent event) {
+					if (userAgentFieldChangeStatus == FieldChangeStatus.CHANGES) {
+						console.append("The user agent has been set to '" + userAgentField.getText() + "'.\n");
+						itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+						batch.setUserAgent(userAgentField.getText());
+					}
+				}
+			}
+		);
 	}
 	
 	
@@ -730,8 +778,15 @@ public class ImporterGUI extends JFrame
 		statusIndicator.setBackground(Color.blue);
 		loadBatchBtn.setText("Reload batch as specified");
 		addLicenseCheckbox.setSelected(false);
-		restrictToGroupCheckbox.setSelected(false);
 		writeSAFBtn.setText("Verify batch before writing SAF");
+
+		batch.setIgnoreFiles(ignoreFilesBox.isSelected());
+		batch.setItemProcessDelay(itemProcessDelayField.getText());
+		batch.setUserAgent(userAgentField.getText());
+
+		ignoreFilesBox.setEnabled(true);
+		itemProcessDelayField.setEnabled(true);
+		userAgentField.setEnabled(true);
 	}
 	
 
