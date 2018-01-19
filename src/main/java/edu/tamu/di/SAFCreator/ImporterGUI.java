@@ -60,7 +60,7 @@ public class ImporterGUI extends JFrame
 	private final JTextField outputDirectoryNameField = new JTextField("", 40);
 	private final JTextField actionStatusField = new JTextField("Please load a batch for processing.");
 	private final JButton loadBatchBtn = new JButton("Load specified batch now!");
-	private final JButton writeSAFBtn = new JButton("No batch loaded.");
+	private final JButton writeSAFBtn = new JButton("No batch loaded");
 	private final JButton writeCancelBtn = new JButton("Cancel");
 	
 	//Components of the License tab
@@ -92,7 +92,7 @@ public class ImporterGUI extends JFrame
 	
 	//Components shown under any tab
 	private final JPanel statusPanel = new JPanel();
-	private final JTextArea statusIndicator = new JTextArea("No batch loaded.", 2, 10);
+	private final JTextArea statusIndicator = new JTextArea("No batch loaded", 2, 10);
 	private final JTextArea console = new JTextArea(20, 50);
 	private final JScrollPane scrollPane;
 	
@@ -568,6 +568,7 @@ public class ImporterGUI extends JFrame
 		actionStatusField.setEditable(false);
 
 		writeCancelBtn.setEnabled(false);
+		writeSAFBtn.setEnabled(false);
 		writeButtonPanel.add(loadBatchBtn);
 		writeButtonPanel.add(actionStatusField);
 		writeButtonPanel.add(writeSAFBtn);
@@ -594,7 +595,7 @@ public class ImporterGUI extends JFrame
 
 							batch = null;
 
-							statusIndicator.setText("No batch loaded.");
+							statusIndicator.setText("No batch loaded");
 							statusIndicator.setForeground(Color.white);
 							statusIndicator.setBackground(Color.blue);
 
@@ -606,6 +607,9 @@ public class ImporterGUI extends JFrame
 							ignoreFilesBox.setSelected(false);
 							itemProcessDelayField.setEnabled(false);
 							userAgentField.setEnabled(false);
+
+							writeSAFBtn.setEnabled(false);
+							writeSAFBtn.setText("No batch loaded");
 
 							actionStatus = ActionStatus.NONE_LOADED;
 						}
@@ -671,7 +675,7 @@ public class ImporterGUI extends JFrame
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
 							
-							statusIndicator.setText("No batch loaded.");
+							statusIndicator.setText("No batch loaded");
 							statusIndicator.setForeground(Color.white);
 							statusIndicator.setBackground(Color.blue);
 							
@@ -949,18 +953,18 @@ public class ImporterGUI extends JFrame
 		loadBatchBtn.setText("Load specified batch now!");
 		
 		//writeSAFBtn
-		writeSAFBtn.setText("No batch loaded.");
+		writeSAFBtn.setText("No batch loaded");
 		
 		//statusIndicator
 		statusIndicator.setForeground(Color.white);
 		statusIndicator.setBackground(Color.blue);
-		statusIndicator.setText("No batch loaded.");
+		statusIndicator.setText("No batch loaded");
 		
 	}
 	
 	private void transitionToLoaded()
 	{
-		actionStatusField.setText("Your batch nas not been verified.");
+		actionStatusField.setText("Your batch has not been verified.");
 		actionStatusField.setForeground(Color.black);
 		actionStatusField.setBackground(Color.red);
 		actionStatus = ActionStatus.LOADED;
@@ -969,7 +973,8 @@ public class ImporterGUI extends JFrame
 		statusIndicator.setBackground(Color.blue);
 		loadBatchBtn.setText("Reload batch as specified");
 		addLicenseCheckbox.setSelected(false);
-		writeSAFBtn.setText("Verify batch before writing SAF");
+		writeSAFBtn.setText("No batch loaded");
+		writeSAFBtn.setEnabled(false);
 
 		batch.setIgnoreFiles(ignoreFilesBox.isSelected());
 		batch.setItemProcessDelay(itemProcessDelayField.getText());
@@ -990,7 +995,8 @@ public class ImporterGUI extends JFrame
 		statusIndicator.setText("Batch Status:\nVerified");
 		statusIndicator.setForeground(Color.black);
 		statusIndicator.setBackground(Color.green);
-		
+
+		writeSAFBtn.setEnabled(true);
 		writeSAFBtn.setText("Write SAF data now!");
 	}
 	
@@ -998,7 +1004,7 @@ public class ImporterGUI extends JFrame
 	{
 		actionStatus = ActionStatus.FAILED_VERIFICATION;
 		actionStatusField.setText("Your batch failed to verify.");
-		writeSAFBtn.setText("No valid batch to write.");
+		writeSAFBtn.setText("No valid batch.");
 		actionStatusField.setBackground(Color.red);
 
 	}
@@ -1006,11 +1012,11 @@ public class ImporterGUI extends JFrame
 	private void transitionToWritten()
 	{
 
-		loadBatchBtn.setText("Reload batch as specified.");
-		writeSAFBtn.setText("Nothing to do - batch written.");
+		loadBatchBtn.setText("Reload batch as specified");
+		writeSAFBtn.setEnabled(false);
 		actionStatusField.setForeground(Color.black);
 		actionStatusField.setBackground(Color.white);
-		actionStatusField.setText("Batch SAF writing finished.");
+		actionStatusField.setText("Batch SAF written.");
 		statusIndicator.setText("Batch status:\n Written");
 		statusIndicator.setBackground(Color.white);
 		statusIndicator.setForeground(Color.black);
@@ -1020,10 +1026,13 @@ public class ImporterGUI extends JFrame
 	private void lockVerifyButtons() {
 		loadBatchBtn.setEnabled(false);
 		chooseInputFileBtn.setEnabled(false);
-		writeSAFBtn.setEnabled(false);
 		verifyCancelBtn.setEnabled(true);
 		verifyBatchBtn.setEnabled(false);
 		verifyBatchBtn.setText("Verifying..");
+
+		if (actionStatus == ActionStatus.VERIFIED) {
+			writeSAFBtn.setEnabled(false);
+		}
 	}
 
 	private void unlockVerifyButtons() {
@@ -1032,7 +1041,10 @@ public class ImporterGUI extends JFrame
 		verifyBatchBtn.setEnabled(true);
 		loadBatchBtn.setEnabled(true);
 		chooseInputFileBtn.setEnabled(true);
-		writeSAFBtn.setEnabled(true);
+
+		if (actionStatus == ActionStatus.VERIFIED) {
+			writeSAFBtn.setEnabled(true);
+		}
 	}
 
 	private void cancelVerifyCleanup() {
