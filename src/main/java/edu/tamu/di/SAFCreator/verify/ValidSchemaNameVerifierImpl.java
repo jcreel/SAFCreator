@@ -18,6 +18,8 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
 		
+		int totalLabels = batch.getLabels().size();
+		int labelCount = 0;
 		for(ColumnLabel label : batch.getLabels())
 		{
 			if(label.isField())
@@ -39,6 +41,9 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 			if (isCancelled()) {
 				return badSchemata;
 			}
+
+			labelCount++;
+			publish(new VerifierBackground.VerifierUpdates(labelCount, totalLabels));
 		}
 		
 		return badSchemata;

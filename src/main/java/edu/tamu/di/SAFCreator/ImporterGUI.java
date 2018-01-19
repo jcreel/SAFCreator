@@ -464,6 +464,18 @@ public class ImporterGUI extends JFrame
 					currentVerifier.execute();
 				}
 			}
+
+			@Override
+			protected void process(List<VerifierBackground.VerifierUpdates> updates) {
+				if (updates.size() == 0) {
+					return;
+				}
+
+				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
+				if (update != null && update.getTotal() > 0) {
+					statusIndicator.setText("Batch Status:\n Unverified\n File Exists:\n " + update.getProcessed() + " / " + update.getTotal());
+				}
+			}
 		};
 
 		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl() {
@@ -516,6 +528,18 @@ public class ImporterGUI extends JFrame
 				currentVerifier = super.getNextVerifier();
 				if (currentVerifier != null) {
 					currentVerifier.execute();
+				}
+			}
+
+			@Override
+			protected void process(List<VerifierBackground.VerifierUpdates> updates) {
+				if (updates.size() == 0) {
+					return;
+				}
+
+				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
+				if (update != null && update.getTotal() > 0) {
+					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name:\n " + update.getProcessed() + " / " + update.getTotal());
 				}
 			}
 		};
@@ -741,6 +765,18 @@ public class ImporterGUI extends JFrame
 								} catch (InterruptedException | ExecutionException e)
 								{
 									e.printStackTrace();
+								}
+							}
+
+							@Override
+							protected void process(List<ImportDataWriter.WriterUpdates> updates) {
+								if (updates.size() == 0) {
+									return;
+								}
+
+								ImportDataWriter.WriterUpdates update = updates.get(updates.size() - 1);
+								if (update != null && update.getTotal() > 0) {
+									statusIndicator.setText("Batch Status:\n Verified\n Written:\n " + update.getProcessed() + " / " + update.getTotal());
 								}
 							}
 						};
@@ -1052,6 +1088,7 @@ public class ImporterGUI extends JFrame
 		currentVerifier = null;
 		unlockVerifyButtons();
 		console.append("Validation process has been cancelled.\n");
+		statusIndicator.setText("Batch Status:\n Unverified");
 
 		// verifiers must be re-created after canceling.
 		createVerifiers();

@@ -16,9 +16,18 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 	private JTextArea console = null;
 
 	public class WriterUpdates {
-		private int processed = 0;
-		private int total = 0;
-		private JTextArea console = null;
+		private int processed;
+		private int total;
+
+		public WriterUpdates() {
+			processed = 0;
+			total = 0;
+		}
+
+		public WriterUpdates(int processed, int total) {
+			this.processed = processed;
+			this.total = total;
+		}
 
 		public int getProcessed() {
 			return processed;
@@ -28,20 +37,12 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 			return total;
 		}
 
-		public JTextArea getConsole() {
-			return console;
-		}
-
 		public void setProcessed(int processed) {
 			this.processed = processed;
 		}
 
 		public void setTotal(int total) {
 			this.total = total;
-		}
-
-		public void setConsole(JTextArea console) {
-			this.console = console;
 		}
 	}
 
@@ -65,6 +66,8 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 	protected Boolean doInBackground()
 	{
 		boolean noErrors = true;
+		int itemCount = 0;
+		int totalItems = batch.getItems().size();
 		for(Item item : batch.getItems())
 		{
 			boolean hasError = false;
@@ -88,6 +91,9 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				console.append("Cancelled writing SAF.\n");
 				return (Boolean) null;
 			}
+
+			itemCount++;
+			publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
 		}
 
 		console.append("Done writing SAF data.\n");

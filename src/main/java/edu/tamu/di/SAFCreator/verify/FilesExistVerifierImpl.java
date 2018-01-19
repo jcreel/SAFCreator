@@ -32,6 +32,8 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 		
 		if( ! batch.getIgnoreFiles())
 		{
+			int totalItems = batch.getItems().size();
+			int itemCount = 0;
 			for(Item item : batch.getItems())
 			{
 				for(Bundle bundle : item.getBundles())
@@ -138,6 +140,9 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 				if (isCancelled()) {
 					return missingFiles;
 				}
+
+				itemCount++;
+				publish(new VerifierBackground.VerifierUpdates(itemCount, totalItems));
 			}
 		}
 		
