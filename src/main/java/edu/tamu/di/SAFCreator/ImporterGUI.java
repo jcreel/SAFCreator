@@ -661,7 +661,8 @@ public class ImporterGUI extends JFrame
 				{
 					if(actionStatus.equals(ActionStatus.NONE_LOADED) || 
 					   actionStatus.equals(ActionStatus.LOADED) || 
-					   actionStatus.equals(ActionStatus.WRITTEN) || 
+					   actionStatus.equals(ActionStatus.WRITTEN) ||
+					   actionStatus.equals(ActionStatus.VERIFIED) ||
 					   actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
 						// verifiers must be re-created if they are already processed (or canceled).
