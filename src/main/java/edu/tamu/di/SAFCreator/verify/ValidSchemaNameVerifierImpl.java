@@ -8,9 +8,12 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
 import edu.tamu.di.SAFCreator.model.Verifier;
+import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
-public class ValidSchemaNameVerifierImpl implements Verifier {
+public class ValidSchemaNameVerifierImpl extends VerifierBackground {
+	Verifier nextVerifier = null;
 
+	@Override
 	public List<Problem> verify(Batch batch) 
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
@@ -32,19 +35,24 @@ public class ValidSchemaNameVerifierImpl implements Verifier {
 					//System.out.println("looks fine: " + fieldLabel.getSchema());
 				}
 			}
+
+			if (isCancelled()) {
+				return badSchemata;
+			}
 		}
 		
 		return badSchemata;
 	}
 
+	@Override
 	public boolean generatesError() 
 	{
 		return true;
 	}
 	
+	@Override
 	public String prettyName()
 	{
 		return "Syntactically Valid Schema Names Verifier";
 	}
-
 }

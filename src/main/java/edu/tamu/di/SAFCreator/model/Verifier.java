@@ -6,6 +6,7 @@ public interface Verifier
 {
 	public boolean generatesError();
 	public String prettyName();
+	public boolean isSwingWorker();
 	
 	public class Problem 
 	{
@@ -45,11 +46,9 @@ public interface Verifier
 		{
 			return error;
 		}
-		
 	}
 	
 
 
 	public List<Problem> verify(Batch batch);
-
 }

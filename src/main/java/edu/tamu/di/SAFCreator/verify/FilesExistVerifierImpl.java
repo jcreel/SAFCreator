@@ -19,12 +19,13 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
 import edu.tamu.di.SAFCreator.model.Bundle;
 import edu.tamu.di.SAFCreator.model.Item;
-import edu.tamu.di.SAFCreator.model.Verifier;
+import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
-public class FilesExistVerifierImpl implements Verifier {
+public class FilesExistVerifierImpl extends VerifierBackground {
 	private static int TimeoutConnection = 5000;
 	private static int TimeoutRead = 5000;
 
+	@Override
 	public List<Problem> verify(Batch batch) 
 	{
 		List<Problem> missingFiles = new ArrayList<Problem>();
@@ -133,20 +134,37 @@ public class FilesExistVerifierImpl implements Verifier {
 						}
 					}
 				}
+
+				if (isCancelled()) {
+					return missingFiles;
+				}
 			}
 		}
 		
 		return missingFiles;
 	}
 
+	@Override
 	public boolean generatesError() 
 	{
 		return true;
 	}
 	
+	@Override
 	public String prettyName()
 	{
 		return "Content Files Exist Verifier";
 	}
 
+	@Override
+	protected List<Problem> doInBackground()
+	{
+		return new ArrayList<Problem>();
+	}
+
+	@Override
+	public boolean isSwingWorker()
+	{
+		return true;
+	}
 }
