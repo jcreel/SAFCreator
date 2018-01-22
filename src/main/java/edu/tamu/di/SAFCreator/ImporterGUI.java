@@ -475,7 +475,7 @@ public class ImporterGUI extends JFrame
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n File Exists:\n " + update.getProcessed() + " / " + update.getTotal());
+					statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n " + update.getProcessed() + " / " + update.getTotal());
 				}
 			}
 		};
@@ -543,7 +543,7 @@ public class ImporterGUI extends JFrame
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name:\n " + update.getProcessed() + " / " + update.getTotal());
+					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed() + " / " + update.getTotal());
 				}
 			}
 		};
