@@ -415,7 +415,7 @@ public class ImporterGUI extends JFrame
 		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl() {
 			@Override
 			public List<Problem> doInBackground() {
-				return verify(batch);
+				return verify(batch, console);
 			}
 
 			@Override
@@ -441,8 +441,10 @@ public class ImporterGUI extends JFrame
 
 				for(Verifier.Problem problem : problems)
 				{
-					if(problem.isError()) batchVerified = false;
-					console.append(problem.toString()+"\n");
+					if(problem.isError()) {
+						batchVerified = false;
+						break;
+					}
 				}
 
 				if (getNextVerifier() == null) {
@@ -481,7 +483,7 @@ public class ImporterGUI extends JFrame
 		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl() {
 			@Override
 			public List<Problem> doInBackground() {
-				return verify(batch);
+				return verify(batch, console);
 			}
 
 			@Override
@@ -507,8 +509,10 @@ public class ImporterGUI extends JFrame
 
 				for(Verifier.Problem problem : problems)
 				{
-					if(problem.isError()) batchVerified = false;
-					console.append(problem.toString()+"\n");
+					if(problem.isError()) {
+						batchVerified = false;
+						break;
+					}
 				}
 
 				if (getNextVerifier() == null) {

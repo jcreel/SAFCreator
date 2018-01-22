@@ -2,6 +2,8 @@ package edu.tamu.di.SAFCreator.model;
 
 import java.util.List;
 
+import javax.swing.JTextArea;
+
 public interface Verifier 
 {
 	public boolean generatesError();
@@ -49,6 +51,6 @@ public interface Verifier
 	}
 	
 
-
 	public List<Problem> verify(Batch batch);
+	public List<Problem> verify(Batch batch, JTextArea console);
 }

@@ -3,6 +3,8 @@ package edu.tamu.di.SAFCreator.verify;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JTextArea;
+
 import edu.tamu.di.SAFCreator.Util;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.ColumnLabel;
@@ -14,7 +16,13 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 	Verifier nextVerifier = null;
 
 	@Override
-	public List<Problem> verify(Batch batch) 
+	public List<Problem> verify(Batch batch)
+	{
+		return verify(batch, null);
+	}
+
+	@Override
+	public List<Problem> verify(Batch batch, JTextArea console)
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
 		
@@ -30,6 +38,7 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 					System.out.println("match in " + fieldLabel.getSchema());
 					Problem badSchema = new Problem (label.getRow(), label.getColumn(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
 					badSchemata.add(badSchema);
+					if (console != null) console.append(badSchemata.toString()+"\n");
 			
 				}
 				else

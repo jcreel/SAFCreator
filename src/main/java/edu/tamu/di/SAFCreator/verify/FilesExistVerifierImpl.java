@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JTextArea;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.net.ftp.FTPClient;
@@ -27,6 +29,12 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 	@Override
 	public List<Problem> verify(Batch batch) 
+	{
+		return verify(batch, null);
+	}
+
+	@Override
+	public List<Problem> verify(Batch batch, JTextArea console)
 	{
 		List<Problem> missingFiles = new ArrayList<Problem>();
 		
@@ -64,10 +72,12 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									if (files.length == 0) {
 										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "FTP file URL " + source.toString() + " was not found.");
 										missingFiles.add(missingFile);
+										if (console != null) console.append(missingFile.toString()+"\n");
 									}
 								} catch (IOException e) {
 									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Connection problem for FTP file URL " + source.toString() + ", message: " + e.getMessage() + ".");
 									missingFiles.add(missingFile);
+									if (console != null) console.append(missingFile.toString()+"\n");
 								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -92,6 +102,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									{
 										Problem warning = new Problem(bitstream.getRow(), bitstream.getColumn(), false, "Failed to sleep for " + itemProcessDelay + " milliseconds, reason: " + e.getMessage() + ".");
 										missingFiles.add(warning);
+										if (console != null) console.append(warning.toString()+"\n");
 									}
 								}
 
@@ -109,15 +120,18 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									if (response != HttpURLConnection.HTTP_OK) {
 										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Unable to validate file URL " + source.toString() + ", HTTP Response Code: " + response + ".");
 										missingFiles.add(missingFile);
+										if (console != null) console.append(missingFile.toString()+"\n");
 									}
 								} catch (MalformedURLException e)
 								{
 									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " is invalid, reason: " + e.getMessage() + ".");
 									missingFiles.add(missingFile);
+									if (console != null) console.append(missingFile.toString()+"\n");
 								} catch (IOException e)
 								{
 									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file URL " + source.toString() + " had a connection error, message: " + e.getMessage() + ".");
 									missingFiles.add(missingFile);
+									if (console != null) console.append(missingFile.toString()+"\n");
 								} finally
 								{
 									if (head != null) {
@@ -132,6 +146,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 							{
 								Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file " + file.getAbsolutePath() + " not found.");
 								missingFiles.add(missingFile);
+								if (console != null) console.append(missingFile.toString()+"\n");
 							}
 						}
 					}
