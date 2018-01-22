@@ -7,14 +7,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.util.HttpURLConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -26,6 +30,7 @@ public class Bitstream extends CellDatumImpl
 {
 	private static int TimeoutConnection = 5000;
 	private static int TimeoutRead = 5000;
+	private static int MaxRedirects = 20;
 
 	private Bundle bundle;
 	private URI source;
@@ -105,11 +110,11 @@ public class Bitstream extends CellDatumImpl
 						conn.enterLocalPassiveMode();
 						conn.login("anonymous", "");
 
-						String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "ASCII");
+						String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "UTF-8");
 						OutputStream output = new FileOutputStream(destination);
 						conn.retrieveFile(decodedUrl, output);
 					} catch (IOException e) {
-						Problem problem = new Problem(getRow(), getColumn(), true, "Source file URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
+						Problem problem = new Problem(getRow(), getColumn(), true, "FTP URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
 						problems.add(problem);
 					}
 
@@ -133,20 +138,102 @@ public class Bitstream extends CellDatumImpl
 							get.addRequestHeader("User-Agent", userAgent);
 						}
 						get.setFollowRedirects(true);
-						client.executeMethod(get);
+						int response = client.executeMethod(get);
 
-						// We could get the filename from response.getFirstHeader('Content-Disposition').getValue();
-						// however, that would have to be sanitized, so just stick to simple pre-defined filenames until otherwise requested.
-						InputStream input = get.getResponseBodyAsStream();
-						FileUtils.copyToFile(input, destination);
-						input.close();
+						if (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP) {
+							int totalRedirects = 0;
+							HashSet<String> previousUrls = new HashSet<String>();
+							previousUrls.add(source.toString());
+							URL previousUrl = url;
+
+							do {
+								if (totalRedirects++ > MaxRedirects) {
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected too many times.");
+									problems.add(problem);
+									break;
+								}
+
+								Header redirectTo = get.getResponseHeader("Location");
+								if (redirectTo == null) {
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " was redirect without a destination URL.");
+									problems.add(problem);
+									break;
+								}
+
+								String redirectToLocation = redirectTo.getValue();
+								URI redirectToUri = null;
+								try {
+									redirectToUri = new URI(redirectToLocation);
+								}
+								catch (URISyntaxException e)
+								{
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + get.getResponseHeader("Location").getValue() + ", reason: " + e.getMessage() + ".");
+									problems.add(problem);
+									break;
+								}
+
+								String authority = redirectToUri.getAuthority();
+								String scheme = redirectToUri.getScheme();
+								if (authority == null || authority.isEmpty()) {
+									if (!redirectToLocation.startsWith("/")) {
+										redirectToLocation = "/" + redirectToLocation;
+									}
+									redirectToLocation = previousUrl.getAuthority() + redirectToLocation;
+									if (scheme == null || scheme.isEmpty()) {
+										if (redirectToLocation.startsWith("//")) {
+											redirectToLocation = "http:" + redirectToLocation;
+										}
+										else {
+											redirectToLocation = "http://" + redirectToLocation;
+										}
+									}
+									try {
+										redirectToUri = new URI(redirectToLocation);
+									}
+									catch (URISyntaxException e)
+									{
+										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + redirectToLocation + ", reason: " + e.getMessage() + ".");
+										problems.add(problem);
+										break;
+									}
+								}
+
+								if (previousUrls.contains(redirectToLocation)) {
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " has circular redirects.");
+									problems.add(problem);
+									break;
+								}
+
+								get.releaseConnection();
+								get = new GetMethod(redirectToLocation);
+								get.setFollowRedirects(true);
+								if (userAgent != null) {
+									get.addRequestHeader("User-Agent", userAgent);
+								}
+								response = client.executeMethod(get);
+								previousUrl = redirectToUri.toURL();
+							} while (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP);
+						}
+
+						if (response == HttpURLConnection.HTTP_OK) {
+							//String contentType = get.getResponseHeader("Content-Type").getValue();
+							//if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf")) {
+								InputStream input = get.getResponseBodyAsStream();
+								FileUtils.copyToFile(input, destination);
+								input.close();
+							//}
+						}
+						else if (response != HttpURLConnection.HTTP_SEE_OTHER && response != HttpURLConnection.HTTP_MOVED_PERM && response != HttpURLConnection.HTTP_MOVED_TEMP) {
+							Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " failed with HTTP status code " + response + ".");
+							problems.add(problem);
+						}
 					} catch (HttpException e)
 					{
-						Problem problem = new Problem(getRow(), getColumn(), true, "Source file URL " + source.toString() + " had an HTTP error, reason: " + e.getMessage() + ".");
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had an HTTP error, reason: " + e.getMessage() + ".");
 						problems.add(problem);
 					} catch (IOException e)
 					{
-						Problem problem = new Problem(getRow(), getColumn(), true, "Source file URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
 						problems.add(problem);
 					} finally
 					{

@@ -766,6 +766,9 @@ public class ImporterGUI extends JFrame
 									if (get()) {
 										transitionToWritten();
 									}
+									else {
+										transitionToWrittenFailed();
+									}
 								} catch (InterruptedException | ExecutionException e)
 								{
 									e.printStackTrace();
@@ -1062,6 +1065,12 @@ public class ImporterGUI extends JFrame
 		statusIndicator.setBackground(Color.white);
 		statusIndicator.setForeground(Color.black);
 		actionStatus = ActionStatus.WRITTEN;
+	}
+
+	private void transitionToWrittenFailed()
+	{
+		statusIndicator.setBackground(Color.red);
+		statusIndicator.setText("Batch Status:\n verified\n write failed");
 	}
 	
 	private void lockVerifyButtons() {
