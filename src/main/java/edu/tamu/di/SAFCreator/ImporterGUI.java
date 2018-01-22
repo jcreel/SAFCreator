@@ -1047,7 +1047,7 @@ public class ImporterGUI extends JFrame
 		actionStatusField.setText("Your batch failed to verify.");
 		writeSAFBtn.setText("No valid batch.");
 		actionStatusField.setBackground(Color.red);
-
+		statusIndicator.setText("Batch Status:\n Unverified");
 	}
 
 	private void transitionToWritten()
