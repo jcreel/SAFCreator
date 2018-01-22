@@ -152,7 +152,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 											}
 											catch (URISyntaxException e)
 											{
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + head.getResponseHeader("Location").getValue() + ", reason: " + e.getMessage() + ".");
+												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
 												missingFiles.add(missingFile);
 												if (console != null) console.append(missingFile.toString()+"\n");
 												break;
@@ -178,7 +178,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												}
 												catch (URISyntaxException e)
 												{
-													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + redirectToLocation + ", reason: " + e.getMessage() + ".");
+													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
 													missingFiles.add(missingFile);
 													if (console != null) console.append(missingFile.toString()+"\n");
 													break;

@@ -167,7 +167,7 @@ public class Bitstream extends CellDatumImpl
 								}
 								catch (URISyntaxException e)
 								{
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + get.getResponseHeader("Location").getValue() + ", reason: " + e.getMessage() + ".");
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
 									problems.add(problem);
 									break;
 								}
@@ -192,7 +192,7 @@ public class Bitstream extends CellDatumImpl
 									}
 									catch (URISyntaxException e)
 									{
-										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL " + redirectToLocation + ", reason: " + e.getMessage() + ".");
+										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
 										problems.add(problem);
 										break;
 									}
