@@ -41,7 +41,7 @@ public interface Verifier
 				return (error?"ERROR":"WARNING") + ": " + note;
 			}
 
-			return (error?"ERROR at ":"WARNING at ") + "column " + columnletter + " row " + rownumber + ": " + note;
+			return (error?"ERROR at ":"WARNING at ") + "column " + columnletter + " row " + rownumber + ":\n\t" + note;
 		}
 		
 		public boolean isError()
