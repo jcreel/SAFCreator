@@ -415,6 +415,7 @@ public class ImporterGUI extends JFrame
 		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl() {
 			@Override
 			public List<Problem> doInBackground() {
+				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
 				return verify(batch, console);
 			}
 
@@ -483,6 +484,7 @@ public class ImporterGUI extends JFrame
 		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl() {
 			@Override
 			public List<Problem> doInBackground() {
+				statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n 0 / " + batch.getItems().size());
 				return verify(batch, console);
 			}
 
@@ -737,14 +739,12 @@ public class ImporterGUI extends JFrame
 	
 					if(actionStatus.equals(ActionStatus.VERIFIED))
 					{
-						loadBatchBtn.setEnabled(false);
-						verifyBatchBtn.setEnabled(false);
-						chooseInputFileBtn.setEnabled(false);
-						writeSAFBtn.setEnabled(false);
-						writeCancelBtn.setEnabled(true);
+						lockThreadSensitiveControls();
 						writeSAFBtn.setText("Writing..");
+						writeCancelBtn.setEnabled(true);
 
 						console.append("Parsing CSV file and writing output to DC XML files...\n");
+						statusIndicator.setText("Batch Status:\n Verified\n Written:\n 0 / " + batch.getItems().size());
 
 						currentWriter = new ImportDataWriter() {
 							@Override
@@ -752,10 +752,7 @@ public class ImporterGUI extends JFrame
 								writeSAFBtn.setText("Write SAF data now!");
 								currentWriter = null;
 								writeCancelBtn.setEnabled(false);
-								writeSAFBtn.setEnabled(true);
-								loadBatchBtn.setEnabled(true);
-								verifyBatchBtn.setEnabled(true);
-								chooseInputFileBtn.setEnabled(true);
+								unlockThreadSensitiveControls();
 
 								if (isCancelled()) {
 									return;
@@ -1074,27 +1071,13 @@ public class ImporterGUI extends JFrame
 	}
 	
 	private void lockVerifyButtons() {
-		loadBatchBtn.setEnabled(false);
-		chooseInputFileBtn.setEnabled(false);
-		verifyCancelBtn.setEnabled(true);
-		verifyBatchBtn.setEnabled(false);
 		verifyBatchBtn.setText("Verifying..");
-
-		if (actionStatus == ActionStatus.VERIFIED) {
-			writeSAFBtn.setEnabled(false);
-		}
+		lockThreadSensitiveControls();
 	}
 
 	private void unlockVerifyButtons() {
-		verifyCancelBtn.setEnabled(false);
 		verifyBatchBtn.setText("Verify Batch");
-		verifyBatchBtn.setEnabled(true);
-		loadBatchBtn.setEnabled(true);
-		chooseInputFileBtn.setEnabled(true);
-
-		if (actionStatus == ActionStatus.VERIFIED) {
-			writeSAFBtn.setEnabled(true);
-		}
+		unlockThreadSensitiveControls();
 	}
 
 	private void cancelVerifyCleanup() {
@@ -1105,5 +1088,39 @@ public class ImporterGUI extends JFrame
 
 		// verifiers must be re-created after canceling.
 		createVerifiers();
+	}
+
+	private void lockThreadSensitiveControls() {
+		loadBatchBtn.setEnabled(false);
+		chooseInputFileBtn.setEnabled(false);
+		verifyCancelBtn.setEnabled(true);
+		verifyBatchBtn.setEnabled(false);
+
+		if (actionStatus == ActionStatus.VERIFIED) {
+			writeSAFBtn.setEnabled(false);
+		}
+
+		if (actionStatus != ActionStatus.NONE_LOADED) {
+			ignoreFilesBox.setEnabled(false);
+			itemProcessDelayField.setEnabled(false);
+			userAgentField.setEnabled(false);
+		}
+	}
+
+	private void unlockThreadSensitiveControls() {
+		verifyCancelBtn.setEnabled(false);
+		verifyBatchBtn.setEnabled(true);
+		loadBatchBtn.setEnabled(true);
+		chooseInputFileBtn.setEnabled(true);
+
+		if (actionStatus == ActionStatus.VERIFIED) {
+			writeSAFBtn.setEnabled(true);
+		}
+
+		if (actionStatus != ActionStatus.NONE_LOADED) {
+			ignoreFilesBox.setEnabled(true);
+			itemProcessDelayField.setEnabled(true);
+			userAgentField.setEnabled(true);
+		}
 	}
 }
