@@ -2,6 +2,7 @@ package edu.tamu.di.SAFCreator.model;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -216,12 +217,24 @@ public class Bitstream extends CellDatumImpl
 						}
 
 						if (response == HttpURLConnection.HTTP_OK) {
-							//String contentType = get.getResponseHeader("Content-Type").getValue();
-							//if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf")) {
-								InputStream input = get.getResponseBodyAsStream();
-								FileUtils.copyToFile(input, destination);
-								input.close();
-							//}
+							InputStream input = get.getResponseBodyAsStream();
+							FileUtils.copyToFile(input, destination);
+							input.close();
+
+							String contentType = get.getResponseHeader("Content-Type").getValue();
+							if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf") || contentType.equalsIgnoreCase("application/octet-stream")) {
+								FileReader inputStream = new FileReader(destination);
+								// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
+								if (inputStream.read() != 0x25 || inputStream.read() != 0x50|| inputStream.read() != 0x44 || inputStream.read() != 0x46) {
+									Problem problem = new Problem(getRow(), getColumn(), false, "HTTP URL " + source.toString() + " may not be a PDF, reason: %PDF magic not found in file.");
+									problems.add(problem);
+								}
+								inputStream.close();
+							}
+							else {
+								Problem problem = new Problem(getRow(), getColumn(), false, "HTTP URL " + source.toString() + " may not be a PDF, reason: server designated a mimetype of " + contentType + ".");
+								problems.add(problem);
+							}
 						}
 						else if (response != HttpURLConnection.HTTP_SEE_OTHER && response != HttpURLConnection.HTTP_MOVED_PERM && response != HttpURLConnection.HTTP_MOVED_TEMP) {
 							Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " failed with HTTP status code " + response + ".");
