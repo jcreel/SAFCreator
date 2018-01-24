@@ -24,6 +24,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
 import edu.tamu.di.SAFCreator.model.Bundle;
+import edu.tamu.di.SAFCreator.model.Flag;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
@@ -35,11 +37,11 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 	@Override
 	public List<Problem> verify(Batch batch) 
 	{
-		return verify(batch, null);
+		return verify(batch, null, null);
 	}
 
 	@Override
-	public List<Problem> verify(Batch batch, JTextArea console)
+	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
 		List<Problem> missingFiles = new ArrayList<Problem>();
 		
@@ -74,15 +76,19 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "ASCII");
 									FTPFile[] files = conn.listFiles(decodedUrl);
 
-									if (files.length == 0) {
-										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "FTP file URL " + source.toString() + " was not found.");
+									if (files.length == 0) { 
+										Flag flag = new Flag(Flag.NOT_FOUND, "FTP file URL was not found.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "FTP file URL was not found.", flag);
 										missingFiles.add(missingFile);
 										if (console != null) console.append(missingFile.toString()+"\n");
+										if (flagPanel != null) flagPanel.appendRow(flag);
 									}
 								} catch (IOException e) {
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Connection problem for FTP file URL " + source.toString() + ", message: " + e.getMessage() + ".");
+									Flag flag = new Flag(Flag.IO_FAILURE, "FTP file URL had a connection problem, message: " + e.getMessage(), source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "FTP file URL had a connection problem.", flag);
 									missingFiles.add(missingFile);
 									if (console != null) console.append(missingFile.toString()+"\n");
+									if (flagPanel != null) flagPanel.appendRow(flag);
 								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -131,17 +137,21 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 										do {
 											if (totalRedirects++ > MaxRedirects) {
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected too many times.");
+												Flag flag = new Flag(Flag.REDIRECT_LIMIT, "HTTP URL redirected too many times, final redirect URL: " + previousUrl, source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected too many times.", flag);
 												missingFiles.add(missingFile);
 												if (console != null) console.append(missingFile.toString()+"\n");
+												if (flagPanel != null) flagPanel.appendRow(flag);
 												break;
 											}
 
 											Header redirectTo = head.getResponseHeader("Location");
 											if (redirectTo == null) {
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " was redirect without a destination URL.");
+												Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected without a valid destination URL.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected without a valid destination URL.", flag);
 												missingFiles.add(missingFile);
 												if (console != null) console.append(missingFile.toString()+"\n");
+												if (flagPanel != null) flagPanel.appendRow(flag);
 												break;
 											}
 
@@ -152,9 +162,11 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 											}
 											catch (URISyntaxException e)
 											{
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
+												Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
 												missingFiles.add(missingFile);
 												if (console != null) console.append(missingFile.toString()+"\n");
+												if (flagPanel != null) flagPanel.appendRow(flag);
 												break;
 											}
 
@@ -178,17 +190,21 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												}
 												catch (URISyntaxException e)
 												{
-													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
+													Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
 													missingFiles.add(missingFile);
 													if (console != null) console.append(missingFile.toString()+"\n");
+													if (flagPanel != null) flagPanel.appendRow(flag);
 													break;
 												}
 											}
 
 											if (previousUrls.contains(redirectToLocation)) {
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL " + source.toString() + " has circular redirects.");
+												Flag flag = new Flag(Flag.REDIRECT_LOOP, "HTTP URL has circular redirects, final redirect URL: " + redirectToLocation + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL has circular redirects.", flag);
 												missingFiles.add(missingFile);
 												if (console != null) console.append(missingFile.toString()+"\n");
+												if (flagPanel != null) flagPanel.appendRow(flag);
 												break;
 											}
 
@@ -204,20 +220,49 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									}
 
 									if (response != HttpURLConnection.HTTP_OK && response != HttpURLConnection.HTTP_SEE_OTHER && response != HttpURLConnection.HTTP_MOVED_PERM && response != HttpURLConnection.HTTP_MOVED_TEMP) {
-										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Unable to validate HTTP URL " + source.toString() + ", HTTP Response Code: " + response + ".");
-										missingFiles.add(missingFile);
-										if (console != null) console.append(missingFile.toString()+"\n");
+										if (response == 304) {
+											Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download limit), HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP service was denied, HTTP response code: " + response + ".", flag);
+											missingFiles.add(missingFile);
+											if (console != null) console.append(missingFile.toString()+"\n");
+											if (flagPanel != null) flagPanel.appendRow(flag);
+										}
+										else if (response == 404) {
+											Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file was not found.", flag);
+											missingFiles.add(missingFile);
+											if (console != null) console.append(missingFile.toString()+"\n");
+											if (flagPanel != null) flagPanel.appendRow(flag);
+										}
+										else if (response == 403) {
+											Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file access was denied.", flag);
+											missingFiles.add(missingFile);
+											if (console != null) console.append(missingFile.toString()+"\n");
+											if (flagPanel != null) flagPanel.appendRow(flag);
+										}
+										else {
+											Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP failure, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP failure, HTTP response code: " + response + ".", flag);
+											missingFiles.add(missingFile);
+											if (console != null) console.append(missingFile.toString()+"\n");
+											if (flagPanel != null) flagPanel.appendRow(flag);
+										}
 									}
 								} catch (MalformedURLException e)
 								{
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL " + source.toString() + " is invalid, reason: " + e.getMessage() + ".");
+									Flag flag = new Flag(Flag.INVALID_FORMAT, "HTTP URL is invalid, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL is invalid.", flag);
 									missingFiles.add(missingFile);
 									if (console != null) console.append(missingFile.toString()+"\n");
+									if (flagPanel != null) flagPanel.appendRow(flag);
 								} catch (IOException e)
 								{
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL " + source.toString() + " had a connection error, message: " + e.getMessage() + ".");
+									Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL had a connection error.", flag);
 									missingFiles.add(missingFile);
 									if (console != null) console.append(missingFile.toString()+"\n");
+									if (flagPanel != null) flagPanel.appendRow(flag);
 								} finally
 								{
 									if (head != null) {
@@ -230,9 +275,11 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 							if(!file.exists())
 							{
-								Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file path " + file.getAbsolutePath() + " not found.");
+								Flag flag = new Flag(Flag.NOT_FOUND, "source file path was not found.", "local", file.getAbsolutePath(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+								Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "Source file path not found.", flag);
 								missingFiles.add(missingFile);
 								if (console != null) console.append(missingFile.toString()+"\n");
+								if (flagPanel != null) flagPanel.appendRow(flag);
 							}
 						}
 					}

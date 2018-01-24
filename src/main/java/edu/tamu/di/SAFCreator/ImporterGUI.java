@@ -7,6 +7,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -18,6 +23,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import edu.tamu.di.SAFCreator.model.Batch;
+import edu.tamu.di.SAFCreator.model.Flag;
+import edu.tamu.di.SAFCreator.model.Flag.Columns;
+import edu.tamu.di.SAFCreator.model.Verifier.Problem;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 import edu.tamu.di.SAFCreator.verify.FilesExistVerifierImpl;
@@ -47,6 +56,7 @@ public class ImporterGUI extends JFrame
 	private final JPanel licenseTab = new JPanel();
 	private final JPanel validationTab = new JPanel();
 	private final JPanel advancedSettingsTab = new JPanel();
+	private final JPanel flagTableTab = new JPanel();
 	
 	//Components of the Batch Detail tab
 	private final JButton chooseInputFileBtn = new JButton("Select metadata CSV file");
@@ -88,6 +98,12 @@ public class ImporterGUI extends JFrame
 	private final JTextField itemProcessDelayField= new JTextField(String.valueOf(defaultProcessDelay), 10);
 	private final JLabel userAgentLabel = new JLabel("User agent:");
 	private final JTextField userAgentField = new JTextField(defaultUserAgent, 48);
+
+	//Components of the Flag List tab
+	private final FlagPanel flagPanel = new FlagPanel();
+	private final JButton flagsDownloadCsvBtn = new JButton("Generate CSV");
+	private final JButton flagsReportSelectedBtn = new JButton("Display Selected Row");
+	private static final String csvOutputFileName = "SAF-Flags.csv";
 	
 	
 	//Components shown under any tab
@@ -121,6 +137,8 @@ public class ImporterGUI extends JFrame
 		
 		createAdvancedSettingsTab();
 		
+		createFlagTableTab();
+
 		this.setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		
 //		JMenuBar bar = new JMenuBar();
@@ -416,7 +434,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
-				return verify(batch, console);
+				return verify(batch, console, flagPanel);
 			}
 
 			@Override
@@ -485,7 +503,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n 0 / " + batch.getItems().size());
-				return verify(batch, console);
+				return verify(batch, console, flagPanel);
 			}
 
 			@Override
@@ -787,6 +805,7 @@ public class ImporterGUI extends JFrame
 
 						currentWriter.setBatch(batch);
 						currentWriter.setConsole(console);
+						currentWriter.setFlags(flagPanel);
 						currentWriter.execute();
 					}
 					else if(actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
@@ -979,8 +998,85 @@ public class ImporterGUI extends JFrame
 			}
 		);
 	}
-	
-	
+
+	private void createFlagTableTab()
+	{
+		JPanel buttonsContainer = new JPanel();
+		buttonsContainer.add(flagsDownloadCsvBtn);
+		buttonsContainer.add(flagsReportSelectedBtn);
+		buttonsContainer.setMaximumSize(new Dimension(400, 200));
+
+		flagTableTab.setLayout(new BoxLayout(flagTableTab, BoxLayout.PAGE_AXIS));
+		flagTableTab.add(flagPanel);
+		flagTableTab.add(buttonsContainer);
+
+		tabs.addTab("Flags", flagTableTab);
+
+		flagsDownloadCsvBtn.setEnabled(false);
+		flagsReportSelectedBtn.setEnabled(false);
+
+		flagsDownloadCsvBtn.addActionListener
+		(
+			new ActionListener()
+			{
+			    public void actionPerformed(final ActionEvent e)
+			    {
+					if (actionStatus.equals(ActionStatus.NONE_LOADED)) {
+						console.append("Unable to write to write CSV file, reason: SAF not loaded.\n");
+						return;
+					}
+
+					if (csvOutputFileName.isEmpty() || outputDirectoryName.isEmpty()) {
+						console.append("Unable to write to write CSV file, reason: SAF directory not defined.\n");
+						return;
+					}
+
+					if (flagPanel.getRowCount() == 0) {
+						console.append("Unable to write to write CSV file, reason: No flags to output.\n");
+						return;
+					}
+
+					String csvFilePath = outputDirectoryName + File.separator + csvOutputFileName;
+					try
+					{
+						BufferedWriter writer = Files.newBufferedWriter(Paths.get(csvFilePath));
+						flagPanel.exportToCSV(writer);
+					} catch (IOException e1)
+					{
+						console.append("Unable to write CSV file " + csvFilePath + ", reason: " + e1.getMessage());
+					}
+			    }
+			}
+		);
+
+		flagsReportSelectedBtn.addActionListener
+		(
+			new ActionListener()
+			{
+			    public void actionPerformed(final ActionEvent e)
+			    {
+					if (flagPanel.getRowCount() == 0) {
+						console.append("Flag list is empty.\n");
+						return;
+					}
+
+					Flag row = flagPanel.getSelected();
+					if (row == null) {
+						console.append("No valid row is selected.\n");
+						return;
+					}
+
+					Problem problem = new Problem(true, row.getCell(Columns.DESCRIPTION));
+					console.append("\nFlag Name: " + row.getCell(Columns.FLAG) + "\n");
+					console.append("Flag Description: " + problem.toString() + "\n");
+					console.append("Flag Authority: " + row.getCell(Columns.AUTHORITY) + "\n");
+					console.append("Flag URL: " + row.getCell(Columns.URL) + "\n");
+					console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
+			    }
+			}
+		);
+	}
+
 	private void initializeGUIState()
 	{
 		actionStatus = ActionStatus.NONE_LOADED;
@@ -1016,10 +1112,14 @@ public class ImporterGUI extends JFrame
 		addLicenseCheckbox.setSelected(false);
 		writeSAFBtn.setText("No batch loaded");
 		writeSAFBtn.setEnabled(false);
+		flagsDownloadCsvBtn.setEnabled(true);
+		flagsReportSelectedBtn.setEnabled(true);
 
 		batch.setIgnoreFiles(ignoreFilesBox.isSelected());
 		batch.setItemProcessDelay(itemProcessDelayField.getText());
 		batch.setUserAgent(userAgentField.getText());
+
+		flagPanel.clear();
 
 		ignoreFilesBox.setEnabled(true);
 		itemProcessDelayField.setEnabled(true);

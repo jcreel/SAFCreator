@@ -115,7 +115,8 @@ public class Bitstream extends CellDatumImpl
 						OutputStream output = new FileOutputStream(destination);
 						conn.retrieveFile(decodedUrl, output);
 					} catch (IOException e) {
-						Problem problem = new Problem(getRow(), getColumn(), true, "FTP URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
+						Flag flag = new Flag(Flag.IO_FAILURE, "FTP file URL had a connection problem, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "FTP file URL had a connection problem.", flag);
 						problems.add(problem);
 					}
 
@@ -149,14 +150,16 @@ public class Bitstream extends CellDatumImpl
 
 							do {
 								if (totalRedirects++ > MaxRedirects) {
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected too many times.");
+									Flag flag = new Flag(Flag.REDIRECT_LIMIT, "HTTP URL redirected too many times, final redirect URL: " + previousUrl, source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected too many times.", flag);
 									problems.add(problem);
 									break;
 								}
 
 								Header redirectTo = get.getResponseHeader("Location");
 								if (redirectTo == null) {
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " was redirect without a destination URL.");
+									Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected without a valid destination URL.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected without a valid destination URL.", flag);
 									problems.add(problem);
 									break;
 								}
@@ -168,7 +171,8 @@ public class Bitstream extends CellDatumImpl
 								}
 								catch (URISyntaxException e)
 								{
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
+									Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
 									problems.add(problem);
 									break;
 								}
@@ -193,14 +197,16 @@ public class Bitstream extends CellDatumImpl
 									}
 									catch (URISyntaxException e)
 									{
-										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " redirected to invalid URL, reason: " + e.getMessage() + ".");
+										Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
 										problems.add(problem);
 										break;
 									}
 								}
 
 								if (previousUrls.contains(redirectToLocation)) {
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " has circular redirects.");
+									Flag flag = new Flag(Flag.REDIRECT_LOOP, "HTTP URL has circular redirects, final redirect URL: " + redirectToLocation + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL has circular redirects.", flag);
 									problems.add(problem);
 									break;
 								}
@@ -226,27 +232,49 @@ public class Bitstream extends CellDatumImpl
 								FileReader inputStream = new FileReader(destination);
 								// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
 								if (inputStream.read() != 0x25 || inputStream.read() != 0x50|| inputStream.read() != 0x44 || inputStream.read() != 0x46) {
-									Problem problem = new Problem(getRow(), getColumn(), false, "HTTP URL " + source.toString() + " may not be a PDF, reason: %PDF magic not found in file.");
+									Flag flag = new Flag(Flag.INVALID_MIME, "Downloaded file may not be a valid PDF, reason: %PDF magic not found in file.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "Downloaded file is not a valid PDF.", flag);
 									problems.add(problem);
 								}
 								inputStream.close();
 							}
 							else {
-								Problem problem = new Problem(getRow(), getColumn(), false, "HTTP URL " + source.toString() + " may not be a PDF, reason: server designated a mimetype of " + contentType + ".");
+								Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid PDF, reason: server designated a mimetype of " + contentType + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), false, "HTTP URL may not be a valid PDF.", flag);
 								problems.add(problem);
 							}
 						}
 						else if (response != HttpURLConnection.HTTP_SEE_OTHER && response != HttpURLConnection.HTTP_MOVED_PERM && response != HttpURLConnection.HTTP_MOVED_TEMP) {
-							Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " failed with HTTP status code " + response + ".");
-							problems.add(problem);
+							if (response == 304) {
+								Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download limit), HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP service was denied, HTTP response code: " + response + ".", flag);
+								problems.add(problem);
+							}
+							else if (response == 404) {
+								Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file was not found.", flag);
+								problems.add(problem);
+							}
+							else if (response == 403) {
+								Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file access was denied.", flag);
+								problems.add(problem);
+							}
+							else {
+								Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP failure, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP failure, HTTP response code: " + response + ".", flag);
+								problems.add(problem);
+							}
 						}
 					} catch (HttpException e)
 					{
-						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had an HTTP error, reason: " + e.getMessage() + ".");
+						Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an HTTP error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had an HTTP error.", flag);
 						problems.add(problem);
 					} catch (IOException e)
 					{
-						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had a connection error, reason: " + e.getMessage() + ".");
+						Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL had a connection error.", flag);
 						problems.add(problem);
 					} finally
 					{
@@ -258,7 +286,8 @@ public class Bitstream extends CellDatumImpl
 				}
 			} catch (MalformedURLException e)
 			{
-				Problem problem = new Problem(getRow(), getColumn(), true, "Source file URL " + source.toString() + " is invalid, reason: " + e.getMessage() + ".");
+				Flag flag = new Flag(Flag.INVALID_FORMAT, "HTTP URL is invalid, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+				Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL is invalid.", flag);
 				problems.add(problem);
 			}
 	    }
@@ -269,7 +298,8 @@ public class Bitstream extends CellDatumImpl
 				FileUtils.copyFile(file, destination);
 			} catch (IOException e)
 			{
-				Problem problem = new Problem(getRow(), getColumn(), true, "Source file path " + source.toString() + " failed to copy, reason: " + e.getMessage() + ".");
+				Flag flag = new Flag(Flag.IO_FAILURE, "Source file path failed to copy, reason" + e.getMessage() + ".", "local", source.toString(), "" + getColumn(), "" + getRow());
+				Problem problem = new Problem(getRow(), getColumn(), true, "Source file path failed to copy.", flag);
 				problems.add(problem);
 			}
 	    }

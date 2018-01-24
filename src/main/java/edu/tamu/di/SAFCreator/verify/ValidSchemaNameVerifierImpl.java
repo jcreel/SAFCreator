@@ -9,6 +9,7 @@ import edu.tamu.di.SAFCreator.Util;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
@@ -18,11 +19,11 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 	@Override
 	public List<Problem> verify(Batch batch)
 	{
-		return verify(batch, null);
+		return verify(batch, null, null);
 	}
 
 	@Override
-	public List<Problem> verify(Batch batch, JTextArea console)
+	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
 		

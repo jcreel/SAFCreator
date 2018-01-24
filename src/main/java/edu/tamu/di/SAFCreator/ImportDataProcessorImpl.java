@@ -18,6 +18,7 @@ import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.Field;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
 import edu.tamu.di.SAFCreator.model.FileLabel;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
@@ -280,7 +281,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		
 	}
 
-	public void writeBatchSAF(Batch batch, JTextArea console) 
+	public void writeBatchSAF(Batch batch, JTextArea console, FlagPanel flags)
 	{
 		for(Item item : batch.getItems())
 		{
@@ -291,6 +292,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				console.append(problem.toString()+"\n");
 				if (problem.isError()) {
 					hasError = true;
+				}
+				if (problem.isFlagged()) {
+					flags.appendRow(problem.getFlag());
 				}
 			}
 			if (hasError) {

@@ -6,6 +6,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 
 import edu.tamu.di.SAFCreator.model.Batch;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
@@ -14,6 +15,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 {
 	private Batch batch = null;
 	private JTextArea console = null;
+	private FlagPanel flags = null;
 
 	public class WriterUpdates {
 		private int processed;
@@ -58,8 +60,16 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 		this.console = console;
 	}
 
+	public void setFlags(FlagPanel flags) {
+		this.flags = flags;
+	}
+
 	public JTextArea getConsole() {
 		return console;
+	}
+
+	public FlagPanel getFlags() {
+		return flags;
 	}
 
 	@Override
@@ -78,6 +88,9 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				if (problem.isError()) {
 					hasError = true;
 					noErrors = false;
+				}
+				if (problem.isFlagged()) {
+					flags.appendRow(problem.getFlag());
 				}
 			}
 
