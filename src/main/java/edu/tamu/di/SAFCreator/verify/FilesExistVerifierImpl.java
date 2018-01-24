@@ -162,12 +162,20 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 											}
 											catch (URISyntaxException e)
 											{
-												Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
-												missingFiles.add(missingFile);
-												if (console != null) console.append(missingFile.toString()+"\n");
-												if (flagPanel != null) flagPanel.appendRow(flag);
-												break;
+												// attempt to correct an invalid URL, focus on ASCII space.
+												redirectToLocation = redirectToLocation.replace(" ", "%20");
+												try {
+													redirectToUri = new URI(redirectToLocation);
+												}
+												catch (URISyntaxException e1)
+												{
+													Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
+													missingFiles.add(missingFile);
+													if (console != null) console.append(missingFile.toString()+"\n");
+													if (flagPanel != null) flagPanel.appendRow(flag);
+													break;
+												}
 											}
 
 											String authority = redirectToUri.getAuthority();
@@ -190,12 +198,20 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												}
 												catch (URISyntaxException e)
 												{
-													Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-													Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
-													missingFiles.add(missingFile);
-													if (console != null) console.append(missingFile.toString()+"\n");
-													if (flagPanel != null) flagPanel.appendRow(flag);
-													break;
+													// attempt to correct an invalid URL, focus on ASCII space.
+													redirectToLocation = redirectToLocation.replace(" ", "%20");
+													try {
+														redirectToUri = new URI(redirectToLocation);
+													}
+													catch (URISyntaxException e1)
+													{
+														Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+														Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
+														missingFiles.add(missingFile);
+														if (console != null) console.append(missingFile.toString()+"\n");
+														if (flagPanel != null) flagPanel.appendRow(flag);
+														break;
+													}
 												}
 											}
 

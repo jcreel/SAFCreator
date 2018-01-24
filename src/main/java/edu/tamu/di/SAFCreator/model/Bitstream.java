@@ -171,10 +171,18 @@ public class Bitstream extends CellDatumImpl
 								}
 								catch (URISyntaxException e)
 								{
-									Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
-									problems.add(problem);
-									break;
+									// attempt to correct an invalid URL, focus on ASCII space.
+									redirectToLocation = redirectToLocation.replace(" ", "%20");
+									try {
+										redirectToUri = new URI(redirectToLocation);
+									}
+									catch (URISyntaxException e1)
+									{
+										Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
+										problems.add(problem);
+										break;
+									}
 								}
 
 								String authority = redirectToUri.getAuthority();
@@ -197,10 +205,18 @@ public class Bitstream extends CellDatumImpl
 									}
 									catch (URISyntaxException e)
 									{
-										Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-										Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
-										problems.add(problem);
-										break;
+										// attempt to correct an invalid URL, focus on ASCII space.
+										redirectToLocation = redirectToLocation.replace(" ", "%20");
+										try {
+											redirectToUri = new URI(redirectToLocation);
+										}
+										catch (URISyntaxException e1)
+										{
+											Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected to an invalid URL, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+											Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected to an invalid URL.", flag);
+											problems.add(problem);
+											break;
+										}
 									}
 								}
 
