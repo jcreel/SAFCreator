@@ -249,13 +249,21 @@ public class Bitstream extends CellDatumImpl
 
 							if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf") || contentType.equalsIgnoreCase("application/octet-stream")) {
 								FileReader inputStream = new FileReader(destination);
-								// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
-								if (inputStream.read() != 0x25 || inputStream.read() != 0x50|| inputStream.read() != 0x44 || inputStream.read() != 0x46) {
-									Flag flag = new Flag(Flag.INVALID_MIME, "Downloaded file may not be a valid PDF, reason: %PDF magic not found in file.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-									Problem problem = new Problem(getRow(), getColumn(), true, "Downloaded file is not a valid PDF.", flag);
+								try {
+									// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
+									if (inputStream.read() != 0x25 || inputStream.read() != 0x50|| inputStream.read() != 0x44 || inputStream.read() != 0x46) {
+										Flag flag = new Flag(Flag.INVALID_MIME, "Downloaded file may not be a valid PDF, reason: %PDF magic not found in file.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+										Problem problem = new Problem(getRow(), getColumn(), true, "Downloaded file is not a valid PDF.", flag);
+										problems.add(problem);
+									}
+								} catch (IOException e)
+								{
+									Flag flag = new Flag(Flag.IO_FAILURE, "PDF file read failed, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumn(), true, "PDF file read failed.", flag);
 									problems.add(problem);
+								} finally {
+									inputStream.close();
 								}
-								inputStream.close();
 							}
 							else {
 								Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid PDF, reason: server designated a mimetype of " + contentType + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
