@@ -147,6 +147,7 @@ public class Bitstream extends CellDatumImpl
 							HashSet<String> previousUrls = new HashSet<String>();
 							previousUrls.add(source.toString());
 							URL previousUrl = url;
+							Header redirectTo = get.getResponseHeader("Location");
 
 							do {
 								if (totalRedirects++ > MaxRedirects) {
@@ -156,7 +157,6 @@ public class Bitstream extends CellDatumImpl
 									break;
 								}
 
-								Header redirectTo = get.getResponseHeader("Location");
 								if (redirectTo == null) {
 									Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected without a valid destination URL.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
 									Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL redirected without a valid destination URL.", flag);
@@ -235,6 +235,7 @@ public class Bitstream extends CellDatumImpl
 								}
 								response = client.executeMethod(get);
 								previousUrl = redirectToUri.toURL();
+								redirectTo = get.getResponseHeader("Location");
 							} while (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP);
 						}
 
@@ -244,6 +245,8 @@ public class Bitstream extends CellDatumImpl
 							input.close();
 
 							String contentType = get.getResponseHeader("Content-Type").getValue();
+							get.releaseConnection();
+
 							if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf") || contentType.equalsIgnoreCase("application/octet-stream")) {
 								FileReader inputStream = new FileReader(destination);
 								// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
@@ -296,6 +299,8 @@ public class Bitstream extends CellDatumImpl
 					{
 						if (get != null) {
 							get.releaseConnection();
+						}
+						if (client != null) {
 							client.getHttpConnectionManager().closeIdleConnections(TimeoutConnection);
 						}
 					}

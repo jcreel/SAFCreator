@@ -121,6 +121,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								String userAgent = batch.getUserAgent();
 								HttpClient client = new HttpClient();
 								HeadMethod head = null;
+								GetMethod get = null;
 								try
 								{
 									head = new HeadMethod(source.toURL().toString());
@@ -129,16 +130,21 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									}
 									head.setFollowRedirects(true);
 									int response = client.executeMethod(head);
+									Header redirectTo = head.getResponseHeader("Location");
+									head.releaseConnection();
+									head = null;
 
 									// some servers do no support HEAD requests, so attempt a GET request.
 									if (response == HttpURLConnection.HTTP_BAD_METHOD) {
-										GetMethod get = new GetMethod(source.toURL().toString());
+										get = new GetMethod(source.toURL().toString());
 										if (userAgent != null) {
 											get.addRequestHeader("User-Agent", userAgent);
 										}
 										get.setFollowRedirects(true);
 										response = client.executeMethod(get);
+										redirectTo = get.getResponseHeader("Location");
 										get.releaseConnection();
+										get = null;
 									}
 
 									if (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP) {
@@ -157,7 +163,6 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												break;
 											}
 
-											Header redirectTo = head.getResponseHeader("Location");
 											if (redirectTo == null) {
 												Flag flag = new Flag(Flag.REDIRECT_FAILURE, "HTTP URL redirected without a valid destination URL.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
 												Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), true, "HTTP URL redirected without a valid destination URL.", flag);
@@ -236,24 +241,34 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												break;
 											}
 
-											head.releaseConnection();
 											head = new HeadMethod(redirectToLocation);
 											head.setFollowRedirects(true);
 											if (userAgent != null) {
 												head.addRequestHeader("User-Agent", userAgent);
 											}
 											response = client.executeMethod(head);
+											head.releaseConnection();
 											previousUrl = redirectToUri.toURL();
 
 											// some servers do no support HEAD requests, so attempt a GET request.
 											if (response == HttpURLConnection.HTTP_BAD_METHOD) {
-												GetMethod get = new GetMethod(redirectToUri.toURL().toString());
+												head.releaseConnection();
+												head = null;
+
+												get = new GetMethod(redirectToUri.toURL().toString());
 												if (userAgent != null) {
 													get.addRequestHeader("User-Agent", userAgent);
 												}
 												get.setFollowRedirects(true);
 												response = client.executeMethod(get);
+												redirectTo = get.getResponseHeader("Location");
 												get.releaseConnection();
+												get = null;
+											}
+											else {
+												redirectTo = head.getResponseHeader("Location");
+												head.releaseConnection();
+												head = null;
 											}
 										} while (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP);
 									}
@@ -306,6 +321,12 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								{
 									if (head != null) {
 										head.releaseConnection();
+									}
+									if (get != null) {
+										get.releaseConnection();
+									}
+									if (client != null) {
+										client.getHttpConnectionManager().closeIdleConnections(TimeoutConnection);
 									}
 								}
 							}
