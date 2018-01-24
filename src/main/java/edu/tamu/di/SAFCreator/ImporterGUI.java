@@ -31,6 +31,7 @@ import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 import edu.tamu.di.SAFCreator.verify.FilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
+import edu.tamu.di.SAFCreator.verify.ValidHandleVerifierImpl;
 
 
 public class ImporterGUI extends JFrame 
@@ -568,11 +569,83 @@ public class ImporterGUI extends JFrame
 			}
 		};
 
+		VerifierBackground validHandleVerifierImpl = new ValidHandleVerifierImpl() {
+			@Override
+			public List<Problem> doInBackground() {
+				statusIndicator.setText("Batch Status:\n Unverified\n Valid Handle?\n 0 / " + batch.getItems().size());
+				return verify(batch, console, flagPanel);
+			}
+
+			@Override
+			public void done() {
+				if (isCancelled()) {
+					cancelVerifyCleanup();
+					return;
+				}
+
+				List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+				if (batchVerified == null) {
+					batchVerified = true;
+				}
+
+				try
+				{
+					problems = get();
+				} catch (InterruptedException | ExecutionException e)
+				{
+					batchVerified = false;
+					e.printStackTrace();
+				}
+
+				for(Verifier.Problem problem : problems)
+				{
+					if(problem.isError()) {
+						batchVerified = false;
+						break;
+					}
+				}
+
+				if (getNextVerifier() == null) {
+					if(batchVerified)
+					{
+						transitionToVerifySuccess();
+					}
+					else
+					{
+						transitionToVerifyFailed();
+					}
+
+					unlockVerifyButtons();
+					return;
+				}
+
+				currentVerifier = super.getNextVerifier();
+				if (currentVerifier != null) {
+					currentVerifier.execute();
+				}
+			}
+
+			@Override
+			protected void process(List<VerifierBackground.VerifierUpdates> updates) {
+				if (updates.size() == 0) {
+					return;
+				}
+
+				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
+				if (update != null && update.getTotal() > 0) {
+					statusIndicator.setText("Batch Status:\n Unverified\n Valid Handle?\n " + update.getProcessed() + " / " + update.getTotal());
+				}
+			}
+		};
+
 		verifiers.clear();
 		verifiers.add(fileExistsVerifier);
 
 		fileExistsVerifier.setNextVerifier(validSchemaVerifier);
 		verifiers.add(validSchemaVerifier);
+
+		fileExistsVerifier.setNextVerifier(validHandleVerifierImpl);
+		verifiers.add(validHandleVerifierImpl);
 	}
 
 	private void createBatchDetailsTab() 
