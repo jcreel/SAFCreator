@@ -1193,6 +1193,8 @@ public class ImporterGUI extends JFrame
 	private void lockThreadSensitiveControls() {
 		loadBatchBtn.setEnabled(false);
 		chooseInputFileBtn.setEnabled(false);
+		chooseSourceDirectoryBtn.setEnabled(false);
+		chooseOutputDirectoryBtn.setEnabled(false);
 		verifyCancelBtn.setEnabled(true);
 		verifyBatchBtn.setEnabled(false);
 
@@ -1212,6 +1214,8 @@ public class ImporterGUI extends JFrame
 		verifyBatchBtn.setEnabled(true);
 		loadBatchBtn.setEnabled(true);
 		chooseInputFileBtn.setEnabled(true);
+		chooseSourceDirectoryBtn.setEnabled(true);
+		chooseOutputDirectoryBtn.setEnabled(true);
 
 		if (actionStatus == ActionStatus.VERIFIED) {
 			writeSAFBtn.setEnabled(true);
