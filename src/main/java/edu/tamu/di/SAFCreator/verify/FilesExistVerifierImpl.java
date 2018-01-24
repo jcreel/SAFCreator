@@ -236,8 +236,8 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									}
 
 									if (response != HttpURLConnection.HTTP_OK && response != HttpURLConnection.HTTP_SEE_OTHER && response != HttpURLConnection.HTTP_MOVED_PERM && response != HttpURLConnection.HTTP_MOVED_TEMP) {
-										if (response == 304) {
-											Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download limit), HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+										if (response == 304 || response == 509) {
+											Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download/bandwidth limit), HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
 											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP service was denied, HTTP response code: " + response + ".", flag);
 											missingFiles.add(missingFile);
 											if (console != null) console.append(missingFile.toString()+"\n");
