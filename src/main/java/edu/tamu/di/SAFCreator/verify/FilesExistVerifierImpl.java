@@ -17,6 +17,7 @@ import javax.swing.JTextArea;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -129,6 +130,17 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									head.setFollowRedirects(true);
 									int response = client.executeMethod(head);
 
+									// some servers do no support HEAD requests, so attempt a GET request.
+									if (response == HttpURLConnection.HTTP_BAD_METHOD) {
+										GetMethod get = new GetMethod(source.toURL().toString());
+										if (userAgent != null) {
+											get.addRequestHeader("User-Agent", userAgent);
+										}
+										get.setFollowRedirects(true);
+										response = client.executeMethod(get);
+										get.releaseConnection();
+									}
+
 									if (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP) {
 										int totalRedirects = 0;
 										HashSet<String> previousUrls = new HashSet<String>();
@@ -232,6 +244,17 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 											}
 											response = client.executeMethod(head);
 											previousUrl = redirectToUri.toURL();
+
+											// some servers do no support HEAD requests, so attempt a GET request.
+											if (response == HttpURLConnection.HTTP_BAD_METHOD) {
+												GetMethod get = new GetMethod(redirectToUri.toURL().toString());
+												if (userAgent != null) {
+													get.addRequestHeader("User-Agent", userAgent);
+												}
+												get.setFollowRedirects(true);
+												response = client.executeMethod(get);
+												get.releaseConnection();
+											}
 										} while (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP);
 									}
 
