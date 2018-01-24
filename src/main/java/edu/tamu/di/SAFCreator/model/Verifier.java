@@ -69,6 +69,10 @@ public interface Verifier
 			return flag != null;
 		}
 
+		public void setFlag(Flag flag) {
+			this.flag = flag;
+		}
+
 		public Flag getFlag() {
 			return flag;
 		}
