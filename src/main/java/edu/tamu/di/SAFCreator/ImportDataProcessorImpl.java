@@ -132,7 +132,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			while((nextLine = reader.readNext()) != null)
 			{
 				linenumber++;
-				
 				Item item = new Item(linenumber, batch);
 				
 				
@@ -284,8 +283,17 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 
 	public void writeBatchSAF(Batch batch, JTextArea console, FlagPanel flags)
 	{
+		int itemCount = 0;
 		for(Item item : batch.getItems())
 		{
+			if (batch.isIgnoredRow(++itemCount)) {
+				File directory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + itemCount);
+				directory.delete();
+
+				console.append("\tSkipped item (row " + itemCount + ").\n");
+				continue;
+			}
+
 			boolean hasError = false;
 			List<Problem> problems = item.writeItemSAF();
 			for(Verifier.Problem problem : problems)
@@ -298,12 +306,14 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					flags.appendRow(problem.getFlag());
 				}
 			}
+
 			if (hasError) {
-				console.append("\tFailed to write item " + item.getSAFDirectory() + "\n");
+				console.append("\tFailed to write item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
 			} else {
-				console.append("\tWrote item " + item.getSAFDirectory() + "\n");
+				console.append("\tWrote item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
 			}
 		}
+
 		console.append("Done writing SAF data.\n");
 	}
 }

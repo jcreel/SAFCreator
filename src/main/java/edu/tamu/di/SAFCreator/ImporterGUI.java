@@ -99,6 +99,7 @@ public class ImporterGUI extends JFrame
 	private final JTextField itemProcessDelayField= new JTextField(String.valueOf(defaultProcessDelay), 10);
 	private final JLabel userAgentLabel = new JLabel("User agent:");
 	private final JTextField userAgentField = new JTextField(defaultUserAgent, 48);
+	private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error:");
 
 	//Components of the Flag List tab
 	private final FlagPanel flagPanel = new FlagPanel();
@@ -124,6 +125,7 @@ public class ImporterGUI extends JFrame
 	private ImportDataWriter currentWriter = null;
 	private VerifierBackground currentVerifier = null;
 	private static Boolean batchVerified = null;
+	private boolean batchContinue = false;
 
 	
 	public ImporterGUI(final ImportDataProcessor processor)
@@ -233,6 +235,7 @@ public class ImporterGUI extends JFrame
 					{
 						lockVerifyButtons();
 						currentVerifier = null;
+						batch.clearIgnoredRows();
 
 						for(VerifierBackground verifier : verifiers)
 						{
@@ -459,11 +462,24 @@ public class ImporterGUI extends JFrame
 					e.printStackTrace();
 				}
 
+				batchContinue = batch.getRemoteBitstreamErrorContinue();
 				for(Verifier.Problem problem : problems)
 				{
 					if(problem.isError()) {
-						batchVerified = false;
-						break;
+						if (problem.isFlagged()) {
+							batchVerified = false;
+							if (batch.hasIgnoredRows()) {
+								continue;
+							}
+							else {
+								break;
+							}
+						}
+						else {
+							batchContinue = false;
+							batchVerified = false;
+							break;
+						}
 					}
 				}
 
@@ -474,7 +490,12 @@ public class ImporterGUI extends JFrame
 					}
 					else
 					{
-						transitionToVerifyFailed();
+						if (batchContinue) {
+							transitionToVerifySuccessIgnoreErrors();
+						}
+						else {
+							transitionToVerifyFailed();
+						}
 					}
 
 					unlockVerifyButtons();
@@ -528,11 +549,24 @@ public class ImporterGUI extends JFrame
 					e.printStackTrace();
 				}
 
+				batchContinue = batch.getRemoteBitstreamErrorContinue();
 				for(Verifier.Problem problem : problems)
 				{
 					if(problem.isError()) {
-						batchVerified = false;
-						break;
+						if (problem.isFlagged()) {
+							batchVerified = false;
+							if (batch.hasIgnoredRows()) {
+								continue;
+							}
+							else {
+								break;
+							}
+						}
+						else {
+							batchContinue = false;
+							batchVerified = false;
+							break;
+						}
 					}
 				}
 
@@ -543,7 +577,12 @@ public class ImporterGUI extends JFrame
 					}
 					else
 					{
-						transitionToVerifyFailed();
+						if (batchContinue) {
+							transitionToVerifySuccessIgnoreErrors();
+						}
+						else {
+							transitionToVerifyFailed();
+						}
 					}
 
 					unlockVerifyButtons();
@@ -597,11 +636,24 @@ public class ImporterGUI extends JFrame
 					e.printStackTrace();
 				}
 
+				batchContinue = batch.getRemoteBitstreamErrorContinue();
 				for(Verifier.Problem problem : problems)
 				{
 					if(problem.isError()) {
-						batchVerified = false;
-						break;
+						if (problem.isFlagged()) {
+							batchVerified = false;
+							if (batch.hasIgnoredRows()) {
+								continue;
+							}
+							else {
+								break;
+							}
+						}
+						else {
+							batchContinue = false;
+							batchVerified = false;
+							break;
+						}
 					}
 				}
 
@@ -612,7 +664,12 @@ public class ImporterGUI extends JFrame
 					}
 					else
 					{
-						transitionToVerifyFailed();
+						if (batchContinue) {
+							transitionToVerifySuccessIgnoreErrors();
+						}
+						else {
+							transitionToVerifyFailed();
+						}
 					}
 
 					unlockVerifyButtons();
@@ -638,6 +695,9 @@ public class ImporterGUI extends JFrame
 			}
 		};
 
+		if (batch != null) {
+			batch.clearIgnoredRows();
+		}
 		verifiers.clear();
 		verifiers.add(fileExistsVerifier);
 
@@ -725,7 +785,7 @@ public class ImporterGUI extends JFrame
 							actionStatusField.setBackground(Color.blue);
 
 							ignoreFilesBox.setEnabled(false);
-							ignoreFilesBox.setSelected(false);
+							continueOnRemoteErrorBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
 							userAgentField.setEnabled(false);
 
@@ -806,6 +866,7 @@ public class ImporterGUI extends JFrame
 							actionStatusField.setBackground(Color.blue);
 
 							ignoreFilesBox.setEnabled(false);
+							continueOnRemoteErrorBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
 							userAgentField.setEnabled(false);
 
@@ -914,7 +975,8 @@ public class ImporterGUI extends JFrame
 	{
 		advancedSettingsTab.setLayout(new BoxLayout(advancedSettingsTab, BoxLayout.Y_AXIS));
 		advancedSettingsTab.add(ignoreFilesBox);
-		
+		advancedSettingsTab.add(continueOnRemoteErrorBox);
+
 		tabs.addTab("Advanced Settings", advancedSettingsTab);
 		
 		ignoreFilesBox.addMouseListener
@@ -950,6 +1012,39 @@ public class ImporterGUI extends JFrame
 			}
 		);
 
+		continueOnRemoteErrorBox.addMouseListener
+		(
+			new MouseListener()
+			{
+				public void mouseClicked(MouseEvent e)
+				{
+					if (!continueOnRemoteErrorBox.isEnabled()) {
+						// checkbox mouse clicks still trigger even when set to disabled.
+						return;
+					}
+
+					if(continueOnRemoteErrorBox.isSelected())
+					{
+						console.append("Now allows writing even if the remote bitstream verification flags an error.\n");
+						batch.setRemoteBitstreamErrorContinue(true);
+					}
+					else
+					{
+						console.append("Now requires all remote bitstream verification to pass before writing.\n");
+						batch.setRemoteBitstreamErrorContinue(false);
+					}
+				}
+
+				public void mousePressed(MouseEvent e) {}
+
+				public void mouseReleased(MouseEvent e) {}
+
+				public void mouseEntered(MouseEvent e) {}
+
+				public void mouseExited(MouseEvent e) {}
+			}
+		);
+
 		JPanel itemProcessDelayPanel = new JPanel();
 		itemProcessDelayPanel.add(itemProcessDelayLabel);
 		itemProcessDelayPanel.add(itemProcessDelayField);
@@ -962,6 +1057,7 @@ public class ImporterGUI extends JFrame
 
 		// initialize as disabled so that it will only be enable once a batch is assigned.
 		ignoreFilesBox.setEnabled(false);
+		continueOnRemoteErrorBox.setEnabled(false);
 		itemProcessDelayField.setEnabled(false);
 		itemProcessDelayField.getDocument().addDocumentListener
 		(
@@ -1207,14 +1303,18 @@ public class ImporterGUI extends JFrame
 		flagsReportSelectedBtn.setEnabled(true);
 
 		batch.setIgnoreFiles(ignoreFilesBox.isSelected());
+		batch.setRemoteBitstreamErrorContinue(continueOnRemoteErrorBox.isSelected());
 		batch.setItemProcessDelay(itemProcessDelayField.getText());
 		batch.setUserAgent(userAgentField.getText());
 
 		flagPanel.clear();
 
 		ignoreFilesBox.setEnabled(true);
+		continueOnRemoteErrorBox.setEnabled(true);
 		itemProcessDelayField.setEnabled(true);
 		userAgentField.setEnabled(true);
+
+		batchContinue = false;
 	}
 	
 
@@ -1232,6 +1332,21 @@ public class ImporterGUI extends JFrame
 		writeSAFBtn.setText("Write SAF data now!");
 	}
 	
+
+	private void transitionToVerifySuccessIgnoreErrors()
+	{
+		actionStatus = ActionStatus.VERIFIED;
+		actionStatusField.setText("Your batch failed to verify, continuing.");
+		actionStatusField.setBackground(Color.orange);
+
+		statusIndicator.setText("Batch Status:\nUnverified,\nContinuing Anyway");
+		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.orange);
+
+		writeSAFBtn.setEnabled(true);
+		writeSAFBtn.setText("Write SAF data now!");
+	}
+
 	private void transitionToVerifyFailed()
 	{
 		actionStatus = ActionStatus.FAILED_VERIFICATION;
@@ -1295,6 +1410,7 @@ public class ImporterGUI extends JFrame
 
 		if (actionStatus != ActionStatus.NONE_LOADED) {
 			ignoreFilesBox.setEnabled(false);
+			continueOnRemoteErrorBox.setEnabled(false);
 			itemProcessDelayField.setEnabled(false);
 			userAgentField.setEnabled(false);
 		}
@@ -1314,6 +1430,7 @@ public class ImporterGUI extends JFrame
 
 		if (actionStatus != ActionStatus.NONE_LOADED) {
 			ignoreFilesBox.setEnabled(true);
+			continueOnRemoteErrorBox.setEnabled(true);
 			itemProcessDelayField.setEnabled(true);
 			userAgentField.setEnabled(true);
 		}

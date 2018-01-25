@@ -1,5 +1,6 @@
 package edu.tamu.di.SAFCreator;
 
+import java.io.File;
 import java.util.List;
 
 import javax.swing.JTextArea;
@@ -80,6 +81,15 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 		int totalItems = batch.getItems().size();
 		for(Item item : batch.getItems())
 		{
+			if (batch.isIgnoredRow(++itemCount)) {
+				File directory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + itemCount);
+				directory.delete();
+
+				console.append("\tSkipped item (row " + itemCount + ").\n");
+				publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
+				continue;
+			}
+
 			boolean hasError = false;
 			List<Problem> problems = item.writeItemSAF();
 			for(Verifier.Problem problem : problems)
@@ -95,9 +105,9 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 			}
 
 			if (hasError) {
-				console.append("\tFailed to write item " + item.getSAFDirectory() + "\n");
+				console.append("\tFailed to write item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
 			} else {
-				console.append("\tWrote item " + item.getSAFDirectory() + "\n");
+				console.append("\tWrote item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
 			}
 
 			if (isCancelled()) {
@@ -105,7 +115,6 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				return (Boolean) null;
 			}
 
-			itemCount++;
 			publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
 		}
 
