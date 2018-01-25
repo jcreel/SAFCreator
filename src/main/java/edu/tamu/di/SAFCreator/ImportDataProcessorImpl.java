@@ -137,6 +137,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				
 				
 				columnCounter = 'A';
+				int fileNumber = 0;
 				for(int columnIndex = 0; columnIndex < nextLine.length; columnIndex++)
 				{
 					ColumnLabel label = columnLabels.get(columnIndex);
@@ -182,7 +183,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								Bitstream bitstream = new Bitstream();
 								bitstream.setBundle(bundle);
 								bitstream.setSource(uri);
-								bitstream.setRelativePath(PdfPrefix + columnIndex + PdfSuffix);
+								bitstream.setRelativePath(PdfPrefix + (++fileNumber) + PdfSuffix);
 								bitstream.setColumn(columnCounter);
 								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
