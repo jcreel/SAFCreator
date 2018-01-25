@@ -1142,9 +1142,26 @@ public class ImporterGUI extends JFrame
 					Problem problem = new Problem(true, row.getCell(Columns.DESCRIPTION));
 					console.append("\nFlag Name: " + row.getCell(Columns.FLAG) + "\n");
 					console.append("Flag Description: " + problem.toString() + "\n");
-					console.append("Flag Authority: " + row.getCell(Columns.AUTHORITY) + "\n");
-					console.append("Flag URL: " + row.getCell(Columns.URL) + "\n");
-					console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
+
+					if (!row.getCell(Columns.AUTHORITY).isEmpty() ) {
+						console.append("Flag Authority: " + row.getCell(Columns.AUTHORITY) + "\n");
+					}
+
+					if (!row.getCell(Columns.URL).isEmpty()) {
+						console.append("Flag URL: " + row.getCell(Columns.URL) + "\n");
+					}
+
+					if (row.getCell(Columns.COLUMN).isEmpty()) {
+						if (!row.getCell(Columns.ROW).isEmpty()) {
+							console.append("Flag Row: " + row.getCell(Columns.ROW) + "\n");
+						}
+					}
+					else if (row.getCell(Columns.ROW).isEmpty()) {
+						console.append("Flag Column: " + row.getCell(Columns.COLUMN) + "\n");
+					}
+					else {
+						console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
+					}
 			    }
 			}
 		);
