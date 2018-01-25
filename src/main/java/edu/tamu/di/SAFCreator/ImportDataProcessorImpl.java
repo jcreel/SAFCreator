@@ -108,7 +108,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				}
 				else
 				{
-					console.append("\nWarning:  Ignoring invalid column label at column " + columnCounter + ": " + cell + "\n");
+					console.append("Warning:  Ignoring invalid column label at column " + columnCounter + ": " + cell + "\n");
 					StubLabel stubLabel = new StubLabel();
 					stubLabel.setColumn(columnCounter);
 					stubLabel.setRow(1);
