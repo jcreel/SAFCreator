@@ -31,6 +31,10 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 			itemCount++;
 
 			String handle = item.getHandle();
+			if (handle == null) {
+				// no handle column is defined, so assume it is not wanted.
+				break;
+			}
 			if (handle.isEmpty()) {
 				Flag flag = new Flag(Flag.NO_UNIQUE_ID, "Undefined Handle for row " + itemCount + ".", "", "", "", "" + itemCount);
 				Problem problem = new Problem(true, "Undefined Handle for row " + itemCount + ".");
