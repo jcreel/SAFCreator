@@ -251,7 +251,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					else
 					{
-						console.append("Ignoring line " + linenumber + " column " + columnCounter + "\n");
+						//console.append("Ignoring line " + linenumber + " column " + columnCounter + "\n");
 					}
 					columnCounter++;
 				}
