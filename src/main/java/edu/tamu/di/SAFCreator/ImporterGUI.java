@@ -608,93 +608,6 @@ public class ImporterGUI extends JFrame
 			}
 		};
 
-		VerifierBackground validHandleVerifierImpl = new ValidHandleVerifierImpl() {
-			@Override
-			public List<Problem> doInBackground() {
-				statusIndicator.setText("Batch Status:\n Unverified\n Valid Handle?\n 0 / " + batch.getItems().size());
-				return verify(batch, console, flagPanel);
-			}
-
-			@Override
-			public void done() {
-				if (isCancelled()) {
-					cancelVerifyCleanup();
-					return;
-				}
-
-				List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
-				if (batchVerified == null) {
-					batchVerified = true;
-				}
-
-				try
-				{
-					problems = get();
-				} catch (InterruptedException | ExecutionException e)
-				{
-					batchVerified = false;
-					e.printStackTrace();
-				}
-
-				batchContinue = batch.getRemoteBitstreamErrorContinue();
-				for(Verifier.Problem problem : problems)
-				{
-					if(problem.isError()) {
-						if (problem.isFlagged()) {
-							batchVerified = false;
-							if (batch.hasIgnoredRows()) {
-								continue;
-							}
-							else {
-								break;
-							}
-						}
-						else {
-							batchContinue = false;
-							batchVerified = false;
-							break;
-						}
-					}
-				}
-
-				if (getNextVerifier() == null) {
-					if(batchVerified)
-					{
-						transitionToVerifySuccess();
-					}
-					else
-					{
-						if (batchContinue) {
-							transitionToVerifySuccessIgnoreErrors();
-						}
-						else {
-							transitionToVerifyFailed();
-						}
-					}
-
-					unlockVerifyButtons();
-					return;
-				}
-
-				currentVerifier = super.getNextVerifier();
-				if (currentVerifier != null) {
-					currentVerifier.execute();
-				}
-			}
-
-			@Override
-			protected void process(List<VerifierBackground.VerifierUpdates> updates) {
-				if (updates.size() == 0) {
-					return;
-				}
-
-				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
-				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n Valid Handle?\n " + update.getProcessed() + " / " + update.getTotal());
-				}
-			}
-		};
-
 		if (batch != null) {
 			batch.clearIgnoredRows();
 		}
@@ -703,9 +616,6 @@ public class ImporterGUI extends JFrame
 
 		fileExistsVerifier.setNextVerifier(validSchemaVerifier);
 		verifiers.add(validSchemaVerifier);
-
-		//fileExistsVerifier.setNextVerifier(validHandleVerifierImpl);
-		//verifiers.add(validHandleVerifierImpl);
 	}
 
 	private void createBatchDetailsTab() 
