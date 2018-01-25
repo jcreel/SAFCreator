@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLProtocolException;
 import javax.swing.JTextArea;
 
 import org.apache.commons.httpclient.Header;
@@ -122,6 +123,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								HttpClient client = new HttpClient();
 								HeadMethod head = null;
 								GetMethod get = null;
+								int response = 0;
 								try
 								{
 									head = new HeadMethod(source.toURL().toString());
@@ -129,7 +131,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										head.addRequestHeader("User-Agent", userAgent);
 									}
 									head.setFollowRedirects(true);
-									int response = client.executeMethod(head);
+									response = client.executeMethod(head);
 									Header redirectTo = head.getResponseHeader("Location");
 									head.releaseConnection();
 									head = null;
@@ -282,15 +284,22 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 											if (flagPanel != null) flagPanel.appendRow(flag);
 										}
 										else if (response == 404) {
-											Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file was not found.", flag);
+											Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file was not found, HTTP response code: " + response + ".", flag);
 											missingFiles.add(missingFile);
 											if (console != null) console.append(missingFile.toString()+"\n");
 											if (flagPanel != null) flagPanel.appendRow(flag);
 										}
 										else if (response == 403) {
-											Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied.", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file access was denied.", flag);
+											Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP file access was denied, HTTP response code: " + response + ".", flag);
+											missingFiles.add(missingFile);
+											if (console != null) console.append(missingFile.toString()+"\n");
+											if (flagPanel != null) flagPanel.appendRow(flag);
+										}
+										else if (response == 500) {
+											Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP server had an internal error, HTTP response code: " + response + ".", flag);
 											missingFiles.add(missingFile);
 											if (console != null) console.append(missingFile.toString()+"\n");
 											if (flagPanel != null) flagPanel.appendRow(flag);
@@ -305,15 +314,25 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									}
 								} catch (MalformedURLException e)
 								{
-									Flag flag = new Flag(Flag.INVALID_FORMAT, "HTTP URL is invalid, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL is invalid.", flag);
+									String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+									Flag flag = new Flag(Flag.INVALID_FORMAT, "HTTP URL is invalid" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL is invalid" + responseString + ".", flag);
+									missingFiles.add(missingFile);
+									if (console != null) console.append(missingFile.toString()+"\n");
+									if (flagPanel != null) flagPanel.appendRow(flag);
+								} catch (SSLProtocolException e)
+								{
+									String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+									Flag flag = new Flag(Flag.SSL_FAILURE, "HTTP URL had an SSL failure" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL had an SSL failure" + responseString + ".", flag);
 									missingFiles.add(missingFile);
 									if (console != null) console.append(missingFile.toString()+"\n");
 									if (flagPanel != null) flagPanel.appendRow(flag);
 								} catch (IOException e)
 								{
+									String responseString = (response > 0 ? ", HTTP response code: " + response : "");
 									Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + bitstream.getColumn(), "" + bitstream.getRow());
-									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL had a connection error.", flag);
+									Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumn(), generatesError(), "HTTP URL had a connection error" + responseString + ".", flag);
 									missingFiles.add(missingFile);
 									if (console != null) console.append(missingFile.toString()+"\n");
 									if (flagPanel != null) flagPanel.appendRow(flag);

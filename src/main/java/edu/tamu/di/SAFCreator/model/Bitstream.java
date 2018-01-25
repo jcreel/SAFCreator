@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLProtocolException;
+
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -132,6 +134,7 @@ public class Bitstream extends CellDatumImpl
 					String userAgent = bundle.getItem().getBatch().getUserAgent();
 					HttpClient client = new HttpClient();
 					GetMethod get = null;
+					int response = 0;
 					try
 					{
 						client.getHttpConnectionManager().getParams().setConnectionTimeout(TimeoutConnection);
@@ -140,7 +143,7 @@ public class Bitstream extends CellDatumImpl
 							get.addRequestHeader("User-Agent", userAgent);
 						}
 						get.setFollowRedirects(true);
-						int response = client.executeMethod(get);
+						response = client.executeMethod(get);
 
 						if (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP) {
 							int totalRedirects = 0;
@@ -278,13 +281,18 @@ public class Bitstream extends CellDatumImpl
 								problems.add(problem);
 							}
 							else if (response == 404) {
-								Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file was not found.", flag);
+								Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file was not found, HTTP response code: " + response + ".", flag);
 								problems.add(problem);
 							}
 							else if (response == 403) {
-								Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied.", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file access was denied.", flag);
+								Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file access was denied, HTTP response code: " + response + ".", flag);
+								problems.add(problem);
+							}
+							else if (response == 403) {
+								Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP server had an internal error, HTTP response code: " + response + ".", flag);
 								problems.add(problem);
 							}
 							else {
@@ -293,15 +301,24 @@ public class Bitstream extends CellDatumImpl
 								problems.add(problem);
 							}
 						}
-					} catch (HttpException e)
+					} catch (SSLProtocolException e)
 					{
-						Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an HTTP error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL " + source.toString() + " had an HTTP error.", flag);
+						String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+						Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an SSL failure" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL had an SSL failure" + responseString + ".", flag);
+						problems.add(problem);
+					}
+					catch (HttpException e)
+					{
+						String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+						Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an HTTP error" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL had an HTTP error" + responseString + ".", flag);
 						problems.add(problem);
 					} catch (IOException e)
 					{
-						Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
-						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL had a connection error.", flag);
+						String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+						Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumn(), true, "HTTP URL had a connection error" + responseString + ".", flag);
 						problems.add(problem);
 					} finally
 					{

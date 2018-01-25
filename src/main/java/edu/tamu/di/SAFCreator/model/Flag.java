@@ -16,9 +16,11 @@ public class Flag {
 	public static String REDIRECT_FAILURE = "Redirect Failure";
 	public static String REDIRECT_LIMIT = "Redirect Limit";
 	public static String REDIRECT_LOOP = "Redirect Loop";
+	public static String SERVICE_ERROR = "Server Error";
 	public static String SERVICE_REJECTED = "Service Rejected";
 	public static String SERVICE_TIMEOUT = "Service Timeout";
 	public static String SERVICE_UNAVAILABLE = "Service Unavailable";
+	public static String SSL_FAILURE = "SSL Failure";
 
 	private ArrayList<String> rowData;
 
