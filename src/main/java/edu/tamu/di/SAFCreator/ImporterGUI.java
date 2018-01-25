@@ -644,8 +644,8 @@ public class ImporterGUI extends JFrame
 		fileExistsVerifier.setNextVerifier(validSchemaVerifier);
 		verifiers.add(validSchemaVerifier);
 
-		fileExistsVerifier.setNextVerifier(validHandleVerifierImpl);
-		verifiers.add(validHandleVerifierImpl);
+		//fileExistsVerifier.setNextVerifier(validHandleVerifierImpl);
+		//verifiers.add(validHandleVerifierImpl);
 	}
 
 	private void createBatchDetailsTab() 
