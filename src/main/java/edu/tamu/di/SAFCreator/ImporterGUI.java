@@ -1114,6 +1114,7 @@ public class ImporterGUI extends JFrame
 					{
 						BufferedWriter writer = Files.newBufferedWriter(Paths.get(csvFilePath));
 						flagPanel.exportToCSV(writer);
+						console.append("Wrote to CSV File: " + csvFilePath + ".\n");
 					} catch (IOException e1)
 					{
 						console.append("Unable to write CSV file " + csvFilePath + ", reason: " + e1.getMessage());
