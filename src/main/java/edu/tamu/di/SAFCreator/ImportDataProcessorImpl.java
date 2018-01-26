@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.net.URI;
 
@@ -133,11 +134,29 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				linenumber++;
 				Item item = new Item(linenumber, batch);
 				boolean addItem = true;
-				
-				
+
+				int totalLength = nextLine.length;
+				if (nextLine.length < columnLabels.size()) {
+					console.append("WARNING on line " + linenumber + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
+					totalLength = columnLabels.size();
+
+					int columnIndex = nextLine.length;
+					List<String> correctedSet = new ArrayList<String>(Arrays.asList(nextLine));
+					while (columnIndex < totalLength) {
+						correctedSet.add("");
+						columnIndex++;
+					}
+					nextLine = new String[totalLength];
+					nextLine = correctedSet.toArray(nextLine);
+				}
+				else if (nextLine.length > columnLabels.size()) {
+					console.append("WARNING on line " + linenumber + ", there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
+					totalLength = columnLabels.size();
+				}
+
 				columnCounter = 'A';
 				int fileNumber = 0;
-				for(int columnIndex = 0; columnIndex < nextLine.length; columnIndex++)
+				for(int columnIndex = 0; columnIndex < totalLength; columnIndex++)
 				{
 					ColumnLabel label = columnLabels.get(columnIndex);
 					String cell = nextLine[columnIndex];
