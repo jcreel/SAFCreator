@@ -290,7 +290,7 @@ public class Bitstream extends CellDatumImpl
 								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP file access was denied, HTTP response code: " + response + ".", flag);
 								problems.add(problem);
 							}
-							else if (response == 403) {
+							else if (response == 500) {
 								Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), "" + getColumn(), "" + getRow());
 								Problem problem = new Problem(getRow(), getColumn(), true, "HTTP server had an internal error, HTTP response code: " + response + ".", flag);
 								problems.add(problem);
