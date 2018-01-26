@@ -54,10 +54,10 @@ public interface Verifier
 				flagged = "Flagged ";
 			}
 			if (rownumber == null) {
-				return flagged + (error?"ERROR":"WARNING") + ": " + note;
+				return "\t" + flagged + (error?"ERROR":"WARNING") + ": " + note;
 			}
 
-			return flagged + (error?"ERROR at ":"WARNING at ") + "column " + columnLabel + " row " + rownumber + ":\n\t" + note;
+			return "\t" + flagged + (error?"ERROR at ":"WARNING at ") + "column " + columnLabel + " row " + rownumber + ":\n\t" + note;
 		}
 		
 		public boolean isError()

@@ -42,14 +42,14 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		
 		if(!(sourceDirFileForChecking.exists() && sourceDirFileForChecking.isDirectory()))
 		{
-			console.append("Source file directory " + sourceDirectoryName + " is not a readable directory.\n");
+			console.append("\tERROR: Source file directory " + sourceDirectoryName + " is not a readable directory.\n");
 			return null;
 		}
 		
 
 		if(!(outputDirFileForChecking.exists() && outputDirFileForChecking.isDirectory()))
 		{
-			console.append("Designated SAF output directory " + outputDirectoryName + " is not an available directory.\n");
+			console.append("\tERROR: Designated SAF output directory " + outputDirectoryName + " is not an available directory.\n");
 			return null;
 		}
 		
@@ -108,7 +108,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				}
 				else
 				{
-					console.append("Warning:  Ignoring invalid column label at column " + columnNumberToLabel(column) + ": " + cell + "\n");
+					console.append("\tWARNING: Ignoring invalid label for column " + columnNumberToLabel(column) + ": " + cell + "\n");
 					StubLabel stubLabel = new StubLabel();
 					stubLabel.setColumn(column);
 					stubLabel.setRow(1);
@@ -138,7 +138,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 
 				int totalLength = nextLine.length;
 				if (nextLine.length < columnLabels.size()) {
-					console.append("WARNING on line " + (linenumber+1) + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
+					console.append("\tWARNING: line " + (linenumber+1) + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
 					totalLength = columnLabels.size();
 
 					int columnIndex = nextLine.length;
@@ -151,7 +151,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					nextLine = correctedSet.toArray(nextLine);
 				}
 				else if (nextLine.length > columnLabels.size()) {
-					console.append("WARNING on line " + (linenumber+1) + ", there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
+					console.append("\tWARNING: line " + (linenumber+1) + ": there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
 					totalLength = columnLabels.size();
 				}
 
@@ -203,7 +203,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							uri = URI.create(cell);
 						}
 						catch (IllegalArgumentException e1) {
-							console.append("ERROR on line " + (linenumber+1) + " column " + columnNumberToLabel(column) + " (invalid file path/URI), reason: " + e1.getMessage() + ".\n");
+							console.append("\tERROR: line " + (linenumber+1) + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
 							errorState = true;
 							addItem = false;
 							break;
@@ -221,7 +221,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bundle.addBitstream(bitstream);
 							}
 							else {
-								console.append("\n*** WARNING:  URL protocol on line " + (linenumber+1) + " column " + columnNumberToLabel(column) + " must be one of: HTTP, HTTPS, or FTP. ***\n");
+								console.append("\tWARNING: line " + (linenumber+1) + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
 						}
 						else {
@@ -243,7 +243,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 									File[] files = directory.listFiles();
 									if(files == null)
 									{
-									        console.append("\n*** WARNING:  No files found for item directory " + directory.getPath() + " ***\n");
+									        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " ***\n");
 									}
 									else
 									{
@@ -291,11 +291,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			console.append("Metadata input file " + metadataInputFileName + " does not exist.\n");
+			console.append("\tERROR: Metadata input file " + metadataInputFileName + " does not exist.\n");
 			e.printStackTrace();
 			errorState = true;
 		} catch (IOException e) {
-			console.append("CSV file reader failed to read line or failed to close.\n");
+			console.append("\tERROR: CSV file reader failed to read line or failed to close.\n");
 			e.printStackTrace();
 			errorState = true;
 		}

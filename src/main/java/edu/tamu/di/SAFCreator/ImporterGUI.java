@@ -759,18 +759,18 @@ public class ImporterGUI extends JFrame
 						createVerifiers();
 
 						//Attempt to load the batch and set status to LOADED if successful, NONE_LOADED if failing
-						console.append("Loading batch for " + metadataInputFileName + "...");
+						console.append("\nLoading batch for " + metadataInputFileName + "...\n");
 						batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName, console);
 						if(batch == null)
 						{
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
 							
-							statusIndicator.setText("No batch loaded");
+							statusIndicator.setText("\nNo batch loaded.\n\n");
 							statusIndicator.setForeground(Color.white);
 							statusIndicator.setBackground(Color.blue);
 							
-							statusIndicator.setText("Please load a batch for processing.");
+							statusIndicator.setText("\nPlease load a batch for processing.\n\n");
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
 
@@ -782,7 +782,7 @@ public class ImporterGUI extends JFrame
 							return;
 						}
 
-						console.append("success.\n");
+						console.append("\nBatch successfully loaded.\n\n");
 
 						transitionToLoaded();
 					}										
@@ -853,12 +853,12 @@ public class ImporterGUI extends JFrame
 					}
 					else if(actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
-						console.append("Please verify the batch before writing.\n");
+						console.append("\nPlease verify the batch before writing.\n\n");
 					}
 					else if(actionStatus.equals(ActionStatus.WRITTEN) || actionStatus.equals(ActionStatus.NONE_LOADED))
 					{
 						//nothing to do
-						console.append("No new SAF data to write.\n");
+						console.append("\nNo new SAF data to write.\n\n");
 					}
 				}
 			}
@@ -934,12 +934,12 @@ public class ImporterGUI extends JFrame
 
 					if(continueOnRemoteErrorBox.isSelected())
 					{
-						console.append("Now allows writing even if the remote bitstream verification flags an error.\n");
+						console.append("Allowing write even if the remote bitstream verification flags an error.\n");
 						batch.setRemoteBitstreamErrorContinue(true);
 					}
 					else
 					{
-						console.append("Now requires all remote bitstream verification to pass before writing.\n");
+						console.append("Denying write if the remote bitstream verification flags an error.\n");
 						batch.setRemoteBitstreamErrorContinue(false);
 					}
 				}
