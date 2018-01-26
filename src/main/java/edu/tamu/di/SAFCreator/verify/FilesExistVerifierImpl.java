@@ -32,8 +32,8 @@ import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
 public class FilesExistVerifierImpl extends VerifierBackground {
-	private static int TimeoutConnection = 5000;
-	private static int TimeoutRead = 5000;
+	private static int TimeoutConnection = 15000;
+	private static int TimeoutRead = 10000;
 	private static int MaxRedirects = 20;
 
 	@Override

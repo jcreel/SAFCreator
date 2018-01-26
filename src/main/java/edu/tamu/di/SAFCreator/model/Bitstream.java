@@ -31,8 +31,8 @@ import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Bitstream extends CellDatumImpl
 {
-	private static int TimeoutConnection = 5000;
-	private static int TimeoutRead = 5000;
+	private static int TimeoutConnection = 15000;
+	private static int TimeoutRead = 10000;
 	private static int MaxRedirects = 20;
 
 	private Bundle bundle;
