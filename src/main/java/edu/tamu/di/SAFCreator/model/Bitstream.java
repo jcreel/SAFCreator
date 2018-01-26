@@ -21,6 +21,7 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.util.HttpURLConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
@@ -135,6 +136,9 @@ public class Bitstream extends CellDatumImpl
 					HttpClient client = new HttpClient();
 					GetMethod get = null;
 					int response = 0;
+
+					//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, TimeoutConnection);
+					client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, TimeoutConnection);
 					try
 					{
 						client.getHttpConnectionManager().getParams().setConnectionTimeout(TimeoutConnection);

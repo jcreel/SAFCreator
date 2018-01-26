@@ -20,6 +20,7 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
@@ -125,6 +126,9 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								HeadMethod head = null;
 								GetMethod get = null;
 								int response = 0;
+
+								//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, TimeoutConnection);
+								client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, TimeoutConnection);
 								try
 								{
 									head = new HeadMethod(source.toURL().toString());
