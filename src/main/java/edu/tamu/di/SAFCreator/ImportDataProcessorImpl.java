@@ -142,6 +142,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					ColumnLabel label = columnLabels.get(columnIndex);
 					String cell = nextLine[columnIndex];
 
+					if (cell.isEmpty()) {
+						columnCounter++;
+						continue;
+					}
+
 					if(label.isField())
 					{
 						//get the Field's schema
@@ -200,9 +205,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							else {
 								console.append("\n*** WARNING:  URL protocol on line " + linenumber + " cell " + columnIndex + " must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
-						}
-						else if (cell.isEmpty()) {
-							continue;
 						}
 						else {
 							int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
