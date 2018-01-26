@@ -31,7 +31,6 @@ import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 import edu.tamu.di.SAFCreator.verify.FilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
-import edu.tamu.di.SAFCreator.verify.ValidHandleVerifierImpl;
 
 
 public class ImporterGUI extends JFrame 
