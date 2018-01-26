@@ -62,7 +62,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		CSVReader reader = null;
 		
 		try {
-			
 			reader = new CSVReader(new FileReader(metadataInputFileName));
 			String[] labelLine;
 			String[] nextLine;
@@ -133,6 +132,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			{
 				linenumber++;
 				Item item = new Item(linenumber, batch);
+				boolean addItem = true;
 				
 				
 				columnCounter = 'A';
@@ -141,7 +141,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				{
 					ColumnLabel label = columnLabels.get(columnIndex);
 					String cell = nextLine[columnIndex];
-					 
+
 					if(label.isField())
 					{
 						//get the Field's schema
@@ -174,7 +174,17 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						FileLabel fileLabel = (FileLabel) label;
 						String bundleName = fileLabel.getBundleName();
 						Bundle bundle = item.getOrCreateBundle(bundleName);
-						URI uri = URI.create(cell);
+						URI uri = null;
+
+						try {
+							uri = URI.create(cell);
+						}
+						catch (IllegalArgumentException e1) {
+							console.append("Error on line " + linenumber + " column " + columnCounter + " (invalid file path/URI), reason: " + e1.getMessage() + ".\n");
+							errorState = true;
+							addItem = false;
+							break;
+						}
 						
 						if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
 							String scheme = uri.getScheme().toString();
@@ -255,9 +265,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					columnCounter++;
 				}
-				
-				batch.addItem(item);
-				
+
+				if (addItem) {
+					batch.addItem(item);
+				}
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
