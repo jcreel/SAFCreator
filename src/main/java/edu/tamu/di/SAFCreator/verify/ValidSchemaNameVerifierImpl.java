@@ -37,7 +37,7 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 				if(Util.regexMatchCounter(".*\\W+.*", fieldLabel.getSchema()) > 0)
 				{
 					System.out.println("match in " + fieldLabel.getSchema());
-					Problem badSchema = new Problem (label.getRow(), label.getColumn(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
+					Problem badSchema = new Problem (label.getRow(), label.getColumnLabel(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
 					badSchemata.add(badSchema);
 					if (console != null) console.append(badSchemata.toString()+"\n");
 			

@@ -13,7 +13,7 @@ public interface Verifier
 	public class Problem 
 	{
 		private Integer rownumber = null;
-		private Character columnletter = null;
+		private String columnLabel = null;
 		private boolean error;
 		private String note;
 		private Flag flag = null;
@@ -22,25 +22,25 @@ public interface Verifier
 		public Problem(boolean error, String note)
 		{
 			this.rownumber = null;
-			this.columnletter = null;
+			this.columnLabel = null;
 			this.error = error;
 			this.note = note;
 			this.flag = null;
 		}
 
-		public Problem(int rownumber, char columnletter, boolean error, String note)
+		public Problem(int rownumber, String columnLabel, boolean error, String note)
 		{
 			this.rownumber = rownumber;
-			this.columnletter = columnletter;
+			this.columnLabel = columnLabel;
 			this.error = error;
 			this.note = note;
 			this.flag = null;
 		}
 
-		public Problem(int rownumber, char columnletter, boolean error, String note, Flag flag)
+		public Problem(int rownumber, String columnLabel, boolean error, String note, Flag flag)
 		{
 			this.rownumber = rownumber;
-			this.columnletter = columnletter;
+			this.columnLabel = columnLabel;
 			this.error = error;
 			this.note = note;
 			this.flag = flag;
@@ -57,7 +57,7 @@ public interface Verifier
 				return flagged + (error?"ERROR":"WARNING") + ": " + note;
 			}
 
-			return flagged + (error?"ERROR at ":"WARNING at ") + "column " + columnletter + " row " + rownumber + ":\n\t" + note;
+			return flagged + (error?"ERROR at ":"WARNING at ") + "column " + columnLabel + " row " + rownumber + ":\n\t" + note;
 		}
 		
 		public boolean isError()

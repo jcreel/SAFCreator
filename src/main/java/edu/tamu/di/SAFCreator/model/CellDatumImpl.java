@@ -2,16 +2,32 @@ package edu.tamu.di.SAFCreator.model;
 
 public class CellDatumImpl implements CellDatum 
 {
-
-	
-	private char column;
+	private int column;
 	private int row;
 
-	public char getColumn() {
+	public int getColumn() {
 		return column;
 	}
-	
-	public void setColumn(char column)
+
+	public String getColumnLabel() {
+		int dividend = column;
+		String label = "";
+		int modulo;
+		char character;
+
+		while (dividend > 0)
+		{
+			modulo = (dividend - 1) % 26;
+			character = Character.valueOf((char) (65 + modulo));
+
+			label = character + label;
+			dividend = (int) ((dividend - modulo) / 26);
+		}
+
+		return label;
+	}
+
+	public void setColumn(int column)
 	{
 		this.column = column;
 	}

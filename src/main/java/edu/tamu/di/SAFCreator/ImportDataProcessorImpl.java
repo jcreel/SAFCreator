@@ -70,28 +70,28 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				
 			labelLine = reader.readNext();
 			
-			char columnCounter = 'A';
+			int column = 1;
 			for(String cell : labelLine)
 			{
 				if(cell.toLowerCase().contains("bundle:") || cell.toLowerCase().contains("group:"))
 				{
 					String bundleName = cell.split(":")[1];
 					FileLabel fileLabel = new FileLabel(bundleName);
-					fileLabel.setColumn(columnCounter);
+					fileLabel.setColumn(column);
 					fileLabel.setRow(1);
 					columnLabels.add(fileLabel);	
 				}
 				else if(cell.toLowerCase().contains("filename"))
 				{
 					FileLabel fileLabel = new FileLabel("ORIGINAL");
-					fileLabel.setColumn(columnCounter);
+					fileLabel.setColumn(column);
 					fileLabel.setRow(1);
 					columnLabels.add(fileLabel);
 				}
 				else if(cell.toLowerCase().contains("handle"))
 				{
 					HandleLabel handleLabel = new HandleLabel();
-					handleLabel.setColumn(columnCounter);
+					handleLabel.setColumn(column);
 					handleLabel.setRow(1);
 					columnLabels.add(handleLabel);
 				}
@@ -102,19 +102,20 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					fieldLabel.setElement(Util.getElementName(cell));
 					fieldLabel.setQualifier(Util.getElementQualifier(cell));
 					fieldLabel.setLanguage(Util.getLanguage(cell));
-					fieldLabel.setColumn(columnCounter);
+					fieldLabel.setColumn(column);
 					fieldLabel.setRow(1);
 					columnLabels.add(fieldLabel);
 				}
 				else
 				{
-					console.append("Warning:  Ignoring invalid column label at column " + columnCounter + ": " + cell + "\n");
+					console.append("Warning:  Ignoring invalid column label at column " + columnNumberToLabel(column) + ": " + cell + "\n");
 					StubLabel stubLabel = new StubLabel();
-					stubLabel.setColumn(columnCounter);
+					stubLabel.setColumn(column);
 					stubLabel.setRow(1);
 					columnLabels.add(stubLabel);
 				}
-				columnCounter++;
+
+				column++;
 			}
 			
 			//record the column labels for verification purposes
@@ -154,15 +155,13 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					totalLength = columnLabels.size();
 				}
 
-				columnCounter = 'A';
 				int fileNumber = 0;
-				for(int columnIndex = 0; columnIndex < totalLength; columnIndex++)
+				for(column = 1; column <= totalLength; column++)
 				{
-					ColumnLabel label = columnLabels.get(columnIndex);
-					String cell = nextLine[columnIndex];
+					ColumnLabel label = columnLabels.get(column-1);
+					String cell = nextLine[column-1];
 
 					if (cell.isEmpty()) {
-						columnCounter++;
 						continue;
 					}
 
@@ -186,7 +185,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							field.setSchema(schema);
 							field.setLabel(fieldLabel);
 							field.setValue(value);
-							field.setColumn(columnCounter);
+							field.setColumn(column);
 							field.setRow(linenumber);
 							
 							schema.addField(field);
@@ -204,7 +203,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							uri = URI.create(cell);
 						}
 						catch (IllegalArgumentException e1) {
-							console.append("Error on line " + linenumber + " column " + columnCounter + " (invalid file path/URI), reason: " + e1.getMessage() + ".\n");
+							console.append("ERROR on line " + linenumber + " column " + columnNumberToLabel(column) + " (invalid file path/URI), reason: " + e1.getMessage() + ".\n");
 							errorState = true;
 							addItem = false;
 							break;
@@ -217,12 +216,12 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bitstream.setBundle(bundle);
 								bitstream.setSource(uri);
 								bitstream.setRelativePath(PdfPrefix + (++fileNumber) + PdfSuffix);
-								bitstream.setColumn(columnCounter);
+								bitstream.setColumn(column);
 								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
 							}
 							else {
-								console.append("\n*** WARNING:  URL protocol on line " + linenumber + " cell " + columnIndex + " must be one of: HTTP, HTTPS, or FTP. ***\n");
+								console.append("\n*** WARNING:  URL protocol on line " + linenumber + " column " + columnNumberToLabel(column) + " must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
 						}
 						else {
@@ -254,7 +253,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 											bitstream.setBundle(bundle);
 											bitstream.setSource(file.toURI());
 											bitstream.setRelativePath(directoryName + File.separator + file.getName());
-											bitstream.setColumn(columnCounter);
+											bitstream.setColumn(column);
 											bitstream.setRow(linenumber);
 											bundle.addBitstream(bitstream);
 										}
@@ -268,7 +267,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 										bitstream.setBundle(bundle);
 										bitstream.setSource(fileUri);
 										bitstream.setRelativePath(value);
-										bitstream.setColumn(columnCounter);
+										bitstream.setColumn(column);
 										bitstream.setRow(linenumber);
 										bundle.addBitstream(bitstream);
 									}
@@ -282,9 +281,8 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					else
 					{
-						//console.append("Ignoring line " + linenumber + " column " + columnCounter + "\n");
+						//console.append("WARNING: Ignoring line " + linenumber + " column " + columnNumberToLabel(column) + "\n");
 					}
-					columnCounter++;
 				}
 
 				if (addItem) {
@@ -347,5 +345,23 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		}
 
 		console.append("Done writing SAF data.\n");
+	}
+
+	public String columnNumberToLabel(int number) {
+		int dividend = number;
+		String label = "";
+		int modulo;
+		char character;
+
+		while (dividend > 0)
+		{
+			modulo = (dividend - 1) % 26;
+			character = Character.valueOf((char) (65 + modulo));
+
+			label = character + label;
+			dividend = (int) ((dividend - modulo) / 26);
+		}
+
+		return label;
 	}
 }
