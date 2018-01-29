@@ -251,8 +251,14 @@ public class Bitstream extends CellDatumImpl
 							FileUtils.copyToFile(input, destination);
 							input.close();
 
-							String contentType = get.getResponseHeader("Content-Type").getValue();
+							String contentTypeHeader = get.getResponseHeader("Content-Type").getValue();
 							get.releaseConnection();
+
+							String[] contentTypeHeaderParts = contentTypeHeader.split("[;]");
+							String contentType = "";
+							if (contentTypeHeaderParts.length > 0) {
+								contentType = contentTypeHeaderParts[0];
+							}
 
 							if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf") || contentType.equalsIgnoreCase("application/octet-stream")) {
 								FileReader inputStream = new FileReader(destination);
