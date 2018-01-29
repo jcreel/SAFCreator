@@ -144,6 +144,8 @@ public class FlagPanel extends JPanel {
 		String description = null;
 		String authority = null;
 		String url = null;
+		String column = null;
+		String row = null;
 
 		int length = table.getRowCount();
 		int i = 0;
@@ -152,8 +154,8 @@ public class FlagPanel extends JPanel {
 			description = (String) table.getValueAt(i, Flag.Columns.DESCRIPTION.ordinal());
 			authority = (String) table.getValueAt(i, Flag.Columns.AUTHORITY.ordinal());
 			url = (String) table.getValueAt(i, Flag.Columns.URL.ordinal());
-			String column = (String) table.getValueAt(i, Flag.Columns.COLUMN.ordinal());
-			String row = (String) table.getValueAt(i, Flag.Columns.ROW.ordinal());
+			column = (String) table.getValueAt(i, Flag.Columns.COLUMN.ordinal());
+			row = (String) table.getValueAt(i, Flag.Columns.ROW.ordinal());
 
 			printer.printRecord(flag, description, authority, url, column, row);
 			printer.flush();
