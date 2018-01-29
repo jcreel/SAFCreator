@@ -85,7 +85,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				File directory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + itemCount);
 				directory.delete();
 
-				console.append("\tSkipped item (row " + itemCount + ").\n");
+				console.append("\tSkipped item (row " + itemCount + "), because of verification failure.\n");
 				publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
 				continue;
 			}
