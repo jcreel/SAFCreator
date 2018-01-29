@@ -129,7 +129,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				return null;
 			}
 			
-			int linenumber = 0;
+			int linenumber = 1;
 			while((nextLine = reader.readNext()) != null)
 			{
 				linenumber++;
@@ -138,7 +138,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 
 				int totalLength = nextLine.length;
 				if (nextLine.length < columnLabels.size()) {
-					console.append("\tWARNING: line " + (linenumber+1) + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
+					console.append("\tWARNING: row " + linenumber + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
 					totalLength = columnLabels.size();
 
 					int columnIndex = nextLine.length;
@@ -151,7 +151,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					nextLine = correctedSet.toArray(nextLine);
 				}
 				else if (nextLine.length > columnLabels.size()) {
-					console.append("\tWARNING: line " + (linenumber+1) + ": there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
+					console.append("\tWARNING: row " + linenumber + ": there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
 					totalLength = columnLabels.size();
 				}
 
@@ -186,7 +186,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							field.setLabel(fieldLabel);
 							field.setValue(value);
 							field.setColumn(column);
-							field.setRow(linenumber+1);
+							field.setRow(linenumber);
 							
 							schema.addField(field);
 						}
@@ -203,7 +203,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							uri = URI.create(cell);
 						}
 						catch (IllegalArgumentException e1) {
-							console.append("\tERROR: line " + (linenumber+1) + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
+							console.append("\tERROR: row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
 							errorState = true;
 							addItem = false;
 							break;
@@ -217,11 +217,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 								bitstream.setSource(uri);
 								bitstream.setRelativePath(PdfPrefix + (++fileNumber) + PdfSuffix);
 								bitstream.setColumn(column);
-								bitstream.setRow(linenumber+1);
+								bitstream.setRow(linenumber);
 								bundle.addBitstream(bitstream);
 							}
 							else {
-								console.append("\tWARNING: line " + (linenumber+1) + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
+								console.append("\tWARNING: row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
 							}
 						}
 						else {
@@ -254,7 +254,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 											bitstream.setSource(file.toURI());
 											bitstream.setRelativePath(directoryName + File.separator + file.getName());
 											bitstream.setColumn(column);
-											bitstream.setRow(linenumber+1);
+											bitstream.setRow(linenumber);
 											bundle.addBitstream(bitstream);
 										}
 									}
@@ -268,7 +268,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 										bitstream.setSource(fileUri);
 										bitstream.setRelativePath(value);
 										bitstream.setColumn(column);
-										bitstream.setRow(linenumber+1);
+										bitstream.setRow(linenumber);
 										bundle.addBitstream(bitstream);
 									}
 								}
@@ -281,7 +281,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					else
 					{
-						//console.append("WARNING: Ignoring line " + (linenumber+1) + " column " + columnNumberToLabel(column) + "\n");
+						//console.append("WARNING: Ignoring row " + linenumber + " column " + columnNumberToLabel(column) + "\n");
 					}
 				}
 
@@ -313,7 +313,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 
 	public void writeBatchSAF(Batch batch, JTextArea console, FlagPanel flags)
 	{
-		int itemCount = 0;
+		int itemCount = 1;
 		for(Item item : batch.getItems())
 		{
 			if (batch.isIgnoredRow(++itemCount)) {

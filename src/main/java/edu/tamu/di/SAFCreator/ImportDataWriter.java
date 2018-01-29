@@ -77,7 +77,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 	protected Boolean doInBackground()
 	{
 		boolean noErrors = true;
-		int itemCount = 0;
+		int itemCount = 1;
 		int totalItems = batch.getItems().size();
 		for(Item item : batch.getItems())
 		{
@@ -86,7 +86,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				directory.delete();
 
 				console.append("\tSkipped item (row " + itemCount + "), because of verification failure.\n");
-				publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
+				publish(new ImportDataWriter.WriterUpdates(itemCount-1, totalItems));
 				continue;
 			}
 
@@ -115,7 +115,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 				return (Boolean) null;
 			}
 
-			publish(new ImportDataWriter.WriterUpdates(itemCount, totalItems));
+			publish(new ImportDataWriter.WriterUpdates(itemCount-1, totalItems));
 		}
 
 		console.append("Done writing SAF data.\n");
