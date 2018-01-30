@@ -94,7 +94,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.Writ
 			List<Problem> problems = item.writeItemSAF();
 			for(Verifier.Problem problem : problems)
 			{
-				console.append(problem.toString()+"\n");
+				console.append("\t" + problem.toString()+"\n");
 				if (problem.isError()) {
 					hasError = true;
 					noErrors = false;

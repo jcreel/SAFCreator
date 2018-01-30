@@ -281,7 +281,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					}
 					else
 					{
-						//console.append("WARNING: Ignoring row " + linenumber + " column " + columnNumberToLabel(column) + "\n");
+						//console.append("\tWARNING: Ignoring row " + linenumber + " column " + columnNumberToLabel(column) + "\n");
 					}
 				}
 
@@ -328,7 +328,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			List<Problem> problems = item.writeItemSAF();
 			for(Verifier.Problem problem : problems)
 			{
-				console.append(problem.toString()+"\n");
+				console.append("\t" + problem.toString()+"\n");
 				if (problem.isError()) {
 					hasError = true;
 				}

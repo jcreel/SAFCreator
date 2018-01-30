@@ -39,7 +39,7 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 					System.out.println("match in " + fieldLabel.getSchema());
 					Problem badSchema = new Problem (label.getRow(), label.getColumnLabel(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
 					badSchemata.add(badSchema);
-					if (console != null) console.append(badSchemata.toString()+"\n");
+					if (console != null) console.append("\t" + badSchemata.toString()+"\n");
 			
 				}
 				else
