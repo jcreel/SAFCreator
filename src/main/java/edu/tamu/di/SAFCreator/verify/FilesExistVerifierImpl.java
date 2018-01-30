@@ -81,6 +81,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 									if (files.length == 0) { 
 										Flag flag = new Flag(Flag.NOT_FOUND, "FTP file URL was not found.", source.getAuthority(), source.toString(), bitstream.getColumnLabel(), "" + bitstream.getRow());
+										batch.ignoreRow(bitstream.getRow());
 										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumnLabel(), generatesError(), "FTP file URL was not found.", flag);
 										missingFiles.add(missingFile);
 										if (console != null) console.append("\t" + missingFile.toString()+"\n");
@@ -296,6 +297,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										}
 										else if (response == 404) {
 											Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), bitstream.getColumnLabel(), "" + bitstream.getRow());
+											batch.ignoreRow(bitstream.getRow());
 											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumnLabel(), generatesError(), "HTTP file was not found, HTTP response code: " + response + ".", flag);
 											missingFiles.add(missingFile);
 											if (console != null) console.append("\t" + missingFile.toString()+"\n");
@@ -303,6 +305,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										}
 										else if (response == 403) {
 											Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + response + ".", source.getAuthority(), source.toString(), bitstream.getColumnLabel(), "" + bitstream.getRow());
+											batch.ignoreRow(bitstream.getRow());
 											Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumnLabel(), generatesError(), "HTTP file access was denied, HTTP response code: " + response + ".", flag);
 											missingFiles.add(missingFile);
 											if (console != null) console.append("\t" + missingFile.toString()+"\n");
