@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -323,6 +324,12 @@ public class Bitstream extends CellDatumImpl
 						String responseString = (response > 0 ? ", HTTP response code: " + response : "");
 						Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an HTTP error" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
 						Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had an HTTP error" + responseString + ".", flag);
+						problems.add(problem);
+					} catch (SocketException e)
+					{
+						String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+						Flag flag = new Flag(Flag.SOCKET_ERROR, "HTTP URL had a socket error" + responseString + ", reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+						Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had a socket error" + responseString + ".", flag);
 						problems.add(problem);
 					} catch (IOException e)
 					{

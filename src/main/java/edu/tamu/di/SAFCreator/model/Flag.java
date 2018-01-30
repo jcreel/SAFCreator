@@ -21,6 +21,7 @@ public class Flag {
 	public static String SERVICE_TIMEOUT = "Service Timeout";
 	public static String SERVICE_UNAVAILABLE = "Service Unavailable";
 	public static String SSL_FAILURE = "SSL Failure";
+	public static String SOCKET_ERROR = "Socket Error";
 
 	private ArrayList<String> rowData;
 
