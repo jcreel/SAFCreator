@@ -1,8 +1,8 @@
 package edu.tamu.di.SAFCreator.model;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,8 +27,17 @@ import org.apache.commons.httpclient.util.HttpURLConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 
 import edu.tamu.di.SAFCreator.model.CellDatumImpl;
+import edu.tamu.di.SAFCreator.model.Flag.Columns;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Bitstream extends CellDatumImpl
@@ -42,6 +51,7 @@ public class Bitstream extends CellDatumImpl
 	private String relativePath;
 	private File destination;
 	private String readPolicyGroupName = null;
+	private MimeType mimeType = null;
 
 	public Bundle getBundle() {
 		return bundle;
@@ -261,27 +271,63 @@ public class Bitstream extends CellDatumImpl
 								contentType = contentTypeHeaderParts[0];
 							}
 
-							if (contentType.isEmpty() || contentType.equalsIgnoreCase("application/pdf") || contentType.equalsIgnoreCase("application/octet-stream")) {
-								FileReader inputStream = new FileReader(destination);
-								try {
-									// 25 50 44 46 of the PDF mime type of '%PDF' according to: https://en.wikipedia.org/wiki/List_of_file_signatures .
-									if (inputStream.read() != 0x25 || inputStream.read() != 0x50|| inputStream.read() != 0x44 || inputStream.read() != 0x46) {
-										Flag flag = new Flag(Flag.INVALID_MIME, "Downloaded file may not be a valid PDF, reason: %PDF magic not found in file.", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
-										Problem problem = new Problem(getRow(), getColumnLabel(), true, "Downloaded file is not a valid PDF.", flag);
-										problems.add(problem);
-									}
-								} catch (IOException e)
+							// require a mimeType default.
+							if (mimeType == null) {
+								try
 								{
-									Flag flag = new Flag(Flag.IO_FAILURE, "PDF file read failed, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
-									Problem problem = new Problem(getRow(), getColumnLabel(), true, "PDF file read failed.", flag);
-									problems.add(problem);
-								} finally {
-									inputStream.close();
+									mimeType = MimeTypes.getDefaultMimeTypes().forName("application/pdf");
+								} catch (MimeTypeException e)
+								{
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								}
 							}
-							else {
-								Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid PDF, reason: server designated a mimetype of " + contentType + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
-								Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid PDF.", flag);
+
+							MimeType originalMimeType = mimeType;
+							if (contentType.equalsIgnoreCase("application/octet-stream")) {
+								Flag flag = determineMimeType(destination);
+								if (flag != null) {
+									Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(Columns.DESCRIPTION), flag);
+									problems.add(problem);
+								}
+								else if (mimeType == null || mimeType.toString().isEmpty()) {
+									flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid file, reason: unable to determine mime-type.", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid file.", flag);
+									problems.add(problem);
+									mimeType = originalMimeType;
+								}
+							}
+							else if (contentType.equalsIgnoreCase("application/pdf")) {
+								Flag flag = determineMimeType(destination);
+								if (flag != null) {
+									Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(Columns.DESCRIPTION), flag);
+									problems.add(problem);
+								}
+								else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
+									flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid PDF, reason: server designated a mimetype of " + contentType + ", detected mimetype is " + mimeType + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid PDF.", flag);
+									problems.add(problem);
+									mimeType = originalMimeType;
+								}
+							}
+							else if (contentType.equalsIgnoreCase("image/png") || contentType.equalsIgnoreCase("image/jpg") || contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/gif")) {
+								Flag flag = determineMimeType(destination);
+								if (flag != null) {
+									Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(Columns.DESCRIPTION), flag);
+									problems.add(problem);
+								}
+								else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
+									flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid image, reason: server designated a mimetype of " + contentType + ", detected mimetype is " + mimeType + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+									Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid image.", flag);
+									problems.add(problem);
+									mimeType = originalMimeType;
+								}
+							}
+
+							// rename destination file on mime type change.
+							Flag flag = renameFileUsingMimeType(destination, originalMimeType);
+							if (flag != null) {
+								Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(Columns.DESCRIPTION), flag);
 								problems.add(problem);
 							}
 						}
@@ -384,4 +430,98 @@ public class Bitstream extends CellDatumImpl
 		return relativePathForwardSlashes;
 	}
 
+	public void setMimeType(String mimeType) throws MimeTypeException {
+		this.mimeType = MimeTypes.getDefaultMimeTypes().forName(mimeType);
+	}
+
+	public MimeType getMimeType() {
+		return mimeType;
+	}
+
+	/**
+	 * Determine the mime-type of the file.
+	 *
+	 * This is intended to be used to identify or confirm the validity of a particular file.
+	 * The this.mimeType will be updated on successful detection.
+	 *
+	 * @param destination The file to validate.
+	 *
+	 * @return A Flag is returned on error, null is returned otherwise.
+	 */
+	private Flag determineMimeType(File destination) {
+		FileInputStream fileStream = null;
+		TikaInputStream tikaStream = null;
+
+		try {
+			fileStream = new FileInputStream(destination);
+			tikaStream = TikaInputStream.get(fileStream);
+			Metadata metadata = new Metadata();
+			Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
+
+			MediaType mediaType = detector.detect(tikaStream, metadata);
+			setMimeType(mediaType.toString());
+		} catch (MimeTypeException e)
+		{
+			return new Flag(Flag.INVALID_MIME, "Unable to determine mime type of file, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+		} catch (IOException e)
+		{
+			return new Flag(Flag.IO_FAILURE, "File read failed, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+		} finally {
+			try {
+				if (tikaStream != null) {
+					tikaStream.close();
+				}
+			}
+			catch (IOException e2) {
+				e2.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Rename the file extension for convenience.
+	 *
+	 * Only a small subset of known mime-types are used.
+	 *
+	 * @param destination
+	 * @param originalMimeType
+	 *
+	 * @return A Flag is returned on error, null is returned otherwise.
+	 */
+	private Flag renameFileUsingMimeType(File destination, MimeType originalMimeType) {
+		String newName = "";
+		String oldName = destination.getName();
+
+		if (originalMimeType.compareTo(mimeType) == 0) {
+			return null;
+		}
+
+		newName = oldName.replaceAll("\\" + originalMimeType.getExtension() + "$", mimeType.getExtension());
+		if (mimeType.getExtension().equalsIgnoreCase(".png") || mimeType.getExtension().equalsIgnoreCase(".jpg") || mimeType.getExtension().equalsIgnoreCase(".gif")) {
+			newName = newName.replaceAll("^document-", "image-");
+		}
+
+		if (!newName.isEmpty()) {
+			try {
+				File renamed = new File(bundle.getItem().getSAFDirectory() + "/" + newName);
+
+				if (renamed.exists()) {
+					return new Flag(Flag.FILE_ERROR, "File rename failed, reason: the file " + relativePath + " already exists.", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+				}
+
+				if (!destination.renameTo(renamed)) {
+					return new Flag(Flag.FILE_ERROR, "File rename failed, reason: failed to rename " + oldName + " to " + relativePath + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+				}
+
+				relativePath = newName;
+			}
+			catch (SecurityException e) {
+				return new Flag(Flag.FILE_ERROR, "File rename failed, reason: " + e.getMessage() + ".", source.getAuthority(), source.toString(), getColumnLabel(), "" + getRow());
+			}
+		}
+
+		return null;
+	}
 }

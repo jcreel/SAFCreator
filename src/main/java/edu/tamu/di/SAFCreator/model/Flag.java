@@ -7,6 +7,7 @@ public class Flag {
 	public static String[] ColumnNames = {"Flag", "Description", "Authority", "URL", "Column", "Row"};
 
 	public static String ACCESS_DENIED = "Access Denied";
+	public static String FILE_ERROR = "File Error";
 	public static String HTTP_FAILURE = "HTTP Failure";
 	public static String INVALID_MIME = "Invalid File Type";
 	public static String INVALID_FORMAT = "Invalid Format";
