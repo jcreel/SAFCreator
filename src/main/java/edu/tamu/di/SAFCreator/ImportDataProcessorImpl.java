@@ -1,6 +1,7 @@
 package edu.tamu.di.SAFCreator;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,6 +11,13 @@ import java.util.List;
 import java.net.URI;
 
 import javax.swing.JTextArea;
+
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MimeTypes;
 
 import com.opencsv.CSVReader;
 import edu.tamu.di.SAFCreator.model.Batch;
@@ -51,6 +59,45 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		{
 			console.append("\tERROR: Designated SAF output directory " + outputDirectoryName + " is not an available directory.\n");
 			return null;
+		}
+
+		{
+			File metadataInputFile = new File(metadataInputFileName);
+			if(!(metadataInputFile.exists() && metadataInputFile.isFile())) {
+				console.append("\tERROR: input CSV file " + metadataInputFile + " is not an available file.\n");
+				return null;
+			}
+
+			FileInputStream fileStream = null;
+			TikaInputStream tikaStream = null;
+			try {
+				fileStream = new FileInputStream(metadataInputFile);
+				tikaStream = TikaInputStream.get(fileStream);
+				Metadata metadata = new Metadata();
+				Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
+				MediaType mediaType = detector.detect(tikaStream, metadata);
+
+				if (!mediaType.toString().equalsIgnoreCase("text/plain")) {
+					console.append("\tERROR: input CSV file " + metadataInputFile + " is not a valid CSV file, reason: mime-type is: " + mediaType.toString() + ".\n");
+					return null;
+				}
+			} catch (IOException e)
+			{
+				console.append("\tERROR: input CSV file " + metadataInputFile + " had an I/O error, reason: " + e.getMessage() + ".\n");
+				return null;
+			}
+			finally {
+				if (tikaStream != null) {
+					try
+					{
+						tikaStream.close();
+					} catch (IOException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 		
 		
