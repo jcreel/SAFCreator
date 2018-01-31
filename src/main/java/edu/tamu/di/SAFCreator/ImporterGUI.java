@@ -1229,6 +1229,8 @@ public class ImporterGUI extends JFrame
 
 	private void transitionToVerifySuccess()
 	{
+		console.append("Batch verified.\n");
+
 		actionStatus = ActionStatus.VERIFIED;
 		actionStatusField.setText("Your batch has been verified!");
 		actionStatusField.setBackground(Color.green);
@@ -1244,6 +1246,8 @@ public class ImporterGUI extends JFrame
 
 	private void transitionToVerifySuccessIgnoreErrors()
 	{
+		console.append("Batch failed verification.\n");
+
 		actionStatus = ActionStatus.VERIFIED;
 		actionStatusField.setText("Your batch failed to verify, continuing.");
 		actionStatusField.setBackground(Color.orange);
@@ -1258,6 +1262,7 @@ public class ImporterGUI extends JFrame
 
 	private void transitionToVerifyFailed()
 	{
+		console.append("Batch failed verification.\n");
 		actionStatus = ActionStatus.FAILED_VERIFICATION;
 		actionStatusField.setText("Your batch failed to verify.");
 		writeSAFBtn.setText("No valid batch.");
