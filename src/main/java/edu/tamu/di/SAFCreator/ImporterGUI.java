@@ -766,11 +766,11 @@ public class ImporterGUI extends JFrame
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
 							
-							statusIndicator.setText("\nNo batch loaded.\n\n");
-							statusIndicator.setForeground(Color.white);
-							statusIndicator.setBackground(Color.blue);
+							statusIndicator.setText("Batch Status:\nFailed to Load");
+							statusIndicator.setForeground(Color.black);
+							statusIndicator.setBackground(Color.red);
 							
-							statusIndicator.setText("\nPlease load a batch for processing.\n\n");
+							actionStatusField.setText("Please load a batch for processing.");
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
 
