@@ -17,8 +17,8 @@ public class FileLabel extends CellDatumImpl implements ColumnLabel
 	}
 	
 	public boolean isHandle() {
-            return true;
-        }
+	    return true;
+	}
     
 	public boolean isField() {
 		return false;

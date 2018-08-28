@@ -8,6 +8,7 @@ public class Bundle
 	private String name;
 	private Item item;
 	private List<Bitstream> bitstreams = new ArrayList<Bitstream>();
+
 	public String getName() {
 		return name;
 	}
@@ -23,10 +24,9 @@ public class Bundle
 	public List<Bitstream> getBitstreams() {
 		return bitstreams;
 	}
-	
+
 	public void addBitstream(Bitstream bitstream) {
 		bitstreams.add(bitstream);
 		
 	}
-	
 }

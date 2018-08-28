@@ -4,7 +4,7 @@
 
   <groupId>edu.tamu.di</groupId>
   <artifactId>SAFCreator</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>SAFCreator</name>
@@ -90,7 +90,28 @@
 		<artifactId>opencsv</artifactId>
 		<version>3.8</version>
 	</dependency>
-    
-  </dependencies>
+
+	<dependency>
+		<groupId>commons-net</groupId>
+		<artifactId>commons-net</artifactId>
+		<version>3.6</version>
+	</dependency>
+	<dependency>
+		<groupId>commons-httpclient</groupId>
+		<artifactId>commons-httpclient</artifactId>
+		<version>3.0</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-csv</artifactId>
+		<version>1.5</version>
+	</dependency>
+  <dependency>
+    <groupId>org.apache.tika</groupId>
+    <artifactId>tika-core</artifactId>
+    <version>1.17</version>
+  </dependency>
+
+</dependencies>
 
 </project>

@@ -3,18 +3,32 @@ package edu.tamu.di.SAFCreator.verify;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JTextArea;
+
 import edu.tamu.di.SAFCreator.Util;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
+import edu.tamu.di.SAFCreator.model.VerifierBackground;
 
-public class ValidSchemaNameVerifierImpl implements Verifier {
+public class ValidSchemaNameVerifierImpl extends VerifierBackground {
+	Verifier nextVerifier = null;
 
-	public List<Problem> verify(Batch batch) 
+	@Override
+	public List<Problem> verify(Batch batch)
+	{
+		return verify(batch, null, null);
+	}
+
+	@Override
+	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
 		
+		int totalLabels = batch.getLabels().size();
+		int labelCount = 0;
 		for(ColumnLabel label : batch.getLabels())
 		{
 			if(label.isField())
@@ -23,8 +37,9 @@ public class ValidSchemaNameVerifierImpl implements Verifier {
 				if(Util.regexMatchCounter(".*\\W+.*", fieldLabel.getSchema()) > 0)
 				{
 					System.out.println("match in " + fieldLabel.getSchema());
-					Problem badSchema = new Problem (label.getRow(), label.getColumn(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
+					Problem badSchema = new Problem (label.getRow(), label.getColumnLabel(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
 					badSchemata.add(badSchema);
+					if (console != null) console.append("\t" + badSchemata.toString()+"\n");
 			
 				}
 				else
@@ -32,19 +47,27 @@ public class ValidSchemaNameVerifierImpl implements Verifier {
 					//System.out.println("looks fine: " + fieldLabel.getSchema());
 				}
 			}
+
+			if (isCancelled()) {
+				return badSchemata;
+			}
+
+			labelCount++;
+			publish(new VerifierBackground.VerifierUpdates(labelCount, totalLabels));
 		}
 		
 		return badSchemata;
 	}
 
+	@Override
 	public boolean generatesError() 
 	{
 		return true;
 	}
 	
+	@Override
 	public String prettyName()
 	{
 		return "Syntactically Valid Schema Names Verifier";
 	}
-
 }
