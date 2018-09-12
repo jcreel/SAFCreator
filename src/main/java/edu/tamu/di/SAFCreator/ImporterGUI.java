@@ -231,6 +231,7 @@ public class ImporterGUI extends JFrame
 					case NONE_LOADED:
 					case LOADED:
 					case VERIFIED:
+					case FAILED_VERIFICATION:
 						break;
 					default:
 						return;
