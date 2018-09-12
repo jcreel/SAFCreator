@@ -1374,7 +1374,7 @@ public class ImporterGUI extends JFrame
 	}
 
 	private void cancelVerifyCleanup() {
-		console.append("Validation process has been cancelled.\n");
+		console.append("Verification process has been cancelled.\n");
 		statusIndicator.setText("Batch Status:\n Unverified");
 
 		// verifiers must be re-created after canceling.
