@@ -95,6 +95,7 @@ public class ImporterGUI extends JFrame
 	private final JButton verifyBatchBtn = new JButton("Verify Batch");
 	private final JButton verifyCancelBtn = new JButton("Cancel");
 	private JTable verifierTbl = null;
+	private List<String> verifierNamesMap = new ArrayList<String>();
 
 	//Components of the Advanced Settings tab
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
@@ -209,6 +210,8 @@ public class ImporterGUI extends JFrame
 			row.add(verifier.generatesError());
 			row.add(verifier.isEnabled());
 
+			verifierNamesMap.add(verifier.getClass().getName());
+
 			rowData.add(row);
 		}
 
@@ -217,6 +220,43 @@ public class ImporterGUI extends JFrame
 		verifierTbl.setPreferredScrollableViewportSize(new Dimension(400, 50));
 		verifierTbl.setEnabled(false);
 
+		verifierTbl.addMouseListener(new java.awt.event.MouseAdapter() {
+			@Override
+			public void mouseClicked(java.awt.event.MouseEvent evt) {
+				switch (actionStatus) {
+					case NONE_LOADED:
+					case LOADED:
+					case VERIFIED:
+						break;
+					default:
+						return;
+				}
+
+				int row = verifierTbl.rowAtPoint(evt.getPoint());
+				int column = verifierTbl.columnAtPoint(evt.getPoint());
+				if (column == 2) {
+					String verifierName = verifierNamesMap.get(row);
+					if (verifierName != null) {
+						VerifierProperty verifier = verifierSettings.get(verifierName);
+						if (verifier != null) {
+							verifier.setEnabled(!verifier.isEnabled());
+							verifierTbl.setValueAt(verifier.isEnabled(), row, column);
+
+							// verifiers must be re-created after changing.
+							createVerifiers();
+
+							unlockVerifyButtons();
+							console.append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
+
+							// the status cannot be verified if there have been changes to the status.
+							if (actionStatus == ActionStatus.VERIFIED) {
+								transitionToLoaded();
+							}
+						}
+					}
+				}
+			}
+		});
 
 		JScrollPane verifierTblScrollPane = new JScrollPane(verifierTbl);
 		verifierTbl.setFillsViewportHeight(true);
@@ -249,7 +289,7 @@ public class ImporterGUI extends JFrame
 
 						for (Entry<String, VerifierBackground> entry : verifiers.entrySet()) {
 							VerifierBackground verifier = entry.getValue();
-							if (verifier.isSwingWorker()) {
+							if (verifier.isEnabled() && verifier.isSwingWorker()) {
 								currentVerifiers.add(verifier);
 							}
 						}
@@ -257,6 +297,7 @@ public class ImporterGUI extends JFrame
 						if (currentVerifiers.size() == 0) {
 							console.append("No verifiers are enabled.\n");
 							unlockVerifyButtons();
+							transitionToVerifySuccess();
 						} else {
 							currentVerifier = 0;
 							currentVerifiers.get(currentVerifier).execute();
@@ -450,6 +491,9 @@ public class ImporterGUI extends JFrame
 	private void createVerifiers() {
 		VerifierProperty settings = null;
 
+		currentVerifier = -1;
+		currentVerifiers.clear();
+
 		settings = verifierSettings.get(FilesExistVerifierImpl.class.getName());
 
 		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl(settings) {
@@ -526,7 +570,7 @@ public class ImporterGUI extends JFrame
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
 					statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n " + update.getProcessed()
-					        + " / " + update.getTotal());
+							+ " / " + update.getTotal());
 				}
 			}
 		};
@@ -607,7 +651,7 @@ public class ImporterGUI extends JFrame
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
 					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed()
-					        + " / " + update.getTotal());
+							+ " / " + update.getTotal());
 				}
 			}
 		};
@@ -1330,14 +1374,13 @@ public class ImporterGUI extends JFrame
 	}
 
 	private void cancelVerifyCleanup() {
-		currentVerifier = -1;
-		currentVerifiers.clear();
-		unlockVerifyButtons();
 		console.append("Validation process has been cancelled.\n");
 		statusIndicator.setText("Batch Status:\n Unverified");
 
 		// verifiers must be re-created after canceling.
 		createVerifiers();
+
+		unlockVerifyButtons();
 	}
 
 	private void lockThreadSensitiveControls() {
