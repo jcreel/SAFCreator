@@ -34,8 +34,7 @@ import edu.tamu.di.SAFCreator.model.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.VerifierProperty;
 
 public class FilesExistVerifierImpl extends VerifierBackground {
-	private static int TimeoutConnection = 30000;
-	private static int TimeoutRead = 30000;
+	private static int TimeoutRead = 20000;
 	private static int MaxRedirects = 20;
 
 	private FTPClient ftpConnection;
@@ -89,6 +88,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 		{
 			int totalItems = batch.getItems().size();
 			int itemCount = 0;
+			int remoteFileTimeout = batch.getRemoteFileTimeout();
 			for(Item item : batch.getItems())
 			{
 				for(Bundle bundle : item.getBundles())
@@ -107,7 +107,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
 									}
 
-									ftpConnection.setConnectTimeout(TimeoutConnection);
+									ftpConnection.setConnectTimeout(remoteFileTimeout);
 									ftpConnection.setDataTimeout(TimeoutRead);
 									ftpConnection.connect(source.toURL().getHost());
 									ftpConnection.enterLocalPassiveMode();
@@ -167,8 +167,9 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								httpGet = null;
 								int response = 0;
 
-								//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, TimeoutConnection);
-								client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, TimeoutConnection);
+								//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, remoteFileTimeout);
+								client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
+
 								try
 								{
 									httpHead = new HeadMethod(source.toURL().toString());
@@ -405,7 +406,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										httpGet = null;
 									}
 									if (client != null) {
-										client.getHttpConnectionManager().closeIdleConnections(TimeoutConnection);
+										client.getHttpConnectionManager().closeIdleConnections(remoteFileTimeout);
 									}
 								}
 							}

@@ -42,8 +42,7 @@ import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Bitstream extends CellDatumImpl
 {
-	private static int TimeoutConnection = 30000;
-	private static int TimeoutRead = 30000;
+	private static int TimeoutRead = 20000;
 	private static int MaxRedirects = 20;
 
 	private Bundle bundle;
@@ -87,7 +86,7 @@ public class Bitstream extends CellDatumImpl
 
 	public String getContentsManifestLine()
 	{
-		String line = getRelativePathForwardSlashes() + "\tbundle:" + bundle.getName().trim() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n"; 
+		String line = getRelativePathForwardSlashes() + "\tbundle:" + bundle.getName().trim() + (readPolicyGroupName==null?"\n":"\tpermissions:-r "+readPolicyGroupName)+"\n";
 		return line;
 	}
 
@@ -111,6 +110,8 @@ public class Bitstream extends CellDatumImpl
 				}
 			}
 
+			int remoteFileTimeout = bundle.getItem().getBatch().getRemoteFileTimeout();
+
 			try
 			{
 				URL url = source.toURL();
@@ -118,7 +119,7 @@ public class Bitstream extends CellDatumImpl
 					FTPClient conn = new FTPClient();
 
 					try {
-						conn.setConnectTimeout(TimeoutConnection);
+						conn.setConnectTimeout(remoteFileTimeout);
 						conn.setDataTimeout(TimeoutRead);
 						conn.connect(source.toURL().getHost());
 						conn.setFileType(FTP.BINARY_FILE_TYPE);
@@ -148,11 +149,12 @@ public class Bitstream extends CellDatumImpl
 					GetMethod get = null;
 					int response = 0;
 
-					//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, TimeoutConnection);
-					client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, TimeoutConnection);
+					//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, timeout);
+					client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
+
 					try
 					{
-						client.getHttpConnectionManager().getParams().setConnectionTimeout(TimeoutConnection);
+						client.getHttpConnectionManager().getParams().setConnectionTimeout(remoteFileTimeout);
 						get = new GetMethod(url.toString());
 						if (userAgent != null) {
 							get.addRequestHeader("User-Agent", userAgent);
@@ -389,7 +391,7 @@ public class Bitstream extends CellDatumImpl
 							get.releaseConnection();
 						}
 						if (client != null) {
-							client.getHttpConnectionManager().closeIdleConnections(TimeoutConnection);
+							client.getHttpConnectionManager().closeIdleConnections(remoteFileTimeout);
 						}
 					}
 				}
@@ -418,12 +420,12 @@ public class Bitstream extends CellDatumImpl
 		relativePath = value;
 		destination = new File(bundle.getItem().getSAFDirectory()+"/"+relativePath);
 	}
-	
+
 	public String getRelativePath()
 	{
 		return relativePath;
 	}
-	
+
 	public String getRelativePathForwardSlashes()
 	{
 		String relativePathForwardSlashes = relativePath.replace(File.separatorChar, '/');

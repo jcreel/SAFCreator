@@ -48,11 +48,13 @@ public class ImporterGUI extends JFrame
 
 	private enum FieldChangeStatus {NO_CHANGES, CHANGES};
 	private FieldChangeStatus itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+	private FieldChangeStatus remoteFileTimeoutFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 	private FieldChangeStatus userAgentFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 
 	private static final long serialVersionUID = 1L;
 	private static final String defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0";
 	private static final int defaultProcessDelay = 400;
+	private static final int defaultRemoteFileTimeout = 10000;
 
 	//tabbed views
 	private final JTabbedPane tabs = new JTabbedPane();
@@ -101,6 +103,8 @@ public class ImporterGUI extends JFrame
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
 	private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
 	private final JTextField itemProcessDelayField= new JTextField(String.valueOf(defaultProcessDelay), 10);
+	private final JLabel remoteFileTimeoutLabel = new JLabel("Remote File Timeout (in milliseconds):");
+	private final JTextField remoteFileTimeoutField= new JTextField(String.valueOf(defaultRemoteFileTimeout), 10);
 	private final JLabel userAgentLabel = new JLabel("User agent:");
 	private final JTextField userAgentField = new JTextField(defaultUserAgent, 48);
 	private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error:");
@@ -496,7 +500,7 @@ public class ImporterGUI extends JFrame
 
 		settings = verifierSettings.get(FilesExistVerifierImpl.class.getName());
 
-		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl(settings) {
+		FilesExistVerifierImpl fileExistsVerifier = new FilesExistVerifierImpl(settings) {
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
@@ -577,7 +581,7 @@ public class ImporterGUI extends JFrame
 
 		settings = verifierSettings.get(ValidSchemaNameVerifierImpl.class.getName());
 
-		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl(settings) {
+		ValidSchemaNameVerifierImpl validSchemaVerifier = new ValidSchemaNameVerifierImpl(settings) {
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n 0 / " + batch.getItems().size());
@@ -752,6 +756,7 @@ public class ImporterGUI extends JFrame
 							ignoreFilesBox.setEnabled(false);
 							continueOnRemoteErrorBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
+							remoteFileTimeoutField.setEnabled(false);
 							userAgentField.setEnabled(false);
 
 							writeSAFBtn.setEnabled(false);
@@ -836,10 +841,14 @@ public class ImporterGUI extends JFrame
 							ignoreFilesBox.setEnabled(false);
 							continueOnRemoteErrorBox.setEnabled(false);
 							itemProcessDelayField.setEnabled(false);
+							remoteFileTimeoutField.setEnabled(false);
 							userAgentField.setEnabled(false);
 
 							return;
 						}
+
+						batch.setItemProcessDelay(itemProcessDelayField.getText());
+						batch.setRemoteFileTimeout(remoteFileTimeoutField.getText());
 
 						console.append("\nBatch successfully loaded.\n\n");
 
@@ -1030,6 +1039,11 @@ public class ImporterGUI extends JFrame
 		itemProcessDelayPanel.add(itemProcessDelayField);
 		advancedSettingsTab.add(itemProcessDelayPanel);
 
+		JPanel remoteFileTimeoutPanel = new JPanel();
+		remoteFileTimeoutPanel.add(remoteFileTimeoutLabel);
+		remoteFileTimeoutPanel.add(remoteFileTimeoutField);
+		advancedSettingsTab.add(remoteFileTimeoutPanel);
+
 		JPanel userAgentPanel = new JPanel();
 		userAgentPanel.add(userAgentLabel);
 		userAgentPanel.add(userAgentField);
@@ -1099,6 +1113,72 @@ public class ImporterGUI extends JFrame
 						}
 
 						itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+					}
+				}
+			}
+		);
+
+		remoteFileTimeoutField.setEnabled(false);
+		remoteFileTimeoutField.getDocument().addDocumentListener
+		(
+			new DocumentListener()
+			{
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+				}
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					if (batch == null) {
+						return;
+					}
+
+					remoteFileTimeoutFieldChangeStatus = FieldChangeStatus.CHANGES;
+				}
+
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					insertUpdate(e);
+				}
+			}
+		);
+
+		remoteFileTimeoutField.addFocusListener(
+			new FocusListener() {
+
+				@Override
+				public void focusGained(FocusEvent event) {
+				}
+
+				@Override
+				public void focusLost(FocusEvent event) {
+					if (remoteFileTimeoutFieldChangeStatus == FieldChangeStatus.CHANGES) {
+						String text = remoteFileTimeoutField.getText();
+						int timeout = batch.getRemoteFileTimeout();
+
+						// enforce a default value of 0 when text box is empty.
+						if (text.length() == 0) {
+							text = "0";
+							remoteFileTimeoutField.setText(text);
+						}
+
+						try {
+							timeout = Integer.parseInt(text);
+						} catch (NumberFormatException e) {
+							console.append("The specified Remote File Timeout is invalid, resetting.\n");
+							remoteFileTimeoutField.setText(String.valueOf(batch.getRemoteFileTimeout()));
+						}
+
+						if (timeout < 0) {
+							console.append("The Remote File Timeout may not be a negative integer, resetting.\n");
+							remoteFileTimeoutField.setText(String.valueOf(batch.getRemoteFileTimeout()));
+						}
+						else {
+							batch.setRemoteFileTimeout(timeout);
+							console.append("The Remote File Timeout is now set to " + timeout + " milliseconds.\n");
+						}
+
+						remoteFileTimeoutFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 					}
 				}
 			}
@@ -1294,6 +1374,7 @@ public class ImporterGUI extends JFrame
 		ignoreFilesBox.setEnabled(true);
 		continueOnRemoteErrorBox.setEnabled(true);
 		itemProcessDelayField.setEnabled(true);
+		remoteFileTimeoutField.setEnabled(true);
 		userAgentField.setEnabled(true);
 
 		batchContinue = false;
@@ -1399,6 +1480,7 @@ public class ImporterGUI extends JFrame
 			ignoreFilesBox.setEnabled(false);
 			continueOnRemoteErrorBox.setEnabled(false);
 			itemProcessDelayField.setEnabled(false);
+			remoteFileTimeoutField.setEnabled(false);
 			userAgentField.setEnabled(false);
 		}
 	}
@@ -1419,6 +1501,7 @@ public class ImporterGUI extends JFrame
 			ignoreFilesBox.setEnabled(true);
 			continueOnRemoteErrorBox.setEnabled(true);
 			itemProcessDelayField.setEnabled(true);
+			remoteFileTimeoutField.setEnabled(true);
 			userAgentField.setEnabled(true);
 		}
 	}

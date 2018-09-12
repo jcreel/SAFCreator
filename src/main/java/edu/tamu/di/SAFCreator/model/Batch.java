@@ -8,7 +8,7 @@ import java.util.List;
 public class Batch {
 
 	public static enum BatchStatus { UNVERIFIED, FAILED_VERIFICATION, VERIFIED };
-	
+
 	private String name;
 	private BatchStatus status;
 	private File inputFilesDir;
@@ -20,9 +20,10 @@ public class Batch {
 	private Boolean processUri = false;
 	private Boolean remoteBitstreamErrorContinue = false;
 	private int itemProcessDelay = 0;
+	private int remoteFileTimeout = 10000;
 	private String userAgent = null;
 	private List<Integer> ignoreRows = new ArrayList<Integer>();
-	
+
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
 		license = new License();
@@ -30,17 +31,17 @@ public class Batch {
 		license.setBundleName(bundleName);
 		license.setLicenseText(licenseText);
 	}
-	
+
 	public void unsetLicense()
 	{
 		this.license = null;
 	}
-	
+
 	public License getLicense()
 	{
 		return license;
 	}
-	
+
 	/**
 	 * @return The user supplied name of this batch
 	 */
@@ -48,10 +49,10 @@ public class Batch {
 	{
 		return name;
 	}
-	
+
 	/**
 	 * Set the user supplied name of this batch.
-	 * 
+	 *
 	 * @param name
 	 *            The new name.
 	 */
@@ -59,7 +60,7 @@ public class Batch {
 	{
 		this.name = name;
 	}
-	
+
 	/**
 	 * @return The current evaluation status of the batch.
 	 */
@@ -67,8 +68,8 @@ public class Batch {
 	{
 		return status;
 	}
-	
-	
+
+
 	/**
 	 * Set the evaluation status of the batch.
 	 */
@@ -76,7 +77,7 @@ public class Batch {
 	{
 		this.status = status;
 	}
-	
+
 	/**
 	 * @return The base directory from where to begin looking for all associated
 	 *         file content for this batch.
@@ -85,11 +86,11 @@ public class Batch {
 	{
 		return inputFilesDir;
 	}
-	
+
 	/**
 	 * Set the base directory from where to begin searching for any associated
 	 * files.
-	 * 
+	 *
 	 * @param directory
 	 *            The new base directory.
 	 */
@@ -97,14 +98,14 @@ public class Batch {
 	{
 		inputFilesDir = directory;
 	}
-	
+
 	public void setinputFilesDir(String directoryName)
 	{
 		inputFilesDir = new File(directoryName);
 	}
 
-	
-		
+
+
 	/**
 	 * @return A list of all items associated with this batch.
 	 */
@@ -112,11 +113,11 @@ public class Batch {
 	{
 		return items;
 	}
-	
+
 	/**
 	 * Add a new item to the list of items contained within this
 	 * batch.
-	 * 
+	 *
 	 */
 	public void addItem(Item item)
 	{
@@ -130,7 +131,7 @@ public class Batch {
 	public void setOutputSAFDir(File outputSAFDir) {
 		this.outputSAFDir = outputSAFDir;
 	}
-	
+
 	public void setOutputSAFDir(String outputSAFDirName) {
 		this.outputSAFDir = new File(outputSAFDirName);
 	}
@@ -143,7 +144,7 @@ public class Batch {
 		this.labels = labels;
 	}
 
-	public void restrictItemsToGroup(String groupName) 
+	public void restrictItemsToGroup(String groupName)
 	{
 		for(Item item : items)
 		{
@@ -155,7 +156,7 @@ public class Batch {
 				}
 			}
 		}
-		
+
 	}
 
 	public Boolean getIgnoreFiles() {
@@ -202,6 +203,36 @@ public class Batch {
 	public int getItemProcessDelay()
 	{
 		return itemProcessDelay;
+	}
+
+	/**
+	 * Set the remote file timeout time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setRemoteFileTimeout(int remoteFileTimeout)
+	{
+		this.remoteFileTimeout = remoteFileTimeout;
+	}
+
+	/**
+	 * Set the remote file timeout time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setRemoteFileTimeout(String remoteFileTimeout)
+	{
+		this.remoteFileTimeout = Integer.parseInt(remoteFileTimeout);
+	}
+
+	/**
+	 * @return The remote file timeout time (in milliseconds).
+	 */
+	public int getRemoteFileTimeout()
+	{
+		return remoteFileTimeout;
 	}
 
 	/**
@@ -281,7 +312,7 @@ public class Batch {
 
 	/**
 	 * Reports whether or not any rows are assigned to be ignored.
-	 * 
+	 *
 	 * @return true if any row is assigned to be ignored, false otherwise.
 	 *          When remoteBitstreamErrorContinue is false, this always returns false.
 	 */
