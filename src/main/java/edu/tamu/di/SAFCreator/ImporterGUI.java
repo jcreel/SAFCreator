@@ -253,8 +253,8 @@ public class ImporterGUI extends JFrame
 							unlockVerifyButtons();
 							console.append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
 
-							// the status cannot be verified if there have been changes to the status.
-							if (actionStatus == ActionStatus.VERIFIED) {
+							// the verification process must be when status is LOADED.
+							if (actionStatus != ActionStatus.LOADED) {
 								transitionToLoaded();
 							}
 						}
