@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLProtocolException;
 import javax.swing.JTextArea;
 
+import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -40,15 +41,18 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 	private FTPClient ftpConnection;
 	private HeadMethod httpHead;
 	private GetMethod httpGet;
+	private DefaultHttpMethodRetryHandler retryHandler;
 
 	public FilesExistVerifierImpl() {
 		super();
 		ftpConnection = null;
+		retryHandler = new DefaultHttpMethodRetryHandler(1, false);
 	}
 
 	public FilesExistVerifierImpl(VerifierProperty settings) {
 		super(settings);
 		ftpConnection = null;
+		retryHandler = new DefaultHttpMethodRetryHandler(1, false);
 	}
 
 	@Override
@@ -89,6 +93,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 			int totalItems = batch.getItems().size();
 			int itemCount = 0;
 			int remoteFileTimeout = batch.getRemoteFileTimeout();
+
 			for(Item item : batch.getItems())
 			{
 				for(Bundle bundle : item.getBundles())
@@ -169,6 +174,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 								//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, remoteFileTimeout);
 								client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
+								client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
 
 								try
 								{
