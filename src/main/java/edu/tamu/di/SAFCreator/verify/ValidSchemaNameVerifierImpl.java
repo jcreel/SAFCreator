@@ -10,11 +10,22 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
-import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.VerifierProperty;
 
 public class ValidSchemaNameVerifierImpl extends VerifierBackground {
-	Verifier nextVerifier = null;
+
+	public ValidSchemaNameVerifierImpl() {
+		super();
+	}
+
+	public ValidSchemaNameVerifierImpl(VerifierProperty settings) {
+		super(settings);
+	}
+
+	@Override
+	public void doCancel() {
+	}
 
 	@Override
 	public List<Problem> verify(Batch batch)
@@ -26,7 +37,7 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
 		List<Problem> badSchemata = new ArrayList<Problem>();
-		
+
 		int totalLabels = batch.getLabels().size();
 		int labelCount = 0;
 		for(ColumnLabel label : batch.getLabels())
@@ -40,7 +51,7 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 					Problem badSchema = new Problem (label.getRow(), label.getColumnLabel(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
 					badSchemata.add(badSchema);
 					if (console != null) console.append("\t" + badSchemata.toString()+"\n");
-			
+
 				}
 				else
 				{
@@ -55,16 +66,16 @@ public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 			labelCount++;
 			publish(new VerifierBackground.VerifierUpdates(labelCount, totalLabels));
 		}
-		
+
 		return badSchemata;
 	}
 
 	@Override
-	public boolean generatesError() 
+	public boolean generatesError()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public String prettyName()
 	{

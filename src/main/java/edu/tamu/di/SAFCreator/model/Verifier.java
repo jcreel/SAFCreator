@@ -4,21 +4,18 @@ import java.util.List;
 
 import javax.swing.JTextArea;
 
-public interface Verifier 
+public interface Verifier extends VerifierProperty
 {
-	public boolean generatesError();
-	public String prettyName();
-	public boolean isSwingWorker();
-	
-	public class Problem 
+
+	public class Problem
 	{
 		private Integer rownumber = null;
 		private String columnLabel = null;
 		private boolean error;
 		private String note;
 		private Flag flag = null;
-		
-		
+
+
 		public Problem(boolean error, String note)
 		{
 			this.rownumber = null;
@@ -45,7 +42,7 @@ public interface Verifier
 			this.note = note;
 			this.flag = flag;
 		}
-		
+
 		@Override
 		public String toString()
 		{
@@ -59,7 +56,7 @@ public interface Verifier
 
 			return flagged + (error?"ERROR at ":"WARNING at ") + "column " + columnLabel + " row " + rownumber + ":\n\t" + note;
 		}
-		
+
 		public boolean isError()
 		{
 			return error;
@@ -77,7 +74,7 @@ public interface Verifier
 			return flag;
 		}
 	}
-	
+
 
 	public List<Problem> verify(Batch batch);
 	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel);

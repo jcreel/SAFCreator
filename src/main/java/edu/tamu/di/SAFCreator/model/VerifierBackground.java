@@ -6,7 +6,6 @@ import javax.swing.SwingWorker;
 
 public abstract class VerifierBackground extends SwingWorker<List<Verifier.Problem>, VerifierBackground.VerifierUpdates> implements Verifier
 {
-	VerifierBackground nextVerifier = null;
 
 	public class VerifierUpdates {
 		private int processed;
@@ -39,12 +38,20 @@ public abstract class VerifierBackground extends SwingWorker<List<Verifier.Probl
 		}
 	}
 
-	public VerifierBackground getNextVerifier() {
-		return nextVerifier;
+	private boolean enabled;
+
+	public VerifierBackground() {
+		enabled = true;
 	}
 
-	public void setNextVerifier(VerifierBackground verifier) {
-		nextVerifier = verifier;
+	public VerifierBackground(VerifierProperty settings) {
+		this();
+		enabled = settings.isEnabled();
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return enabled;
 	}
 
 	@Override
@@ -60,13 +67,14 @@ public abstract class VerifierBackground extends SwingWorker<List<Verifier.Probl
 	}
 
 	@Override
-	protected void done() {
-		if (nextVerifier == null) {
-			return;
-		}
-
-		if (nextVerifier.isSwingWorker()) {
-			nextVerifier.execute();
-		}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
+
+	/**
+	 * Provide a way to close active connections or similar situations on cancel.
+	 *
+	 * This must be provided in addition to cancel() because that method as provided by SwingWorker is a final method.
+	 */
+	public abstract void doCancel();
 }

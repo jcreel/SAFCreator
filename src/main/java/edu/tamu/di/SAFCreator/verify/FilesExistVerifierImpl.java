@@ -31,14 +31,51 @@ import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.VerifierProperty;
 
 public class FilesExistVerifierImpl extends VerifierBackground {
 	private static int TimeoutConnection = 30000;
 	private static int TimeoutRead = 30000;
 	private static int MaxRedirects = 20;
 
+	private FTPClient ftpConnection;
+	private HeadMethod httpHead;
+	private GetMethod httpGet;
+
+	public FilesExistVerifierImpl() {
+		super();
+		ftpConnection = null;
+	}
+
+	public FilesExistVerifierImpl(VerifierProperty settings) {
+		super(settings);
+		ftpConnection = null;
+	}
+
 	@Override
-	public List<Problem> verify(Batch batch) 
+	public void doCancel() {
+		if (ftpConnection != null) {
+			try {
+				ftpConnection.abort();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			ftpConnection = null;
+		}
+
+		if (httpHead != null) {
+			httpHead.abort();
+			httpHead = null;
+		}
+
+		if (httpGet != null) {
+			httpGet.abort();
+			httpGet = null;
+		}
+	}
+
+	@Override
+	public List<Problem> verify(Batch batch)
 	{
 		return verify(batch, null, null);
 	}
@@ -47,7 +84,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
 		List<Problem> missingFiles = new ArrayList<Problem>();
-		
+
 		if( ! batch.getIgnoreFiles())
 		{
 			int totalItems = batch.getItems().size();
@@ -62,7 +99,7 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 						if (source.isAbsolute() && !source.getScheme().toString().equalsIgnoreCase("file"))
 						{
 							if (source.getScheme().toString().equalsIgnoreCase("ftp")) {
-								FTPClient conn = new FTPClient();
+								ftpConnection = new FTPClient();
 
 								try {
 									int itemProcessDelay = batch.getItemProcessDelay();
@@ -70,16 +107,16 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 										TimeUnit.MILLISECONDS.sleep(itemProcessDelay);
 									}
 
-									conn.setConnectTimeout(TimeoutConnection);
-									conn.setDataTimeout(TimeoutRead);
-									conn.connect(source.toURL().getHost());
-									conn.enterLocalPassiveMode();
-									conn.login("anonymous", "");
+									ftpConnection.setConnectTimeout(TimeoutConnection);
+									ftpConnection.setDataTimeout(TimeoutRead);
+									ftpConnection.connect(source.toURL().getHost());
+									ftpConnection.enterLocalPassiveMode();
+									ftpConnection.login("anonymous", "");
 
 									String decodedUrl = URLDecoder.decode(source.toURL().getPath(), "ASCII");
-									FTPFile[] files = conn.listFiles(decodedUrl);
+									FTPFile[] files = ftpConnection.listFiles(decodedUrl);
 
-									if (files.length == 0) { 
+									if (files.length == 0) {
 										Flag flag = new Flag(Flag.NOT_FOUND, "FTP file URL was not found.", source.getAuthority(), source.toString(), bitstream.getColumnLabel(), "" + bitstream.getRow());
 										batch.ignoreRow(bitstream.getRow());
 										Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumnLabel(), generatesError(), "FTP file URL was not found.", flag);
@@ -100,13 +137,15 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								}
 
 								try {
-									if (conn.isConnected()) {
-										conn.disconnect();
+									if (ftpConnection.isConnected()) {
+										ftpConnection.disconnect();
 									}
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+
+								ftpConnection = null;
 							}
 							else {
 								int itemProcessDelay = batch.getItemProcessDelay();
@@ -124,35 +163,35 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 
 								String userAgent = batch.getUserAgent();
 								HttpClient client = new HttpClient();
-								HeadMethod head = null;
-								GetMethod get = null;
+								httpHead = null;
+								httpGet = null;
 								int response = 0;
 
 								//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, TimeoutConnection);
 								client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, TimeoutConnection);
 								try
 								{
-									head = new HeadMethod(source.toURL().toString());
+									httpHead = new HeadMethod(source.toURL().toString());
 									if (userAgent != null) {
-										head.addRequestHeader("User-Agent", userAgent);
+										httpHead.addRequestHeader("User-Agent", userAgent);
 									}
-									head.setFollowRedirects(true);
-									response = client.executeMethod(head);
-									Header redirectTo = head.getResponseHeader("Location");
-									head.releaseConnection();
-									head = null;
+									httpHead.setFollowRedirects(true);
+									response = client.executeMethod(httpHead);
+									Header redirectTo = httpHead.getResponseHeader("Location");
+									httpHead.releaseConnection();
+									httpHead = null;
 
 									// some servers do no support HEAD requests, so attempt a GET request.
 									if (response == HttpURLConnection.HTTP_BAD_METHOD) {
-										get = new GetMethod(source.toURL().toString());
+										httpGet = new GetMethod(source.toURL().toString());
 										if (userAgent != null) {
-											get.addRequestHeader("User-Agent", userAgent);
+											httpGet.addRequestHeader("User-Agent", userAgent);
 										}
-										get.setFollowRedirects(true);
-										response = client.executeMethod(get);
-										redirectTo = get.getResponseHeader("Location");
-										get.releaseConnection();
-										get = null;
+										httpGet.setFollowRedirects(true);
+										response = client.executeMethod(httpGet);
+										redirectTo = httpGet.getResponseHeader("Location");
+										httpGet.releaseConnection();
+										httpGet = null;
 									}
 
 									if (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP) {
@@ -254,34 +293,34 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 												break;
 											}
 
-											head = new HeadMethod(redirectToLocation);
-											head.setFollowRedirects(true);
+											httpHead = new HeadMethod(redirectToLocation);
+											httpHead.setFollowRedirects(true);
 											if (userAgent != null) {
-												head.addRequestHeader("User-Agent", userAgent);
+												httpHead.addRequestHeader("User-Agent", userAgent);
 											}
-											response = client.executeMethod(head);
-											head.releaseConnection();
+											response = client.executeMethod(httpHead);
+											httpHead.releaseConnection();
 											previousUrl = redirectToUri.toURL();
 
 											// some servers do no support HEAD requests, so attempt a GET request.
 											if (response == HttpURLConnection.HTTP_BAD_METHOD) {
-												head.releaseConnection();
-												head = null;
+												httpHead.releaseConnection();
+												httpHead = null;
 
-												get = new GetMethod(redirectToUri.toURL().toString());
+												httpGet = new GetMethod(redirectToUri.toURL().toString());
 												if (userAgent != null) {
-													get.addRequestHeader("User-Agent", userAgent);
+													httpGet.addRequestHeader("User-Agent", userAgent);
 												}
-												get.setFollowRedirects(true);
-												response = client.executeMethod(get);
-												redirectTo = get.getResponseHeader("Location");
-												get.releaseConnection();
-												get = null;
+												httpGet.setFollowRedirects(true);
+												response = client.executeMethod(httpGet);
+												redirectTo = httpGet.getResponseHeader("Location");
+												httpGet.releaseConnection();
+												httpGet = null;
 											}
 											else {
-												redirectTo = head.getResponseHeader("Location");
-												head.releaseConnection();
-												head = null;
+												redirectTo = httpHead.getResponseHeader("Location");
+												httpHead.releaseConnection();
+												httpHead = null;
 											}
 										} while (response == HttpURLConnection.HTTP_SEE_OTHER || response == HttpURLConnection.HTTP_MOVED_PERM || response == HttpURLConnection.HTTP_MOVED_TEMP);
 									}
@@ -357,11 +396,13 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 									if (flagPanel != null) flagPanel.appendRow(flag);
 								} finally
 								{
-									if (head != null) {
-										head.releaseConnection();
+									if (httpHead != null) {
+										httpHead.releaseConnection();
+										httpHead = null;
 									}
-									if (get != null) {
-										get.releaseConnection();
+									if (httpGet != null) {
+										httpGet.releaseConnection();
+										httpGet = null;
 									}
 									if (client != null) {
 										client.getHttpConnectionManager().closeIdleConnections(TimeoutConnection);
@@ -380,6 +421,14 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 								if (flagPanel != null) flagPanel.appendRow(flag);
 							}
 						}
+
+						if (isCancelled()) {
+							return missingFiles;
+						}
+					}
+
+					if (isCancelled()) {
+						return missingFiles;
 					}
 				}
 
@@ -391,16 +440,16 @@ public class FilesExistVerifierImpl extends VerifierBackground {
 				publish(new VerifierBackground.VerifierUpdates(itemCount, totalItems));
 			}
 		}
-		
+
 		return missingFiles;
 	}
 
 	@Override
-	public boolean generatesError() 
+	public boolean generatesError()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public String prettyName()
 	{

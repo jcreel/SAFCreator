@@ -9,11 +9,21 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
-import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.VerifierProperty;
 
 public class ValidHandleVerifierImpl extends VerifierBackground {
-	Verifier nextVerifier = null;
+	public ValidHandleVerifierImpl() {
+		super();
+	}
+
+	public ValidHandleVerifierImpl(VerifierProperty settings) {
+		super(settings);
+	}
+
+	@Override
+	public void doCancel() {
+	}
 
 	@Override
 	public List<Problem> verify(Batch batch)
@@ -43,17 +53,21 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 				if (console != null) console.append("\t" + problem.toString()+"\n");
 				if (flagPanel != null) flagPanel.appendRow(flag);
 			}
+
+			if (isCancelled()) {
+				return problems;
+			}
 		}
 
 		return problems;
 	}
 
 	@Override
-	public boolean generatesError() 
+	public boolean generatesError()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public String prettyName()
 	{

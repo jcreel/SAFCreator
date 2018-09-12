@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
@@ -29,15 +32,16 @@ import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.VerifierProperty;
 import edu.tamu.di.SAFCreator.verify.FilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
 
 
-public class ImporterGUI extends JFrame 
+public class ImporterGUI extends JFrame
 {
 	private Batch batch;
 
-	private List<VerifierBackground> verifiers = new ArrayList<VerifierBackground>();
+	private Map<String, VerifierBackground> verifiers = new HashMap<String, VerifierBackground>();
 
 	private enum ActionStatus {NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN};
 	private ActionStatus actionStatus = ActionStatus.NONE_LOADED;
@@ -49,7 +53,7 @@ public class ImporterGUI extends JFrame
 	private static final long serialVersionUID = 1L;
 	private static final String defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0";
 	private static final int defaultProcessDelay = 400;
-	
+
 	//tabbed views
 	private final JTabbedPane tabs = new JTabbedPane();
 	private final JPanel mainTab = new JPanel();
@@ -57,14 +61,14 @@ public class ImporterGUI extends JFrame
 	private final JPanel validationTab = new JPanel();
 	private final JPanel advancedSettingsTab = new JPanel();
 	private final JPanel flagTableTab = new JPanel();
-	
+
 	//Components of the Batch Detail tab
 	private final JButton chooseInputFileBtn = new JButton("Select metadata CSV file");
 	private final JButton chooseSourceDirectoryBtn = new JButton("Select source files directory");
 	private final JButton chooseOutputDirectoryBtn = new JButton("Select SAF output directory");
 	private final JFileChooser inputFileChooser = new JFileChooser(".");
 	private final JFileChooser sourceDirectoryChooser = new JFileChooser(".");
-	private final JFileChooser outputDirectoryChooser = new JFileChooser(".");;
+	private final JFileChooser outputDirectoryChooser = new JFileChooser(".");
 	private final JTextField inputFileNameField = new JTextField("", 42);
 	private final JTextField sourceDirectoryNameField = new JTextField("", 40);
 	private final JTextField outputDirectoryNameField = new JTextField("", 40);
@@ -72,7 +76,7 @@ public class ImporterGUI extends JFrame
 	private final JButton loadBatchBtn = new JButton("Load specified batch now!");
 	private final JButton writeSAFBtn = new JButton("No batch loaded");
 	private final JButton writeCancelBtn = new JButton("Cancel");
-	
+
 	//Components of the License tab
 	private final JPanel addLicenseFilePanel = new JPanel();
 	private final JCheckBox addLicenseCheckbox = new JCheckBox("Add a license:");
@@ -85,13 +89,13 @@ public class ImporterGUI extends JFrame
 	private final JScrollPane licenseTextScrollPane = new JScrollPane(licenseTextField);
 	private final JCheckBox restrictToGroupCheckbox = new JCheckBox("Restrict read access to a group - Group name:");
 	private final JTextField restrictToGroupField = new JTextField("member", 36);
-	
-	
+
+
 	//Components of the Verify Batch tab
 	private final JButton verifyBatchBtn = new JButton("Verify Batch");
 	private final JButton verifyCancelBtn = new JButton("Cancel");
 	private JTable verifierTbl = null;
-	
+
 	//Components of the Advanced Settings tab
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
 	private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
@@ -105,154 +109,157 @@ public class ImporterGUI extends JFrame
 	private final JButton flagsDownloadCsvBtn = new JButton("Generate CSV");
 	private final JButton flagsReportSelectedBtn = new JButton("Display Selected Row");
 	private static final String csvOutputFileName = "SAF-Flags.csv";
-	
-	
+
+
 	//Components shown under any tab
 	private final JPanel statusPanel = new JPanel();
 	private final JTextArea statusIndicator = new JTextArea("No batch loaded", 2, 10);
 	private final JTextArea console = new JTextArea(20, 50);
 	private final JScrollPane scrollPane;
-	
+
 	private String metadataInputFileName;
 	private static String sourceDirectoryName;
 	private static String outputDirectoryName;
-	
+
 	private final ImportDataProcessor processor;
 
 
 	// swing background process handling
 	private ImportDataWriter currentWriter = null;
-	private VerifierBackground currentVerifier = null;
-	private static Boolean batchVerified = null;
+	private List<VerifierBackground> currentVerifiers = new ArrayList<VerifierBackground>();
+	private Map<String, VerifierProperty> verifierSettings = new HashMap<String, VerifierProperty>();
+	private int currentVerifier = -1;
 	private boolean batchContinue = false;
+	private static Boolean batchVerified = null;
 
-	
+
 	public ImporterGUI(final ImportDataProcessor processor)
-	{	
+	{
 		this.processor=processor;
 
+		createVerifierSettings();
+
 		createBatchDetailsTab();
-		
+
 		createLicenseTab();
-		
+
 		createVerificationTab();
-		
+
 		createAdvancedSettingsTab();
-		
+
 		createFlagTableTab();
 
 		this.setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-		
-//		JMenuBar bar = new JMenuBar();
-//		bar.add(new JMenu("menu"));
-//		this.setJMenuBar(bar);
-		
+
+//      JMenuBar bar = new JMenuBar();
+//      bar.add(new JMenu("menu"));
+//      this.setJMenuBar(bar);
+
 		//add the tabbed views
 		getContentPane().add(tabs);
-		
-		
+
+
 		//add the status info area present under all tabs
 		console.setEditable(false);
 		console.setLineWrap(true);
 		scrollPane = new JScrollPane(console);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		
+
 		statusIndicator.setBackground(Color.blue);
 		statusIndicator.setForeground(Color.white);
 		statusIndicator.setEditable(false);
 		statusIndicator.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		scrollPane.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-		
+
 		statusPanel.add(statusIndicator);
 		statusPanel.add(scrollPane);
 		getContentPane().add(statusPanel);
-		
-		
+
+
 		initializeGUIState();
-		
-		
+
+
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setTitle("DSpace Simple Archive Format Creator");
-	
+
 	}
 
 
-	private void createVerificationTab() 
+	private void createVerificationTab()
 	{
-		validationTab.setLayout(new BoxLayout(validationTab, BoxLayout.Y_AXIS));		
-	
+		validationTab.setLayout(new BoxLayout(validationTab, BoxLayout.Y_AXIS));
+
 		//verifierTbl = new JTable(new VerifierTableModel());
-		
+
 		Vector<String>columnNames = new Vector<String>();
 		Vector<Vector<Object>>rowData = new Vector<Vector<Object>>();
-		
+
 		columnNames.add("Verifier");
 		columnNames.add("Generates Errors");
-		
-		for(Verifier verifier : verifiers)
-		{
-			//System.out.println("Adding verifier  " + verifier.getClass().getSimpleName());
+		columnNames.add("Is Enabled");
+
+		for (Entry<String, VerifierProperty> entry : verifierSettings.entrySet()) {
+			VerifierProperty verifier = entry.getValue();
+			// System.out.println("Adding verifier " + verifier.getClass().getSimpleName());
 			Vector<Object> row = new Vector<Object>();
-			
+
 			row.add(verifier.prettyName());
 			row.add(verifier.generatesError());
-			
+			row.add(verifier.isEnabled());
+
 			rowData.add(row);
 		}
-		
-		
+
+
 		verifierTbl = new JTable(rowData, columnNames);
 		verifierTbl.setPreferredScrollableViewportSize(new Dimension(400, 50));
 		verifierTbl.setEnabled(false);
-		
-		
+
+
 		JScrollPane verifierTblScrollPane = new JScrollPane(verifierTbl);
 		verifierTbl.setFillsViewportHeight(true);
-		
+
 		validationTab.add(verifierTblScrollPane);
-		
+
 		verifyCancelBtn.setEnabled(false);
 		JPanel verifyBatchBtnPanel = new JPanel();
 		verifyBatchBtnPanel.add(verifyBatchBtn);
 		verifyBatchBtnPanel.add(verifyCancelBtn);
 		validationTab.add(verifyBatchBtnPanel);
-		
-		
-	
+
+
 		tabs.addTab("Batch Verification", validationTab);
-		
+
 		verifyBatchBtn.addActionListener
 		(
 			new ActionListener()
 			{
 
-				public void actionPerformed(ActionEvent e) 
+				@Override
+				public void actionPerformed(ActionEvent e)
 				{
 					if(actionStatus == ActionStatus.LOADED)
 					{
 						lockVerifyButtons();
-						currentVerifier = null;
+						currentVerifiers.clear();
+						currentVerifier = -1;
 						batch.clearIgnoredRows();
 
-						for(VerifierBackground verifier : verifiers)
-						{
-							if (!verifier.isSwingWorker()) {
-								// TODO: consider handling non-background verifiers by creating a custom worker and then appending as a background verifier.
-								continue;
+						for (Entry<String, VerifierBackground> entry : verifiers.entrySet()) {
+							VerifierBackground verifier = entry.getValue();
+							if (verifier.isSwingWorker()) {
+								currentVerifiers.add(verifier);
 							}
-
-							currentVerifier = verifier;
-							break;
 						}
 
-						if (currentVerifier == null) {
-							// TODO report error
+						if (currentVerifiers.size() == 0) {
+							console.append("No verifiers are enabled.\n");
 							unlockVerifyButtons();
-						}
-						else {
-							currentVerifier.execute();
+						} else {
+							currentVerifier = 0;
+							currentVerifiers.get(currentVerifier).execute();
 						}
 					}
 					else
@@ -263,63 +270,63 @@ public class ImporterGUI extends JFrame
 			}
 		);
 
-		verifyCancelBtn.addActionListener
-		(
-			new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-					if (currentVerifier == null) {
-						return;
-					}
-
-					currentVerifier.cancel(false);
+		verifyCancelBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentVerifier = currentVerifiers.size();
+				while (currentVerifiers.size() > 0) {
+					VerifierBackground verifier = currentVerifiers.get(currentVerifiers.size() - 1);
+					currentVerifiers.remove(verifier);
+					verifier.cancel(false);
+					verifier.doCancel();
 				}
+				cancelVerifyCleanup();
 			}
-		);
+		});
 	}
 
 
 	private void createLicenseTab() {
-		
+
 		licenseTab.setLayout(new BoxLayout(licenseTab, BoxLayout.Y_AXIS));
-		
+
 		addLicenseFilePanel.setLayout(new BoxLayout(addLicenseFilePanel, BoxLayout.Y_AXIS));
-		
-		
+
+
 		addLicenseFilePanel.add(addLicenseCheckbox);
-		
+
 		JPanel licenseFilenameLine = new JPanel();
 		licenseFilenameLine.add(licenseFilenameFieldLabel);
 		licenseFilenameLine.add(licenseFilenameField);
 		addLicenseFilePanel.add(licenseFilenameLine);
-		
+
 		JPanel licenseBundleNameLine = new JPanel();
 		licenseBundleNameLine.add(licenseBundleNameFieldLabel);
 		licenseBundleNameLine.add(licenseBundleNameField);
 		addLicenseFilePanel.add(licenseBundleNameLine);
-		
-		
+
+
 		licenseTextScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		addLicenseFilePanel.add(licenseTextScrollPane);
-		
+
 		JPanel restrictToGroupPanel = new JPanel();
 		restrictToGroupPanel.add(restrictToGroupCheckbox);
 		restrictToGroupPanel.add(restrictToGroupField);
-		
+
 		//TODO:
 		//radio button complex for picking CC license
 		//JPanel addCCLicensePanel = new JPanel();
-		
-		
+
+
 		licenseTab.add(addLicenseFilePanel);
 		licenseTab.add(restrictToGroupPanel);
-		
+
 		addLicenseCheckbox.addActionListener
 		(
 			new ActionListener()
 			{
-				public void actionPerformed(ActionEvent e) 
+				@Override
+				public void actionPerformed(ActionEvent e)
 				{
 					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN))
 					{
@@ -346,12 +353,13 @@ public class ImporterGUI extends JFrame
 				}
 			}
 		);
-		
+
 		licenseTextField.addMouseListener
 		(
 			new MouseListener()
 			{
-				public void mouseClicked(MouseEvent e) 
+				@Override
+				public void mouseClicked(MouseEvent e)
 				{
 					if(!licenseTextField.isEditable())
 					{
@@ -359,22 +367,27 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
+				@Override
 				public void mousePressed(MouseEvent e) {}
 
+				@Override
 				public void mouseReleased(MouseEvent e) {}
 
+				@Override
 				public void mouseEntered(MouseEvent e) {}
 
+				@Override
 				public void mouseExited(MouseEvent e) {}
 			}
 		);
-		
-		
+
+
 		restrictToGroupCheckbox.addActionListener
 		(
 			new ActionListener()
 			{
-				public void actionPerformed(ActionEvent e) 
+				@Override
+				public void actionPerformed(ActionEvent e)
 				{
 					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN))
 					{
@@ -384,7 +397,7 @@ public class ImporterGUI extends JFrame
 							console.append("Group restriction disabled.\n");
 							restrictToGroupField.setEditable(true);
 							batch.restrictItemsToGroup(null);
-							
+
 						}
 						else if(restrictToGroupCheckbox.isSelected())
 						{
@@ -402,12 +415,13 @@ public class ImporterGUI extends JFrame
 				}
 			}
 		);
-		
+
 		restrictToGroupField.addMouseListener
 		(
 			new MouseListener()
 			{
-				public void mouseClicked(MouseEvent e) 
+				@Override
+				public void mouseClicked(MouseEvent e)
 				{
 					if(!restrictToGroupField.isEditable())
 					{
@@ -415,25 +429,30 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
+				@Override
 				public void mousePressed(MouseEvent e) {}
 
+				@Override
 				public void mouseReleased(MouseEvent e) {}
 
+				@Override
 				public void mouseEntered(MouseEvent e) {}
 
+				@Override
 				public void mouseExited(MouseEvent e) {}
 			}
 		);
-		
-		
+
 		tabs.addTab("License Settings", licenseTab);
-		
-		
 	}
 
 
 	private void createVerifiers() {
-		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl() {
+		VerifierProperty settings = null;
+
+		settings = verifierSettings.get(FilesExistVerifierImpl.class.getName());
+
+		VerifierBackground fileExistsVerifier = new FilesExistVerifierImpl(settings) {
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
@@ -443,7 +462,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public void done() {
 				if (isCancelled()) {
-					cancelVerifyCleanup();
+					doCancel();
 					return;
 				}
 
@@ -452,29 +471,24 @@ public class ImporterGUI extends JFrame
 					batchVerified = true;
 				}
 
-				try
-				{
+				try {
 					problems = get();
-				} catch (InterruptedException | ExecutionException e)
-				{
+				} catch (InterruptedException | ExecutionException e) {
 					batchVerified = false;
 					e.printStackTrace();
 				}
 
 				batchContinue = batch.getRemoteBitstreamErrorContinue();
-				for(Verifier.Problem problem : problems)
-				{
-					if(problem.isError()) {
+				for (Verifier.Problem problem : problems) {
+					if (problem.isError()) {
 						if (problem.isFlagged()) {
 							batchVerified = false;
 							if (batch.hasIgnoredRows()) {
 								continue;
-							}
-							else {
+							} else {
 								break;
 							}
-						}
-						else {
+						} else {
 							batchContinue = false;
 							batchVerified = false;
 							break;
@@ -482,28 +496,24 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
-				if (getNextVerifier() == null) {
-					if(batchVerified)
-					{
+				currentVerifier++;
+				if (currentVerifier < currentVerifiers.size()) {
+					VerifierBackground verifier = currentVerifiers.get(currentVerifier);
+					verifier.execute();
+				} else {
+					if (batchVerified) {
 						transitionToVerifySuccess();
-					}
-					else
-					{
+					} else {
 						if (batchContinue) {
 							transitionToVerifySuccessIgnoreErrors();
-						}
-						else {
+						} else {
 							transitionToVerifyFailed();
 						}
 					}
 
+					currentVerifier = -1;
+					currentVerifiers.clear();
 					unlockVerifyButtons();
-					return;
-				}
-
-				currentVerifier = super.getNextVerifier();
-				if (currentVerifier != null) {
-					currentVerifier.execute();
 				}
 			}
 
@@ -515,12 +525,15 @@ public class ImporterGUI extends JFrame
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n " + update.getProcessed() + " / " + update.getTotal());
+					statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n " + update.getProcessed()
+					        + " / " + update.getTotal());
 				}
 			}
 		};
 
-		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl() {
+		settings = verifierSettings.get(ValidSchemaNameVerifierImpl.class.getName());
+
+		VerifierBackground validSchemaVerifier = new ValidSchemaNameVerifierImpl(settings) {
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n 0 / " + batch.getItems().size());
@@ -530,7 +543,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public void done() {
 				if (isCancelled()) {
-					cancelVerifyCleanup();
+					doCancel();
 					return;
 				}
 
@@ -539,29 +552,24 @@ public class ImporterGUI extends JFrame
 					batchVerified = true;
 				}
 
-				try
-				{
+				try {
 					problems = get();
-				} catch (InterruptedException | ExecutionException e)
-				{
+				} catch (InterruptedException | ExecutionException e) {
 					batchVerified = false;
 					e.printStackTrace();
 				}
 
 				batchContinue = batch.getRemoteBitstreamErrorContinue();
-				for(Verifier.Problem problem : problems)
-				{
-					if(problem.isError()) {
+				for (Verifier.Problem problem : problems) {
+					if (problem.isError()) {
 						if (problem.isFlagged()) {
 							batchVerified = false;
 							if (batch.hasIgnoredRows()) {
 								continue;
-							}
-							else {
+							} else {
 								break;
 							}
-						}
-						else {
+						} else {
 							batchContinue = false;
 							batchVerified = false;
 							break;
@@ -569,28 +577,24 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
-				if (getNextVerifier() == null) {
-					if(batchVerified)
-					{
+				currentVerifier++;
+				if (currentVerifier < currentVerifiers.size()) {
+					VerifierBackground verifier = currentVerifiers.get(currentVerifier);
+					verifier.execute();
+				} else {
+					if (batchVerified) {
 						transitionToVerifySuccess();
-					}
-					else
-					{
+					} else {
 						if (batchContinue) {
 							transitionToVerifySuccessIgnoreErrors();
-						}
-						else {
+						} else {
 							transitionToVerifyFailed();
 						}
 					}
 
+					currentVerifier = -1;
+					currentVerifiers.clear();
 					unlockVerifyButtons();
-					return;
-				}
-
-				currentVerifier = super.getNextVerifier();
-				if (currentVerifier != null) {
-					currentVerifier.execute();
 				}
 			}
 
@@ -602,7 +606,8 @@ public class ImporterGUI extends JFrame
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed() + " / " + update.getTotal());
+					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed()
+					        + " / " + update.getTotal());
 				}
 			}
 		};
@@ -611,49 +616,55 @@ public class ImporterGUI extends JFrame
 			batch.clearIgnoredRows();
 		}
 		verifiers.clear();
-		verifiers.add(fileExistsVerifier);
-
-		fileExistsVerifier.setNextVerifier(validSchemaVerifier);
-		verifiers.add(validSchemaVerifier);
+		verifiers.put(FilesExistVerifierImpl.class.getName(), fileExistsVerifier);
+		verifiers.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
 	}
 
-	private void createBatchDetailsTab() 
+	private void createVerifierSettings() {
+		VerifierProperty fileExistsVerifier = new FilesExistVerifierImpl();
+		verifierSettings.put(FilesExistVerifierImpl.class.getName(), fileExistsVerifier);
+
+		VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
+		verifierSettings.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
+	}
+
+	private void createBatchDetailsTab()
 	{
 		sourceDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		outputDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		metadataInputFileName = "";
 		sourceDirectoryName = "";
 		outputDirectoryName = "";
-//		metadataInputFileName = "/Users/jcreel/Development/SAF/testo.csv";
-//		sourceDirectoryName = "/Users/jcreel/Development/SAF/testfiles";
-//		outputDirectoryName = "/Users/jcreel/Development/SAF/test-output";
-//		
-		
+//      metadataInputFileName = "/Users/jcreel/Development/SAF/testo.csv";
+//      sourceDirectoryName = "/Users/jcreel/Development/SAF/testfiles";
+//      outputDirectoryName = "/Users/jcreel/Development/SAF/test-output";
+//
+
 		inputFileNameField.setText(metadataInputFileName);
 		inputFileNameField.setEditable(false);
 		sourceDirectoryNameField.setText(sourceDirectoryName);
 		sourceDirectoryNameField.setEditable(false);
 		outputDirectoryNameField.setText(outputDirectoryName);
 		outputDirectoryNameField.setEditable(false);
-		
-		
+
+
 		mainTab.setLayout(new BoxLayout(mainTab, BoxLayout.Y_AXIS));
-		
+
 		JPanel inputCSVPanel = new JPanel();
 		inputCSVPanel.add(chooseInputFileBtn);
 		inputCSVPanel.add(inputFileNameField);
 		mainTab.add(inputCSVPanel);
-		
+
 		JPanel sourceFilesDirPanel = new JPanel();
 		sourceFilesDirPanel.add(chooseSourceDirectoryBtn);
 		sourceFilesDirPanel.add(sourceDirectoryNameField);
 		mainTab.add(sourceFilesDirPanel);
-		
+
 		JPanel outputSAFDirPanel = new JPanel();
 		outputSAFDirPanel.add(chooseOutputDirectoryBtn);
 		outputSAFDirPanel.add(outputDirectoryNameField);
 		mainTab.add(outputSAFDirPanel);
-		
+
 		JPanel writeButtonPanel = new JPanel();
 		actionStatusField.setEditable(false);
 
@@ -664,18 +675,19 @@ public class ImporterGUI extends JFrame
 		writeButtonPanel.add(writeSAFBtn);
 		writeButtonPanel.add(writeCancelBtn);
 		mainTab.add(writeButtonPanel);
-		
+
 		tabs.addTab("Batch Details", mainTab);
-		
-		
+
+
 		chooseInputFileBtn.addActionListener
-		( 
+		(
 			new ActionListener()
 			{
-			    public void actionPerformed( final ActionEvent e )
-			    {   
-			        if( inputFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
-			        {
+				@Override
+				public void actionPerformed( final ActionEvent e )
+				{
+					if( inputFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
+					{
 						console.append("You have selected this input CSV file: " + inputFileChooser.getSelectedFile().getName() + ".\n");
 						metadataInputFileName = inputFileChooser.getSelectedFile().getAbsolutePath();
 						inputFileNameField.setText(metadataInputFileName);
@@ -703,54 +715,57 @@ public class ImporterGUI extends JFrame
 
 							actionStatus = ActionStatus.NONE_LOADED;
 						}
-			        }
-			    }
+					}
+				}
 			}
 		);
-		
-		
+
+
 		chooseSourceDirectoryBtn.addActionListener
 		(
 			new ActionListener()
 			{
-			    public void actionPerformed( final ActionEvent e )
-			    {
-			    	if( sourceDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
-			    	{
-			    		console.append("You have selected this source directory: " + sourceDirectoryChooser.getSelectedFile().getName() + "\n");
-			    		sourceDirectoryName = sourceDirectoryChooser.getSelectedFile().getAbsolutePath();
-			    		sourceDirectoryNameField.setText(sourceDirectoryName);			    		
-			    	}
-			    }
+				@Override
+				public void actionPerformed( final ActionEvent e )
+				{
+					if( sourceDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
+					{
+						console.append("You have selected this source directory: " + sourceDirectoryChooser.getSelectedFile().getName() + "\n");
+						sourceDirectoryName = sourceDirectoryChooser.getSelectedFile().getAbsolutePath();
+						sourceDirectoryNameField.setText(sourceDirectoryName);
+					}
+				}
 			}
 		);
-		
-		
+
+
 		chooseOutputDirectoryBtn.addActionListener
 		(
 			new ActionListener()
 			{
-			    public void actionPerformed( final ActionEvent e )
-			    {
-			    	if( outputDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
-			    	{
-			    		console.append("You have selected this target directory: " + outputDirectoryChooser.getSelectedFile().getName() + "\n");
-			    		outputDirectoryName = outputDirectoryChooser.getSelectedFile().getAbsolutePath();
-			    		outputDirectoryNameField.setText(outputDirectoryName);			    		
-			    	}
-			    }
+				@Override
+				public void actionPerformed( final ActionEvent e )
+				{
+					if( outputDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION )
+					{
+						console.append("You have selected this target directory: " + outputDirectoryChooser.getSelectedFile().getName() + "\n");
+						outputDirectoryName = outputDirectoryChooser.getSelectedFile().getAbsolutePath();
+						outputDirectoryNameField.setText(outputDirectoryName);
+					}
+				}
 			}
 		);
-		
-		
+
+
 		loadBatchBtn.addActionListener
 		(
 			new ActionListener()
 			{
+				@Override
 				public void actionPerformed( final ActionEvent e )
 				{
-					if(actionStatus.equals(ActionStatus.NONE_LOADED) || 
-					   actionStatus.equals(ActionStatus.LOADED) || 
+					if(actionStatus.equals(ActionStatus.NONE_LOADED) ||
+					   actionStatus.equals(ActionStatus.LOADED) ||
 					   actionStatus.equals(ActionStatus.WRITTEN) ||
 					   actionStatus.equals(ActionStatus.VERIFIED) ||
 					   actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
@@ -765,11 +780,11 @@ public class ImporterGUI extends JFrame
 						{
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
-							
+
 							statusIndicator.setText("Batch Status:\nFailed to Load");
 							statusIndicator.setForeground(Color.black);
 							statusIndicator.setBackground(Color.red);
-							
+
 							actionStatusField.setText("Please load a batch for processing.");
 							actionStatusField.setForeground(Color.white);
 							actionStatusField.setBackground(Color.blue);
@@ -785,19 +800,20 @@ public class ImporterGUI extends JFrame
 						console.append("\nBatch successfully loaded.\n\n");
 
 						transitionToLoaded();
-					}										
+					}
 				}
 			}
-		);		
-						
-		
+		);
+
+
 		writeSAFBtn.addActionListener
 		(
 			new ActionListener()
 			{
+				@Override
 				public void actionPerformed( final ActionEvent e )
 				{
-	
+
 					if(actionStatus.equals(ActionStatus.VERIFIED))
 					{
 						lockThreadSensitiveControls();
@@ -868,6 +884,7 @@ public class ImporterGUI extends JFrame
 		(
 			new ActionListener()
 			{
+				@Override
 				public void actionPerformed(ActionEvent e)
 				{
 					if (currentWriter == null) {
@@ -879,7 +896,7 @@ public class ImporterGUI extends JFrame
 			}
 		);
 	}
-	
+
 	private void createAdvancedSettingsTab()
 	{
 		advancedSettingsTab.setLayout(new BoxLayout(advancedSettingsTab, BoxLayout.Y_AXIS));
@@ -887,12 +904,13 @@ public class ImporterGUI extends JFrame
 		advancedSettingsTab.add(continueOnRemoteErrorBox);
 
 		tabs.addTab("Advanced Settings", advancedSettingsTab);
-		
+
 		ignoreFilesBox.addMouseListener
 		(
 			new MouseListener()
 			{
-				public void mouseClicked(MouseEvent e) 
+				@Override
+				public void mouseClicked(MouseEvent e)
 				{
 					if (!ignoreFilesBox.isEnabled()) {
 						// checkbox mouse clicks still trigger even when set to disabled.
@@ -911,12 +929,16 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
+				@Override
 				public void mousePressed(MouseEvent e) {}
 
+				@Override
 				public void mouseReleased(MouseEvent e) {}
 
+				@Override
 				public void mouseEntered(MouseEvent e) {}
 
+				@Override
 				public void mouseExited(MouseEvent e) {}
 			}
 		);
@@ -925,6 +947,7 @@ public class ImporterGUI extends JFrame
 		(
 			new MouseListener()
 			{
+				@Override
 				public void mouseClicked(MouseEvent e)
 				{
 					if (!continueOnRemoteErrorBox.isEnabled()) {
@@ -944,12 +967,16 @@ public class ImporterGUI extends JFrame
 					}
 				}
 
+				@Override
 				public void mousePressed(MouseEvent e) {}
 
+				@Override
 				public void mouseReleased(MouseEvent e) {}
 
+				@Override
 				public void mouseEntered(MouseEvent e) {}
 
+				@Override
 				public void mouseExited(MouseEvent e) {}
 			}
 		);
@@ -1097,8 +1124,9 @@ public class ImporterGUI extends JFrame
 		(
 			new ActionListener()
 			{
-			    public void actionPerformed(final ActionEvent e)
-			    {
+				@Override
+				public void actionPerformed(final ActionEvent e)
+				{
 					if (actionStatus.equals(ActionStatus.NONE_LOADED)) {
 						console.append("Unable to write to write CSV file, reason: SAF not loaded.\n");
 						return;
@@ -1124,7 +1152,7 @@ public class ImporterGUI extends JFrame
 					{
 						console.append("Unable to write CSV file " + csvFilePath + ", reason: " + e1.getMessage() + ".\n");
 					}
-			    }
+				}
 			}
 		);
 
@@ -1132,8 +1160,9 @@ public class ImporterGUI extends JFrame
 		(
 			new ActionListener()
 			{
-			    public void actionPerformed(final ActionEvent e)
-			    {
+				@Override
+				public void actionPerformed(final ActionEvent e)
+				{
 					if (flagPanel.getRowCount() == 0) {
 						console.append("Flag list is empty.\n");
 						return;
@@ -1168,7 +1197,7 @@ public class ImporterGUI extends JFrame
 					else {
 						console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
 					}
-			    }
+				}
 			}
 		);
 	}
@@ -1177,24 +1206,24 @@ public class ImporterGUI extends JFrame
 	{
 		actionStatus = ActionStatus.NONE_LOADED;
 		batch=null;
-		
+
 		//actionStatusfield
 		actionStatusField.setForeground(Color.white);
 		actionStatusField.setBackground(Color.blue);
-		
+
 		//loadBatchBtn
 		loadBatchBtn.setText("Load specified batch now!");
-		
+
 		//writeSAFBtn
 		writeSAFBtn.setText("No batch loaded");
-		
+
 		//statusIndicator
 		statusIndicator.setForeground(Color.white);
 		statusIndicator.setBackground(Color.blue);
 		statusIndicator.setText("No batch loaded");
-		
+
 	}
-	
+
 	private void transitionToLoaded()
 	{
 		actionStatusField.setText("Your batch has not been verified.");
@@ -1225,7 +1254,7 @@ public class ImporterGUI extends JFrame
 
 		batchContinue = false;
 	}
-	
+
 
 	private void transitionToVerifySuccess()
 	{
@@ -1242,7 +1271,7 @@ public class ImporterGUI extends JFrame
 		writeSAFBtn.setEnabled(true);
 		writeSAFBtn.setText("Write SAF data now!");
 	}
-	
+
 
 	private void transitionToVerifySuccessIgnoreErrors()
 	{
@@ -1289,7 +1318,7 @@ public class ImporterGUI extends JFrame
 		statusIndicator.setBackground(Color.red);
 		statusIndicator.setText("Batch Status:\n verified\n write failed");
 	}
-	
+
 	private void lockVerifyButtons() {
 		verifyBatchBtn.setText("Verifying..");
 		lockThreadSensitiveControls();
@@ -1301,7 +1330,8 @@ public class ImporterGUI extends JFrame
 	}
 
 	private void cancelVerifyCleanup() {
-		currentVerifier = null;
+		currentVerifier = -1;
+		currentVerifiers.clear();
 		unlockVerifyButtons();
 		console.append("Validation process has been cancelled.\n");
 		statusIndicator.setText("Batch Status:\n Unverified");
