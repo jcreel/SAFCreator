@@ -43,7 +43,7 @@ public class ImporterGUI extends JFrame
 
 	private Map<String, VerifierBackground> verifiers = new HashMap<String, VerifierBackground>();
 
-	private enum ActionStatus {NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN};
+	private enum ActionStatus {NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN, CLEANED};
 	private ActionStatus actionStatus = ActionStatus.NONE_LOADED;
 
 	private enum FieldChangeStatus {NO_CHANGES, CHANGES};
@@ -131,6 +131,7 @@ public class ImporterGUI extends JFrame
 
 	// swing background process handling
 	private ImportDataWriter currentWriter = null;
+	private ImportDataCleaner currentCleaner = null;
 	private List<VerifierBackground> currentVerifiers = new ArrayList<VerifierBackground>();
 	private Map<String, VerifierProperty> verifierSettings = new HashMap<String, VerifierProperty>();
 	private int currentVerifier = -1;
@@ -374,7 +375,7 @@ public class ImporterGUI extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN))
+					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN) && !actionStatus.equals(ActionStatus.CLEANED))
 					{
 						if(!addLicenseCheckbox.isSelected())
 						{
@@ -435,7 +436,7 @@ public class ImporterGUI extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN))
+					if(!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN) && !actionStatus.equals(ActionStatus.CLEANED))
 					{
 						if(!restrictToGroupCheckbox.isSelected())
 						{
@@ -817,6 +818,7 @@ public class ImporterGUI extends JFrame
 					if(actionStatus.equals(ActionStatus.NONE_LOADED) ||
 					   actionStatus.equals(ActionStatus.LOADED) ||
 					   actionStatus.equals(ActionStatus.WRITTEN) ||
+					   actionStatus.equals(ActionStatus.CLEANED) ||
 					   actionStatus.equals(ActionStatus.VERIFIED) ||
 					   actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
@@ -880,7 +882,6 @@ public class ImporterGUI extends JFrame
 						currentWriter = new ImportDataWriter() {
 							@Override
 							public void done() {
-								writeSAFBtn.setText("Write SAF data now!");
 								currentWriter = null;
 								writeCancelBtn.setEnabled(false);
 								unlockThreadSensitiveControls();
@@ -892,7 +893,12 @@ public class ImporterGUI extends JFrame
 								try
 								{
 									if (get()) {
-										transitionToWritten();
+										if (batch.hasIgnoredRows()) {
+											transitionToWrittenIgnored();
+										}
+										else {
+											transitionToWritten();
+										}
 									}
 									else {
 										transitionToWrittenFailed();
@@ -904,12 +910,12 @@ public class ImporterGUI extends JFrame
 							}
 
 							@Override
-							protected void process(List<ImportDataWriter.WriterUpdates> updates) {
+							protected void process(List<ImportDataWriter.Updates> updates) {
 								if (updates.size() == 0) {
 									return;
 								}
 
-								ImportDataWriter.WriterUpdates update = updates.get(updates.size() - 1);
+								ImportDataWriter.Updates update = updates.get(updates.size() - 1);
 								if (update != null && update.getTotal() > 0) {
 									statusIndicator.setText("Batch Status:\n Verified\n Written:\n " + update.getProcessed() + " / " + update.getTotal());
 								}
@@ -921,14 +927,69 @@ public class ImporterGUI extends JFrame
 						currentWriter.setFlags(flagPanel);
 						currentWriter.execute();
 					}
-					else if(actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
+					else if (actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
 						console.append("\nPlease verify the batch before writing.\n\n");
 					}
-					else if(actionStatus.equals(ActionStatus.WRITTEN) || actionStatus.equals(ActionStatus.NONE_LOADED))
+					else if (actionStatus.equals(ActionStatus.NONE_LOADED))
 					{
-						//nothing to do
-						console.append("\nNo new SAF data to write.\n\n");
+						console.append("\nNo loaded SAF data to write.\n\n");
+					}
+					else if (actionStatus.equals(ActionStatus.WRITTEN))
+					{
+						lockThreadSensitiveControls();
+						writeSAFBtn.setText("Cleaning..");
+						writeCancelBtn.setEnabled(true);
+
+						console.append("Deleting all folders with flagged errors...\n");
+						statusIndicator.setText("Batch Status:\n Written\n Cleaned:\n 0 / " + batch.getItems().size());
+
+						currentCleaner = new ImportDataCleaner() {
+							@Override
+							public void done() {
+								currentCleaner = null;
+								writeCancelBtn.setEnabled(false);
+								unlockThreadSensitiveControls();
+
+								if (isCancelled()) {
+									return;
+								}
+
+								try
+								{
+									if (get()) {
+										transitionToCleaned();
+									}
+									else {
+										transitionToCleanedFailed();
+									}
+								} catch (InterruptedException | ExecutionException e)
+								{
+									e.printStackTrace();
+								}
+							}
+
+							@Override
+							protected void process(List<ImportDataCleaner.Updates> updates) {
+								if (updates.size() == 0) {
+									return;
+								}
+
+								ImportDataCleaner.Updates update = updates.get(updates.size() - 1);
+								if (update != null && update.getTotal() > 0) {
+									statusIndicator.setText("Batch Status:\n Written\n Cleaned:\n " + update.getProcessed() + " / " + update.getTotal());
+								}
+							}
+						};
+
+						currentCleaner.setBatch(batch);
+						currentCleaner.setConsole(console);
+						currentCleaner.setFlags(flagPanel);
+						currentCleaner.execute();
+					}
+					else if (actionStatus.equals(ActionStatus.CLEANED))
+					{
+						console.append("\nSAF data is already written.\n\n");
 					}
 				}
 			}
@@ -941,11 +1002,13 @@ public class ImporterGUI extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if (currentWriter == null) {
-						return;
+					if (currentWriter != null) {
+						currentWriter.cancel(false);
 					}
 
-					currentWriter.cancel(false);
+					if (currentCleaner != null) {
+						currentCleaner.cancel(false);
+					}
 				}
 			}
 		);
@@ -1428,21 +1491,79 @@ public class ImporterGUI extends JFrame
 	private void transitionToWritten()
 	{
 
-		loadBatchBtn.setText("Reload batch as specified");
-		writeSAFBtn.setEnabled(false);
-		actionStatusField.setForeground(Color.black);
-		actionStatusField.setBackground(Color.white);
-		actionStatusField.setText("Batch SAF written.");
 		statusIndicator.setText("Batch status:\n Written");
-		statusIndicator.setBackground(Color.white);
 		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.white);
+
+		actionStatusField.setText("Your batch is written.");
+		actionStatusField.setBackground(Color.green);
+
+		writeSAFBtn.setText("No Batch Loaded");
+		writeSAFBtn.setEnabled(false);
+
+		actionStatusField.setText("Batch SAF written.");
+
+		loadBatchBtn.setText("Reload batch as specified");
+		actionStatus = ActionStatus.WRITTEN;
+	}
+
+	private void transitionToWrittenIgnored()
+	{
+		statusIndicator.setText("Batch Status:\n written\n with ignored");
+		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.orange);
+
+		actionStatusField.setText("Your batch has ignored rows.");
+		actionStatusField.setBackground(Color.orange);
+
+		writeSAFBtn.setText("Clean SAF Data");
+		writeSAFBtn.setEnabled(true);
+
+		actionStatusField.setText("Batch SAF written, with ignored.");
+
+		loadBatchBtn.setText("Reload batch as specified");
 		actionStatus = ActionStatus.WRITTEN;
 	}
 
 	private void transitionToWrittenFailed()
 	{
-		statusIndicator.setBackground(Color.red);
 		statusIndicator.setText("Batch Status:\n verified\n write failed");
+		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.red);
+
+		actionStatusField.setText("Your batch had write failures.");
+		actionStatusField.setBackground(Color.orange);
+
+		writeSAFBtn.setText("Clean SAF Data");
+		writeSAFBtn.setEnabled(true);
+
+		actionStatusField.setText("Batch SAF written, with failures.");
+
+		loadBatchBtn.setText("Reload batch as specified");
+		actionStatus = ActionStatus.WRITTEN;
+	}
+
+	private void transitionToCleaned()
+	{
+		writeSAFBtn.setText("No Batch Loaded");
+		writeSAFBtn.setEnabled(false);
+		actionStatusField.setForeground(Color.black);
+		actionStatusField.setBackground(Color.green);
+		actionStatusField.setText("Batch SAF written & failures removed.");
+		statusIndicator.setText("Batch status:\n Written & Cleaned");
+		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.green);
+		actionStatus = ActionStatus.CLEANED;
+	}
+
+	private void transitionToCleanedFailed()
+	{
+		actionStatusField.setForeground(Color.black);
+		actionStatusField.setBackground(Color.red);
+		actionStatusField.setText("Batch SAF written & clean failed.");
+		statusIndicator.setText("Batch status:\n Written & Clean Failed");
+		statusIndicator.setForeground(Color.black);
+		statusIndicator.setBackground(Color.red);
 	}
 
 	private void lockVerifyButtons() {
@@ -1496,6 +1617,9 @@ public class ImporterGUI extends JFrame
 
 		if (actionStatus == ActionStatus.VERIFIED) {
 			writeSAFBtn.setEnabled(true);
+		}
+		else if (actionStatus == ActionStatus.CLEANED) {
+			writeSAFBtn.setEnabled(false);
 		}
 
 		if (actionStatus != ActionStatus.NONE_LOADED) {

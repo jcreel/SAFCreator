@@ -23,6 +23,7 @@ public class Flag {
 	public static String SERVICE_UNAVAILABLE = "Service Unavailable";
 	public static String SSL_FAILURE = "SSL Failure";
 	public static String SOCKET_ERROR = "Socket Error";
+	public static String DELETE_FAILURE = "Delete Failure";
 
 	private ArrayList<String> rowData;
 

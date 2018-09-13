@@ -23,6 +23,7 @@ public class Batch {
 	private int remoteFileTimeout = 10000;
 	private String userAgent = null;
 	private List<Integer> ignoreRows = new ArrayList<Integer>();
+	private List<Integer> failedRows = new ArrayList<Integer>();
 
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -321,5 +322,41 @@ public class Batch {
 			return false;
 		}
 		return !ignoreRows.isEmpty();
+	}
+
+	/**
+	 * Flag a specific batch row as failed.
+	 *
+	 * @param row the number of the row to ignore.
+	 */
+	public void failedRow(Integer row) {
+		failedRows.add(row);
+	}
+
+	/**
+	 * Check to see if a row is flagged as failed.
+	 *
+	 * @param row the number of the row that has failed.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	public boolean isFailedRow(Integer row) {
+		return failedRows.contains(row);
+	}
+
+	/**
+	 * Removes all failed row values.
+	 */
+	public void clearFailedRows() {
+		failedRows.clear();
+	}
+
+	/**
+	 * Reports whether or not any rows are flagged as failed.
+	 *
+	 * @return true if any row is assigned to be ignored, false otherwise.
+	 */
+	public boolean hasFailedRows() {
+		return !failedRows.isEmpty();
 	}
 }

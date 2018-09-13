@@ -50,6 +50,7 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 				Problem problem = new Problem(true, "Undefined Handle for row " + itemCount + ".");
 				problem.setFlag(flag);
 				problems.add(problem);
+				batch.failedRow(itemCount);
 				if (console != null) console.append("\t" + problem.toString()+"\n");
 				if (flagPanel != null) flagPanel.appendRow(flag);
 			}
