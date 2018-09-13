@@ -74,7 +74,7 @@ public class ImportDataCleaner extends SwingWorker<Boolean, ImportDataOperator.U
 						console.append("\tDeleted directory for (row " + itemCount + "), because of write failure.\n");
 					} catch (IOException e) {
 						noErrors = false;
-						Flag flag = new Flag(Flag.DELETE_FAILURE, "Failed to delete directory.", "", "", "", "" + itemCount);
+						Flag flag = new Flag(Flag.DELETE_FAILURE, "Failed to delete directory.", "", "", "", "" + itemCount, batch.getAction());
 						flags.appendRow(flag);
 						console.append("\tFailed to delete directory for (row " + itemCount + "), due to an error.\n");
 					}

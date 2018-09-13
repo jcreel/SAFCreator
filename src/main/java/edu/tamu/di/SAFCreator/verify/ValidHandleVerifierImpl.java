@@ -46,7 +46,7 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 				break;
 			}
 			if (handle.isEmpty()) {
-				Flag flag = new Flag(Flag.NO_UNIQUE_ID, "Undefined Handle for row " + itemCount + ".", "", "", "", "" + itemCount);
+				Flag flag = new Flag(Flag.NO_UNIQUE_ID, "Undefined Handle for row " + itemCount + ".", batch.getAction());
 				Problem problem = new Problem(true, "Undefined Handle for row " + itemCount + ".");
 				problem.setFlag(flag);
 				problems.add(problem);

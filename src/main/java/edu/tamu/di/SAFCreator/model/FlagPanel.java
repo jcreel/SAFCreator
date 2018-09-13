@@ -84,8 +84,9 @@ public class FlagPanel extends JPanel {
 		String url = (String) table.getValueAt(rowNumber, Flag.Columns.URL.ordinal());
 		String column = (String) table.getValueAt(rowNumber, Flag.Columns.COLUMN.ordinal());
 		String row = (String) table.getValueAt(rowNumber, Flag.Columns.ROW.ordinal());
+		String actionStatus = (String) table.getValueAt(rowNumber, Flag.Columns.ACTION.ordinal());
 
-		return new Flag(flag, description, authority, url, column, row);
+		return new Flag(flag, description, authority, url, column, row, actionStatus);
 	}
 
 	/**
@@ -146,6 +147,7 @@ public class FlagPanel extends JPanel {
 		String url = null;
 		String column = null;
 		String row = null;
+		String action = null;
 
 		int length = table.getRowCount();
 		int i = 0;
@@ -156,8 +158,9 @@ public class FlagPanel extends JPanel {
 			url = (String) table.getValueAt(i, Flag.Columns.URL.ordinal());
 			column = (String) table.getValueAt(i, Flag.Columns.COLUMN.ordinal());
 			row = (String) table.getValueAt(i, Flag.Columns.ROW.ordinal());
+			action = (String) table.getValueAt(i, Flag.Columns.ACTION.ordinal());
 
-			printer.printRecord(flag, description, authority, url, column, row);
+			printer.printRecord(flag, description, authority, url, column, row, action);
 			printer.flush();
 			i++;
 		}

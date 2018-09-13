@@ -506,6 +506,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
+				batch.setAction(prettyName());
 				return verify(batch, console, flagPanel);
 			}
 
@@ -587,6 +588,7 @@ public class ImporterGUI extends JFrame
 			@Override
 			public List<Problem> doInBackground() {
 				statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n 0 / " + batch.getItems().size());
+				batch.setAction(prettyName());
 				return verify(batch, console, flagPanel);
 			}
 
@@ -922,6 +924,7 @@ public class ImporterGUI extends JFrame
 							}
 						};
 
+						batch.setAction("Writing");
 						currentWriter.setBatch(batch);
 						currentWriter.setConsole(console);
 						currentWriter.setFlags(flagPanel);
@@ -982,6 +985,7 @@ public class ImporterGUI extends JFrame
 							}
 						};
 
+						batch.setAction("Cleaning");
 						currentCleaner.setBatch(batch);
 						currentCleaner.setConsole(console);
 						currentCleaner.setFlags(flagPanel);
@@ -1384,6 +1388,10 @@ public class ImporterGUI extends JFrame
 					}
 					else {
 						console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
+					}
+
+					if (!row.getCell(Columns.ACTION).isEmpty()) {
+						console.append("Flag Action: " + row.getCell(Columns.ACTION) + "\n");
 					}
 				}
 			}

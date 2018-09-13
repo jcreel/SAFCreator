@@ -15,32 +15,32 @@ public class Item {
 	private List<SchematicFieldSet> schemata;
 	private List<Bundle> bundles;
 	private String handle;
-	
+
 	private File itemDirectory;
-	
+
 	public Item(int row, Batch batch)
 	{
 		this.batch = batch;
 		schemata = new ArrayList<SchematicFieldSet>();
 		bundles = new ArrayList<Bundle>();
-		
+
 		itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + row);
 		itemDirectory.mkdir();
-		
+
 		handle = null;
 
 	}
-	
+
 	public Batch getBatch()
 	{
 		return batch;
 	}
-	
+
 	public List<SchematicFieldSet> getSchemata()
 	{
 		return schemata;
 	}
-	
+
 	public SchematicFieldSet getOrCreateSchema(String schemaName)
 	{
 		for(SchematicFieldSet schema : schemata)
@@ -50,7 +50,7 @@ public class Item {
 				return schema;
 			}
 		}
-		
+
 		SchematicFieldSet schema = new SchematicFieldSet();
 		schema.setSchemaName(schemaName);
 		schemata.add(schema);
@@ -70,14 +70,14 @@ public class Item {
 				return bundle;
 			}
 		}
-		
+
 		Bundle bundle = new Bundle();
 		bundle.setName(bundleName);
 		bundle.setItem(this);
 		bundles.add(bundle);
 		return bundle;
 	}
-	
+
 	private void writeContents(List<Problem> problems)
 	{
 		String contentsString = "";
@@ -87,18 +87,19 @@ public class Item {
 			{
 				if( ! batch.getIgnoreFiles())
 				{
+					bitstream.setAction(batch.getAction());
 					bitstream.copyMe(problems);
 				}
 				contentsString += bitstream.getContentsManifestLine();
 			}
 		}
-		
+
 		if (batch.getLicense() != null)
 		{
 			contentsString += batch.getLicense().getContentsManifestLine();
 			batch.getLicense().writeToItem(this);
 		}
-		
+
 		File contentsFile = new File(getSAFDirectory() + "/contents");
 		try {
 			if(!contentsFile.exists())
@@ -114,7 +115,7 @@ public class Item {
 			problems.add(problem);
 		}
 	}
-	
+
 	private void writeHandle(List<Problem> problems)
 	{
 	        File handleFile = new File(itemDirectory.getAbsolutePath() + "/handle");
@@ -132,13 +133,13 @@ public class Item {
 					problems.add(problem);
                 }
 	}
-	
+
 	private void writeMetadata(List<Problem> problems)
 	{
 		for(SchematicFieldSet schema : schemata)
 		{
 			File metadataFile = new File(itemDirectory.getAbsolutePath() + "/" + schema.getFilename());
-			
+
 			try {
 				if(!metadataFile.exists())
 				{
@@ -154,7 +155,7 @@ public class Item {
 			}
 		}
 	}
-	
+
 	public List<Problem> writeItemSAF()
 	{
 		List<Problem> problems = new ArrayList<Problem>();
@@ -169,9 +170,9 @@ public class Item {
 	}
 
     public void setHandle(String handle) {
-        this.handle = handle;        
+        this.handle = handle;
     }
-    
+
     public String getHandle() {
         return handle;
     }

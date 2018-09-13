@@ -35,25 +35,26 @@ import edu.tamu.di.SAFCreator.model.StubLabel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
-public class ImportDataProcessorImpl implements ImportDataProcessor 
+public class ImportDataProcessorImpl implements ImportDataProcessor
 {
 	private static String PdfPrefix = "document-";
 	private static String PdfSuffix = ".pdf";
 
+	@Override
 	public Batch loadBatch(String metadataInputFileName,
 			String sourceDirectoryName, String outputDirectoryName,
-			JTextArea console) 
+			JTextArea console)
 	{
-	
+
 		File sourceDirFileForChecking = new File(sourceDirectoryName);
 		File outputDirFileForChecking = new File(outputDirectoryName);
-		
+
 		if(!(sourceDirFileForChecking.exists() && sourceDirFileForChecking.isDirectory()))
 		{
 			console.append("\tERROR: Source file directory " + sourceDirectoryName + " is not a readable directory.\n");
 			return null;
 		}
-		
+
 
 		if(!(outputDirFileForChecking.exists() && outputDirFileForChecking.isDirectory()))
 		{
@@ -99,24 +100,24 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 				}
 			}
 		}
-		
-		
-		
+
+
+
 		Batch batch = new Batch();
 		boolean errorState = false;
 		batch.setinputFilesDir(sourceDirectoryName);
 		batch.setOutputSAFDir(outputDirectoryName);
 		List<ColumnLabel> columnLabels = new ArrayList<ColumnLabel>();
 		CSVReader reader = null;
-		
+
 		try {
 			reader = new CSVReader(new FileReader(metadataInputFileName));
 			String[] labelLine;
 			String[] nextLine;
-			
-				
+
+
 			labelLine = reader.readNext();
-			
+
 			int column = 1;
 			for(String cell : labelLine)
 			{
@@ -126,7 +127,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 					FileLabel fileLabel = new FileLabel(bundleName);
 					fileLabel.setColumn(column);
 					fileLabel.setRow(1);
-					columnLabels.add(fileLabel);	
+					columnLabels.add(fileLabel);
 				}
 				else if(cell.toLowerCase().contains("filename"))
 				{
@@ -164,18 +165,18 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 
 				column++;
 			}
-			
+
 			//record the column labels for verification purposes
 			batch.setLabels(columnLabels);
-			
-			
+
+
 			//if we encountered an error reading the labels, then exit
 			if ( errorState == true)
 			{
 				reader.close();
 				return null;
 			}
-			
+
 			int linenumber = 1;
 			while((nextLine = reader.readNext()) != null)
 			{
@@ -218,10 +219,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 						FieldLabel fieldLabel = (FieldLabel) label;
 						String schemaName = Util.getSchemaName(fieldLabel.getSchema());
 						SchematicFieldSet schema = item.getOrCreateSchema(schemaName);
-						
+
 						//eliminate trailing ||
 						if( cell.endsWith("||") ) cell = cell.substring(0, cell.length()-2);
-						
+
 						//create Field(s) within the schema
 						int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
 						String[] values = cell.split("\\|\\|");
@@ -234,10 +235,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							field.setValue(value);
 							field.setColumn(column);
 							field.setRow(linenumber);
-							
+
 							schema.addField(field);
 						}
-						
+
 					}
 					else if(label.isFile())
 					{
@@ -255,7 +256,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 							addItem = false;
 							break;
 						}
-						
+
 						if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
 							String scheme = uri.getScheme().toString();
 							if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
@@ -346,7 +347,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			e.printStackTrace();
 			errorState = true;
 		}
-		
+
 		if(errorState)
 		{
 			return null;
@@ -355,9 +356,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		{
 			return batch;
 		}
-		
+
 	}
 
+	@Override
 	public void writeBatchSAF(Batch batch, JTextArea console, FlagPanel flags)
 	{
 		int itemCount = 1;
@@ -406,7 +408,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			character = Character.valueOf((char) (65 + modulo));
 
 			label = character + label;
-			dividend = (int) ((dividend - modulo) / 26);
+			dividend = (dividend - modulo) / 26;
 		}
 
 		return label;

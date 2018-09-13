@@ -3,8 +3,8 @@ package edu.tamu.di.SAFCreator.model;
 import java.util.ArrayList;
 
 public class Flag {
-	public static enum Columns {FLAG, DESCRIPTION, AUTHORITY, URL, COLUMN, ROW};
-	public static String[] ColumnNames = {"Flag", "Description", "Authority", "URL", "Column", "Row"};
+	public static enum Columns {FLAG, DESCRIPTION, AUTHORITY, URL, COLUMN, ROW, ACTION};
+	public static String[] ColumnNames = {"Flag", "Description", "Authority", "URL", "Column", "Row", "Action"};
 
 	public static String ACCESS_DENIED = "Access Denied";
 	public static String FILE_ERROR = "File Error";
@@ -38,6 +38,7 @@ public class Flag {
 		this.rowData.add("");
 		this.rowData.add("");
 		this.rowData.add("");
+		this.rowData.add("");
 	}
 
 	/**
@@ -45,12 +46,50 @@ public class Flag {
 	 *
 	 * @param flagCode the flag code.
 	 * @param flagName the flag name.
-	 * @param authority the authority/hostname.
+	 * @param action the action status associated with the batch.
+	 */
+	public Flag(String flagCode, String flagName, String action) {
+		this.rowData = new ArrayList<String>();
+		this.rowData.add(flagCode);
+		this.rowData.add(flagName);
+		this.rowData.add("");
+		this.rowData.add("");
+		this.rowData.add("");
+		this.rowData.add("");
+		this.rowData.add(action);
+	}
+
+	/**
+	 * Initialize row with pre-populated cells.
+	 *
+	 * @param flagCode the flag code.
+	 * @param flagName the flag name.
+	 * @param action the action status associated with the batch.
+	 * @param bitstream the bitstream to extract the information from.
+	 */
+	public Flag(String flagCode, String flagName, String action, Bitstream bitstream) {
+		this.rowData = new ArrayList<String>();
+		this.rowData.add(flagCode);
+		this.rowData.add(flagName);
+		this.rowData.add(bitstream.getSource().getAuthority());
+		this.rowData.add(bitstream.getSource().toString());
+		this.rowData.add(bitstream.getColumnLabel());
+		this.rowData.add("" + bitstream.getRow());
+		this.rowData.add(action);
+	}
+
+	/**
+	 * Initialize row with pre-populated cells.
+	 *
+	 * @param flagCode the flag code.
+	 * @param flagName the flag name.
+	 * @param authority the authority/hostname..
 	 * @param url the entire URL (including authority/hostname).
 	 * @param column column number/letter (of imported CSV file).
 	 * @param row row number (of imported CSV file).
+	 * @param action the action status associated with the batch.
 	 */
-	public Flag(String flagCode, String flagName, String authority, String url, String column, String row) {
+	public Flag(String flagCode, String flagName, String authority, String url, String column, String row, String action) {
 		this.rowData = new ArrayList<String>();
 		this.rowData.add(flagCode);
 		this.rowData.add(flagName);
@@ -58,6 +97,7 @@ public class Flag {
 		this.rowData.add(url);
 		this.rowData.add(column);
 		this.rowData.add(row);
+		this.rowData.add(action);
 	}
 
 	/**
@@ -89,14 +129,16 @@ public class Flag {
 	 * @param url the entire URL (including authority/hostname).
 	 * @param column column number/letter (of imported CSV file).
 	 * @param row row number (of imported CSV file).
+	 * @param action the action status associated with the batch.
 	 */
-	public void setRow(String flagCode, String flagName, String authority, String url, String column, String row) {
+	public void setRow(String flagCode, String flagName, String authority, String url, String column, String row, String action) {
 		rowData.set(Columns.FLAG.ordinal(), flagCode);
 		rowData.set(Columns.DESCRIPTION.ordinal(), flagName);
 		rowData.set(Columns.AUTHORITY.ordinal(), authority);
 		rowData.set(Columns.URL.ordinal(), url);
 		rowData.set(Columns.COLUMN.ordinal(), column);
 		rowData.set(Columns.ROW.ordinal(), row);
+		rowData.set(Columns.ACTION.ordinal(), action);
 	}
 
 	/**
@@ -112,6 +154,7 @@ public class Flag {
 		returnData.set(Columns.URL.ordinal(), rowData.get(Columns.URL.ordinal()));
 		returnData.set(Columns.COLUMN.ordinal(), rowData.get(Columns.COLUMN.ordinal()));
 		returnData.set(Columns.ROW.ordinal(), rowData.get(Columns.ROW.ordinal()));
+		returnData.set(Columns.ACTION.ordinal(), rowData.get(Columns.ACTION.ordinal()));
 
 		return returnData;
 	}
@@ -126,6 +169,7 @@ public class Flag {
 		rowData.set(Columns.URL.ordinal(), "");
 		rowData.set(Columns.COLUMN.ordinal(), "");
 		rowData.set(Columns.ROW.ordinal(), "");
+		rowData.set(Columns.ACTION.ordinal(), "");
 	}
 
 	/**
@@ -141,6 +185,7 @@ public class Flag {
 			rowData.get(Columns.URL.ordinal()),
 			rowData.get(Columns.COLUMN.ordinal()),
 			rowData.get(Columns.ROW.ordinal()),
+			rowData.get(Columns.ACTION.ordinal()),
 		};
 	}
 }

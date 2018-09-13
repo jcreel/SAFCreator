@@ -24,6 +24,7 @@ public class Batch {
 	private String userAgent = null;
 	private List<Integer> ignoreRows = new ArrayList<Integer>();
 	private List<Integer> failedRows = new ArrayList<Integer>();
+	private String action = "";
 
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -358,5 +359,24 @@ public class Batch {
 	 */
 	public boolean hasFailedRows() {
 		return !failedRows.isEmpty();
+	}
+
+	/**
+	 * @return The action associated with this batch.
+	 */
+	public String getAction()
+	{
+		return action;
+	}
+
+	/**
+	 * Set the action status associated with this batch.
+	 *
+	 * @param action
+	 * 		The new action name.
+	 */
+	public void setAction(String action)
+	{
+		this.action = action;
 	}
 }
