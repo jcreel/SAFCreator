@@ -255,7 +255,7 @@ public class ImporterGUI extends JFrame
 							console.append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
 
 							// the verification process must be when status is LOADED.
-							if (actionStatus != ActionStatus.LOADED) {
+							if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
 								transitionToLoaded();
 							}
 						}
@@ -828,7 +828,7 @@ public class ImporterGUI extends JFrame
 						//Attempt to load the batch and set status to LOADED if successful, NONE_LOADED if failing
 						console.append("\nLoading batch for " + metadataInputFileName + "...\n");
 						batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName, console);
-						if(batch == null)
+						if (batch == null)
 						{
 							console.append("\nFAILED TO READ BATCH.\n\n");
 							actionStatus = ActionStatus.NONE_LOADED;
@@ -846,16 +846,16 @@ public class ImporterGUI extends JFrame
 							itemProcessDelayField.setEnabled(false);
 							remoteFileTimeoutField.setEnabled(false);
 							userAgentField.setEnabled(false);
-
-							return;
 						}
+						else
+						{
+							batch.setItemProcessDelay(itemProcessDelayField.getText());
+							batch.setRemoteFileTimeout(remoteFileTimeoutField.getText());
 
-						batch.setItemProcessDelay(itemProcessDelayField.getText());
-						batch.setRemoteFileTimeout(remoteFileTimeoutField.getText());
+							console.append("\nBatch successfully loaded.\n\n");
 
-						console.append("\nBatch successfully loaded.\n\n");
-
-						transitionToLoaded();
+							transitionToLoaded();
+						}
 					}
 				}
 			}
