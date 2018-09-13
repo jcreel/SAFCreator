@@ -1013,6 +1013,8 @@ public class ImporterGUI extends JFrame
 					if (currentCleaner != null) {
 						currentCleaner.cancel(false);
 					}
+
+					cancelWriteCleanup();
 				}
 			}
 		);
@@ -1590,6 +1592,16 @@ public class ImporterGUI extends JFrame
 	private void unlockVerifyButtons() {
 		verifyBatchBtn.setText("Verify Batch");
 		unlockThreadSensitiveControls();
+	}
+
+	private void cancelWriteCleanup() {
+		statusIndicator.setText("Batch Status:\n Unverified");
+		statusIndicator.setForeground(Color.white);
+		statusIndicator.setBackground(Color.blue);
+
+		actionStatusField.setText("Batch write cancelled.");
+		actionStatusField.setForeground(Color.black);
+		actionStatusField.setBackground(Color.orange);
 	}
 
 	private void cancelVerifyCleanup() {
