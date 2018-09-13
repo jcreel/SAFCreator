@@ -286,7 +286,7 @@ public class ImporterGUI extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if(actionStatus == ActionStatus.LOADED)
+					if(actionStatus == ActionStatus.LOADED || actionStatus == ActionStatus.FAILED_VERIFICATION)
 					{
 						lockVerifyButtons();
 						currentVerifiers.clear();
@@ -1410,6 +1410,9 @@ public class ImporterGUI extends JFrame
 		//loadBatchBtn
 		loadBatchBtn.setText("Load specified batch now!");
 
+		//verifyBatchBtn
+		verifyBatchBtn.setEnabled(false);
+
 		//writeSAFBtn
 		writeSAFBtn.setText("No batch loaded");
 
@@ -1433,6 +1436,7 @@ public class ImporterGUI extends JFrame
 		addLicenseCheckbox.setSelected(false);
 		writeSAFBtn.setText("No batch loaded");
 		writeSAFBtn.setEnabled(false);
+		verifyBatchBtn.setEnabled(true);
 		flagsDownloadCsvBtn.setEnabled(true);
 		flagsReportSelectedBtn.setEnabled(true);
 
@@ -1457,6 +1461,8 @@ public class ImporterGUI extends JFrame
 	{
 		console.append("Batch verified.\n");
 
+		verifyBatchBtn.setEnabled(false);
+
 		actionStatus = ActionStatus.VERIFIED;
 		actionStatusField.setText("Your batch has been verified!");
 		actionStatusField.setBackground(Color.green);
@@ -1473,6 +1479,8 @@ public class ImporterGUI extends JFrame
 	private void transitionToVerifySuccessIgnoreErrors()
 	{
 		console.append("Batch failed verification.\n");
+
+		verifyBatchBtn.setEnabled(false);
 
 		actionStatus = ActionStatus.VERIFIED;
 		actionStatusField.setText("Your batch failed to verify, continuing.");
@@ -1617,7 +1625,11 @@ public class ImporterGUI extends JFrame
 
 	private void unlockThreadSensitiveControls() {
 		verifyCancelBtn.setEnabled(false);
-		verifyBatchBtn.setEnabled(true);
+
+		if (actionStatus == ActionStatus.LOADED || actionStatus == ActionStatus.FAILED_VERIFICATION) {
+			verifyBatchBtn.setEnabled(true);
+		}
+
 		loadBatchBtn.setEnabled(true);
 		chooseInputFileBtn.setEnabled(true);
 		chooseSourceDirectoryBtn.setEnabled(true);
