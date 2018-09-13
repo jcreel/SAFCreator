@@ -875,6 +875,11 @@ public class ImporterGUI extends JFrame
 					if(actionStatus.equals(ActionStatus.VERIFIED))
 					{
 						lockThreadSensitiveControls();
+
+						// Action Status Field may have "cancelled" text, so reset it before writing begins.
+						actionStatusField.setText("Your batch has been verified!");
+						actionStatusField.setBackground(Color.green);
+
 						writeSAFBtn.setText("Writing..");
 						writeCancelBtn.setEnabled(true);
 
@@ -889,6 +894,7 @@ public class ImporterGUI extends JFrame
 								unlockThreadSensitiveControls();
 
 								if (isCancelled()) {
+									cancelWriteCleanup();
 									return;
 								}
 
@@ -1014,7 +1020,7 @@ public class ImporterGUI extends JFrame
 						currentCleaner.cancel(false);
 					}
 
-					cancelWriteCleanup();
+					console.append("Cancelling write..\n");
 				}
 			}
 		);
@@ -1458,7 +1464,6 @@ public class ImporterGUI extends JFrame
 		batchContinue = false;
 	}
 
-
 	private void transitionToVerifySuccess()
 	{
 		console.append("Batch verified.\n");
@@ -1595,6 +1600,8 @@ public class ImporterGUI extends JFrame
 	}
 
 	private void cancelWriteCleanup() {
+		writeSAFBtn.setText("Write SAF data now!");
+
 		statusIndicator.setText("Batch Status:\n Unverified");
 		statusIndicator.setForeground(Color.white);
 		statusIndicator.setBackground(Color.blue);

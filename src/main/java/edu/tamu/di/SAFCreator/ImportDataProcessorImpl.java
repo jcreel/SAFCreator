@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -374,16 +375,24 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 			}
 
 			boolean hasError = false;
-			List<Problem> problems = item.writeItemSAF();
-			for(Verifier.Problem problem : problems)
-			{
-				console.append("\t" + problem.toString()+"\n");
-				if (problem.isError()) {
-					hasError = true;
+			Method method;
+			List<Problem> problems = null;
+			try {
+				method = this.getClass().getMethod("isCancelled");
+				problems = item.writeItemSAF(this, method);
+
+				for(Verifier.Problem problem : problems)
+				{
+					console.append("\t" + problem.toString()+"\n");
+					if (problem.isError()) {
+						hasError = true;
+					}
+					if (problem.isFlagged()) {
+						flags.appendRow(problem.getFlag());
+					}
 				}
-				if (problem.isFlagged()) {
-					flags.appendRow(problem.getFlag());
-				}
+			} catch (NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
 			}
 
 			if (hasError) {
@@ -412,5 +421,16 @@ public class ImportDataProcessorImpl implements ImportDataProcessor
 		}
 
 		return label;
+	}
+
+	/**
+	 * Stub function required by item.writeItemSAF.
+	 *
+	 * There is no background worker to cancel, so this always returns false.
+	 *
+	 * @return false
+	 */
+	public boolean isCancelled() {
+		return false;
 	}
 }

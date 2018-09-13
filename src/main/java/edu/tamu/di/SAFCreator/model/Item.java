@@ -4,6 +4,8 @@ package edu.tamu.di.SAFCreator.model;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class Item {
 	private List<SchematicFieldSet> schemata;
 	private List<Bundle> bundles;
 	private String handle;
+
+	private boolean cancelled;
 
 	private File itemDirectory;
 
@@ -28,7 +32,7 @@ public class Item {
 		itemDirectory.mkdir();
 
 		handle = null;
-
+		cancelled = false;
 	}
 
 	public Batch getBatch()
@@ -78,13 +82,21 @@ public class Item {
 		return bundle;
 	}
 
-	private void writeContents(List<Problem> problems)
+	private void writeContents(List<Problem> problems, Object object, Method method)
 	{
 		String contentsString = "";
 		for(Bundle bundle : bundles)
 		{
+			if (checkIsCancelled(object, method)) {
+				return;
+			}
+
 			for(Bitstream bitstream : bundle.getBitstreams())
 			{
+				if (checkIsCancelled(object, method)) {
+					return;
+				}
+
 				if( ! batch.getIgnoreFiles())
 				{
 					bitstream.setAction(batch.getAction());
@@ -94,10 +106,18 @@ public class Item {
 			}
 		}
 
+		if (checkIsCancelled(object, method)) {
+			return;
+		}
+
 		if (batch.getLicense() != null)
 		{
 			contentsString += batch.getLicense().getContentsManifestLine();
 			batch.getLicense().writeToItem(this);
+		}
+
+		if (checkIsCancelled(object, method)) {
+			return;
 		}
 
 		File contentsFile = new File(getSAFDirectory() + "/contents");
@@ -116,25 +136,25 @@ public class Item {
 		}
 	}
 
-	private void writeHandle(List<Problem> problems)
+	private void writeHandle(List<Problem> problems, Object object, Method method)
 	{
-	        File handleFile = new File(itemDirectory.getAbsolutePath() + "/handle");
-	        try {
-                    if(!handleFile.exists())
-                    {
-                            handleFile.createNewFile();
-                    }
-                    Util.setFileContents(handleFile, getHandle());
-                } catch (FileNotFoundException e) {
-					Problem problem = new Problem(true, "Unable to write to missing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
-					problems.add(problem);
-                } catch (IOException e) {
-					Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
-					problems.add(problem);
-                }
+		File handleFile = new File(itemDirectory.getAbsolutePath() + "/handle");
+		try {
+			if(!handleFile.exists())
+			{
+					handleFile.createNewFile();
+			}
+			Util.setFileContents(handleFile, getHandle());
+		} catch (FileNotFoundException e) {
+			Problem problem = new Problem(true, "Unable to write to missing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+			problems.add(problem);
+		} catch (IOException e) {
+			Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
+			problems.add(problem);
+		}
 	}
 
-	private void writeMetadata(List<Problem> problems)
+	private void writeMetadata(List<Problem> problems, Object object, Method method)
 	{
 		for(SchematicFieldSet schema : schemata)
 		{
@@ -156,12 +176,16 @@ public class Item {
 		}
 	}
 
-	public List<Problem> writeItemSAF()
+	public List<Problem> writeItemSAF(Object object, Method method)
 	{
 		List<Problem> problems = new ArrayList<Problem>();
-		writeContents(problems);
-		writeMetadata(problems);
-		if(getHandle() != null) writeHandle(problems);
+
+		cancelled = false;
+
+		if (!cancelled) writeContents(problems, object, method);
+		if (!cancelled) writeMetadata(problems, object, method);
+		if (!cancelled && getHandle() != null) writeHandle(problems, object, method);
+
 		return problems;
 	}
 
@@ -169,11 +193,24 @@ public class Item {
 		return itemDirectory.getAbsolutePath();
 	}
 
-    public void setHandle(String handle) {
-        this.handle = handle;
-    }
+	public void setHandle(String handle) {
+		this.handle = handle;
+	}
 
-    public String getHandle() {
-        return handle;
-    }
+	public String getHandle() {
+		return handle;
+	}
+
+	private boolean checkIsCancelled(Object object, Method method) {
+		try {
+			Object arglist[] = new Object[0];
+			Object result =  method.invoke(object, arglist);
+			Boolean isCancelled = (Boolean) result;
+			cancelled = isCancelled.booleanValue();
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
+
+		return cancelled;
+	}
 }

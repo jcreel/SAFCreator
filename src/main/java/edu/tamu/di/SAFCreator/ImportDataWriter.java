@@ -1,6 +1,7 @@
 package edu.tamu.di.SAFCreator;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.swing.JTextArea;
@@ -55,11 +56,13 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 		boolean noErrors = true;
 		int itemCount = 1;
 		int totalItems = batch.getItems().size();
+		String cancelledMessage = "Cancelled writing SAF.\n";
 
 		for (Item item : batch.getItems())
 		{
 			if (isCancelled()) {
-				break;
+				console.append(cancelledMessage);
+				return null;
 			}
 
 			if (batch.isIgnoredRow(++itemCount)) {
@@ -71,18 +74,41 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 				continue;
 			}
 
+			if (isCancelled()) {
+				console.append(cancelledMessage);
+				return null;
+			}
+
 			boolean hasError = false;
-			List<Problem> problems = item.writeItemSAF();
-			for(Verifier.Problem problem : problems)
-			{
-				console.append("\t" + problem.toString()+"\n");
-				if (problem.isError()) {
-					hasError = true;
-					noErrors = false;
+			Method method;
+			List<Problem> problems = null;
+			try {
+				method = this.getClass().getMethod("isCancelled");
+				problems = item.writeItemSAF(this, method);
+
+				for(Verifier.Problem problem : problems)
+				{
+					if (isCancelled()) {
+						console.append(cancelledMessage);
+						return null;
+					}
+
+					console.append("\t" + problem.toString()+"\n");
+					if (problem.isError()) {
+						hasError = true;
+						noErrors = false;
+					}
+					if (problem.isFlagged()) {
+						flags.appendRow(problem.getFlag());
+					}
 				}
-				if (problem.isFlagged()) {
-					flags.appendRow(problem.getFlag());
-				}
+			} catch (NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
+
+			if (isCancelled()) {
+				console.append(cancelledMessage);
+				return null;
 			}
 
 			if (hasError) {
@@ -96,7 +122,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 		}
 
 		if (isCancelled()) {
-			console.append("Cancelled writing SAF.\n");
+			console.append(cancelledMessage);
 			return null;
 		}
 
