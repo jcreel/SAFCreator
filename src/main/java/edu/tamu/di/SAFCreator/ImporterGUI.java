@@ -249,9 +249,6 @@ public class ImporterGUI extends JFrame
 							verifier.setEnabled(!verifier.isEnabled());
 							verifierTbl.setValueAt(verifier.isEnabled(), row, column);
 
-							// verifiers must be re-created after changing.
-							createVerifiers();
-
 							unlockVerifyButtons();
 							console.append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
 
@@ -290,10 +287,11 @@ public class ImporterGUI extends JFrame
 					if(actionStatus == ActionStatus.LOADED || actionStatus == ActionStatus.FAILED_VERIFICATION)
 					{
 						lockVerifyButtons();
+						createVerifiers();
 						flagPanel.clear();
-						currentVerifiers.clear();
-						currentVerifier = -1;
+						batch.clearFailedRows();
 						batch.clearIgnoredRows();
+						batchVerified = null;
 
 						for (Entry<String, VerifierBackground> entry : verifiers.entrySet()) {
 							VerifierBackground verifier = entry.getValue();
@@ -916,9 +914,6 @@ public class ImporterGUI extends JFrame
 					   actionStatus.equals(ActionStatus.VERIFIED) ||
 					   actionStatus.equals(ActionStatus.FAILED_VERIFICATION))
 					{
-						// verifiers must be re-created if they are already processed (or canceled).
-						createVerifiers();
-
 						//Attempt to load the batch and set status to LOADED if successful, NONE_LOADED if failing
 						console.append("\nLoading batch for " + metadataInputFileName + "...\n");
 						batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName, console);
@@ -1705,9 +1700,6 @@ public class ImporterGUI extends JFrame
 
 	private void cancelVerifyCleanup() {
 		statusIndicator.setText("Batch Status:\n Unverified");
-
-		// verifiers must be re-created after canceling.
-		createVerifiers();
 
 		unlockVerifyButtons();
 	}
