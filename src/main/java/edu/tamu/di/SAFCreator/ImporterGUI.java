@@ -33,7 +33,8 @@ import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.VerifierProperty;
-import edu.tamu.di.SAFCreator.verify.FilesExistVerifierImpl;
+import edu.tamu.di.SAFCreator.verify.LocalFilesExistVerifierImpl;
+import edu.tamu.di.SAFCreator.verify.RemoteFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
 
 
@@ -240,7 +241,7 @@ public class ImporterGUI extends JFrame
 
 				int row = verifierTbl.rowAtPoint(evt.getPoint());
 				int column = verifierTbl.columnAtPoint(evt.getPoint());
-				if (column == 2) {
+				if (column == 2 && row < verifierNamesMap.size()) {
 					String verifierName = verifierNamesMap.get(row);
 					if (verifierName != null) {
 						VerifierProperty verifier = verifierSettings.get(verifierName);
@@ -289,6 +290,7 @@ public class ImporterGUI extends JFrame
 					if(actionStatus == ActionStatus.LOADED || actionStatus == ActionStatus.FAILED_VERIFICATION)
 					{
 						lockVerifyButtons();
+						flagPanel.clear();
 						currentVerifiers.clear();
 						currentVerifier = -1;
 						batch.clearIgnoredRows();
@@ -320,11 +322,13 @@ public class ImporterGUI extends JFrame
 		verifyCancelBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				console.append("Cancelling " + currentVerifiers.get(currentVerifier).prettyName() + "..\n");
+
 				currentVerifier = currentVerifiers.size();
 				while (currentVerifiers.size() > 0) {
 					VerifierBackground verifier = currentVerifiers.get(currentVerifiers.size() - 1);
 					currentVerifiers.remove(verifier);
-					verifier.cancel(false);
+					verifier.cancel(true);
 					verifier.doCancel();
 				}
 				cancelVerifyCleanup();
@@ -500,12 +504,12 @@ public class ImporterGUI extends JFrame
 		currentVerifier = -1;
 		currentVerifiers.clear();
 
-		settings = verifierSettings.get(FilesExistVerifierImpl.class.getName());
+		settings = verifierSettings.get(RemoteFilesExistVerifierImpl.class.getName());
 
-		FilesExistVerifierImpl fileExistsVerifier = new FilesExistVerifierImpl(settings) {
+		RemoteFilesExistVerifierImpl remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl(settings) {
 			@Override
 			public List<Problem> doInBackground() {
-				statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n 0 / " + batch.getItems().size());
+				statusIndicator.setText("Batch Status:\n Unverified\n Remote File Exists?\n 0 / " + batch.getItems().size());
 				batch.setAction(prettyName());
 				return verify(batch, console, flagPanel);
 			}
@@ -576,7 +580,89 @@ public class ImporterGUI extends JFrame
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n File Exists?\n " + update.getProcessed()
+					statusIndicator.setText("Batch Status:\n Unverified\n Remote File Exists?\n " + update.getProcessed()
+							+ " / " + update.getTotal());
+				}
+			}
+		};
+
+		settings = verifierSettings.get(LocalFilesExistVerifierImpl.class.getName());
+
+		LocalFilesExistVerifierImpl localFileExistsVerifier = new LocalFilesExistVerifierImpl(settings) {
+			@Override
+			public List<Problem> doInBackground() {
+				statusIndicator.setText("Batch Status:\n Unverified\n Local File Exists?\n 0 / " + batch.getItems().size());
+				batch.setAction(prettyName());
+				return verify(batch, console, flagPanel);
+			}
+
+			@Override
+			public void done() {
+				if (isCancelled()) {
+					doCancel();
+					return;
+				}
+
+				List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+				if (batchVerified == null) {
+					batchVerified = true;
+				}
+
+				try {
+					problems = get();
+				} catch (InterruptedException | ExecutionException e) {
+					batchVerified = false;
+					e.printStackTrace();
+				}
+
+				batchContinue = batch.getRemoteBitstreamErrorContinue();
+				for (Verifier.Problem problem : problems) {
+					if (problem.isError()) {
+						if (problem.isFlagged()) {
+							batchVerified = false;
+							if (batch.hasIgnoredRows()) {
+								continue;
+							} else {
+								break;
+							}
+						} else {
+							batchContinue = false;
+							batchVerified = false;
+							break;
+						}
+					}
+				}
+
+				currentVerifier++;
+				if (currentVerifier < currentVerifiers.size()) {
+					VerifierBackground verifier = currentVerifiers.get(currentVerifier);
+					verifier.execute();
+				} else {
+					if (batchVerified) {
+						transitionToVerifySuccess();
+					} else {
+						if (batchContinue) {
+							transitionToVerifySuccessIgnoreErrors();
+						} else {
+							transitionToVerifyFailed();
+						}
+					}
+
+					currentVerifier = -1;
+					currentVerifiers.clear();
+					unlockVerifyButtons();
+				}
+			}
+
+			@Override
+			protected void process(List<VerifierBackground.VerifierUpdates> updates) {
+				if (updates.size() == 0) {
+					return;
+				}
+
+				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
+				if (update != null && update.getTotal() > 0) {
+					statusIndicator.setText("Batch Status:\n Unverified\n Local File Exists?\n " + update.getProcessed()
 							+ " / " + update.getTotal());
 				}
 			}
@@ -667,17 +753,23 @@ public class ImporterGUI extends JFrame
 		if (batch != null) {
 			batch.clearIgnoredRows();
 		}
+
 		verifiers.clear();
-		verifiers.put(FilesExistVerifierImpl.class.getName(), fileExistsVerifier);
+		verifiers.put(RemoteFilesExistVerifierImpl.class.getName(), remoteFileExistsVerifier);
+		verifiers.put(LocalFilesExistVerifierImpl.class.getName(), localFileExistsVerifier);
 		verifiers.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
 	}
 
 	private void createVerifierSettings() {
-		VerifierProperty fileExistsVerifier = new FilesExistVerifierImpl();
-		verifierSettings.put(FilesExistVerifierImpl.class.getName(), fileExistsVerifier);
 
 		VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
 		verifierSettings.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
+
+		VerifierProperty localFileExistsVerifier = new LocalFilesExistVerifierImpl();
+		verifierSettings.put(LocalFilesExistVerifierImpl.class.getName(), localFileExistsVerifier);
+
+		VerifierProperty remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl();
+		verifierSettings.put(RemoteFilesExistVerifierImpl.class.getName(), remoteFileExistsVerifier);
 	}
 
 	private void createBatchDetailsTab()
@@ -1013,11 +1105,11 @@ public class ImporterGUI extends JFrame
 				public void actionPerformed(ActionEvent e)
 				{
 					if (currentWriter != null) {
-						currentWriter.cancel(false);
+						currentWriter.cancel(true);
 					}
 
 					if (currentCleaner != null) {
-						currentCleaner.cancel(false);
+						currentCleaner.cancel(true);
 					}
 
 					console.append("Cancelling write..\n");
@@ -1612,7 +1704,6 @@ public class ImporterGUI extends JFrame
 	}
 
 	private void cancelVerifyCleanup() {
-		console.append("Verification process has been cancelled.\n");
 		statusIndicator.setText("Batch Status:\n Unverified");
 
 		// verifiers must be re-created after canceling.
