@@ -13,6 +13,7 @@ import edu.tamu.di.SAFCreator.model.Bundle;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
+import edu.tamu.di.SAFCreator.model.Problem;
 import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 

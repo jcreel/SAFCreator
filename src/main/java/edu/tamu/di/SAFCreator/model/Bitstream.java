@@ -36,7 +36,6 @@ import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
 
 import edu.tamu.di.SAFCreator.enums.FlagColumns;
-import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
 
 public class Bitstream extends CellDatumImpl {
     private static int TimeoutRead = 20000;

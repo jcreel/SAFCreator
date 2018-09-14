@@ -45,10 +45,9 @@ import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
-import edu.tamu.di.SAFCreator.model.verify.Verifier;
+import edu.tamu.di.SAFCreator.model.Problem;
 import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
-import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
 import edu.tamu.di.SAFCreator.model.verify.impl.LocalFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.model.verify.impl.RemoteFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.model.verify.impl.ValidSchemaNameVerifierImpl;
@@ -1122,7 +1121,7 @@ public class ImporterGUI extends JFrame {
                     return;
                 }
 
-                List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+                List<Problem> problems = new ArrayList<Problem>();
                 if (batchVerified == null) {
                     batchVerified = true;
                 }
@@ -1135,7 +1134,7 @@ public class ImporterGUI extends JFrame {
                 }
 
                 batchContinue = batch.getRemoteBitstreamErrorContinue();
-                for (Verifier.Problem problem : problems) {
+                for (Problem problem : problems) {
                     if (problem.isError()) {
                         if (problem.isFlagged()) {
                             batchVerified = false;
@@ -1203,7 +1202,7 @@ public class ImporterGUI extends JFrame {
                     return;
                 }
 
-                List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+                List<Problem> problems = new ArrayList<Problem>();
                 if (batchVerified == null) {
                     batchVerified = true;
                 }
@@ -1216,7 +1215,7 @@ public class ImporterGUI extends JFrame {
                 }
 
                 batchContinue = batch.getRemoteBitstreamErrorContinue();
-                for (Verifier.Problem problem : problems) {
+                for (Problem problem : problems) {
                     if (problem.isError()) {
                         if (problem.isFlagged()) {
                             batchVerified = false;
@@ -1284,7 +1283,7 @@ public class ImporterGUI extends JFrame {
                     return;
                 }
 
-                List<Verifier.Problem> problems = new ArrayList<Verifier.Problem>();
+                List<Problem> problems = new ArrayList<Problem>();
                 if (batchVerified == null) {
                     batchVerified = true;
                 }
@@ -1297,7 +1296,7 @@ public class ImporterGUI extends JFrame {
                 }
 
                 batchContinue = batch.getRemoteBitstreamErrorContinue();
-                for (Verifier.Problem problem : problems) {
+                for (Problem problem : problems) {
                     if (problem.isError()) {
                         if (problem.isFlagged()) {
                             batchVerified = false;

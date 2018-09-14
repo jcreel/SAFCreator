@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.di.SAFCreator.Util;
-import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
 
 public class Item {
     private Batch batch;
