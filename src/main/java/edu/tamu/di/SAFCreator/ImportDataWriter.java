@@ -14,52 +14,19 @@ import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
-public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Updates> implements ImportDataOperator
-{
+public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Updates> implements ImportDataOperator {
 	private Batch batch = null;
 	private JTextArea console = null;
 	private FlagPanel flags = null;
 
 	@Override
-	public Batch getBatch() {
-		return batch;
-	}
-
-	@Override
-	public void setBatch(Batch batch) {
-		this.batch = batch;
-	}
-
-	@Override
-	public void setConsole(JTextArea console) {
-		this.console = console;
-	}
-
-	@Override
-	public void setFlags(FlagPanel flags) {
-		this.flags = flags;
-	}
-
-	@Override
-	public JTextArea getConsole() {
-		return console;
-	}
-
-	@Override
-	public FlagPanel getFlags() {
-		return flags;
-	}
-
-	@Override
-	protected Boolean doInBackground()
-	{
+	protected Boolean doInBackground() {
 		boolean noErrors = true;
 		int itemCount = 1;
 		int totalItems = batch.getItems().size();
 		String cancelledMessage = "Cancelled writing SAF.\n";
 
-		for (Item item : batch.getItems())
-		{
+		for (Item item : batch.getItems()) {
 			if (isCancelled()) {
 				console.append(cancelledMessage);
 				return null;
@@ -70,7 +37,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 				directory.delete();
 
 				console.append("\tSkipped item (row " + itemCount + "), because of verification failure.\n");
-				publish(new ImportDataOperator.Updates(itemCount-1, totalItems));
+				publish(new ImportDataOperator.Updates(itemCount - 1, totalItems));
 				continue;
 			}
 
@@ -86,14 +53,13 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 				method = this.getClass().getMethod("isCancelled");
 				problems = item.writeItemSAF(this, method);
 
-				for(Verifier.Problem problem : problems)
-				{
+				for (Verifier.Problem problem : problems) {
 					if (isCancelled()) {
 						console.append(cancelledMessage);
 						return null;
 					}
 
-					console.append("\t" + problem.toString()+"\n");
+					console.append("\t" + problem.toString() + "\n");
 					if (problem.isError()) {
 						hasError = true;
 						noErrors = false;
@@ -118,7 +84,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 				console.append("\tWrote item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
 			}
 
-			publish(new ImportDataOperator.Updates(itemCount-1, totalItems));
+			publish(new ImportDataOperator.Updates(itemCount - 1, totalItems));
 		}
 
 		if (isCancelled()) {
@@ -128,5 +94,35 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
 
 		console.append("Done writing SAF data.\n");
 		return noErrors;
+	}
+
+	@Override
+	public Batch getBatch() {
+		return batch;
+	}
+
+	@Override
+	public JTextArea getConsole() {
+		return console;
+	}
+
+	@Override
+	public FlagPanel getFlags() {
+		return flags;
+	}
+
+	@Override
+	public void setBatch(Batch batch) {
+		this.batch = batch;
+	}
+
+	@Override
+	public void setConsole(JTextArea console) {
+		this.console = console;
+	}
+
+	@Override
+	public void setFlags(FlagPanel flags) {
+		this.flags = flags;
 	}
 }

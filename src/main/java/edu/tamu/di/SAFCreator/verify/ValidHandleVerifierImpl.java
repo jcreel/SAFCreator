@@ -26,18 +26,25 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 	}
 
 	@Override
-	public List<Problem> verify(Batch batch)
-	{
+	public boolean generatesError() {
+		return true;
+	}
+
+	@Override
+	public String prettyName() {
+		return "Syntactically Valid Schema Names Verifier";
+	}
+
+	@Override
+	public List<Problem> verify(Batch batch) {
 		return verify(batch, null, null);
 	}
 
 	@Override
-	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
-	{
+	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel) {
 		List<Problem> problems = new ArrayList<Problem>();
 		int itemCount = 0;
-		for(Item item : batch.getItems())
-		{
+		for (Item item : batch.getItems()) {
 			itemCount++;
 
 			String handle = item.getHandle();
@@ -46,13 +53,18 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 				break;
 			}
 			if (handle.isEmpty()) {
-				Flag flag = new Flag(Flag.NO_UNIQUE_ID, "Undefined Handle for row " + itemCount + ".", batch.getAction());
+				Flag flag = new Flag(Flag.NO_UNIQUE_ID, "Undefined Handle for row " + itemCount + ".",
+				        batch.getAction());
 				Problem problem = new Problem(true, "Undefined Handle for row " + itemCount + ".");
 				problem.setFlag(flag);
 				problems.add(problem);
 				batch.failedRow(itemCount);
-				if (console != null) console.append("\t" + problem.toString()+"\n");
-				if (flagPanel != null) flagPanel.appendRow(flag);
+				if (console != null) {
+					console.append("\t" + problem.toString() + "\n");
+				}
+				if (flagPanel != null) {
+					flagPanel.appendRow(flag);
+				}
 			}
 
 			if (isCancelled()) {
@@ -61,17 +73,5 @@ public class ValidHandleVerifierImpl extends VerifierBackground {
 		}
 
 		return problems;
-	}
-
-	@Override
-	public boolean generatesError()
-	{
-		return true;
-	}
-
-	@Override
-	public String prettyName()
-	{
-		return "Syntactically Valid Schema Names Verifier";
 	}
 }

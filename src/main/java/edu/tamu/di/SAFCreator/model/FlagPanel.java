@@ -16,12 +16,6 @@ import org.apache.commons.csv.CSVPrinter;
  * An alternative (and limited) error handling class for displaying and exporting specific errors.
  */
 public class FlagPanel extends JPanel {
-	private static final long serialVersionUID = 1L;
-
-	private UrlFlagPanelTableModel model;
-	private JTable table;
-	private JScrollPane scrollPane;
-
 	/**
 	 * Custom variant of default table model.
 	 */
@@ -29,111 +23,22 @@ public class FlagPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-	    public boolean isCellEditable(int row, int col) {
+		public boolean isCellEditable(int row, int col) {
 			return false;
 		}
 	}
 
-	/**
-	 * Initialize the class.
-	 */
-	public FlagPanel() {
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-		model = new UrlFlagPanelTableModel();
-		model.setColumnIdentifiers(Flag.ColumnNames);
-		table = new JTable(model);
-		table.setPreferredScrollableViewportSize(getMaximumSize());
-
-		scrollPane = new JScrollPane(table);
-		add(scrollPane);
-	}
-
-	/**
-	 * Removes all rows from the table.
-	 */
-	public void clear() {
-		while (model.getRowCount() > 0) {
-			model.removeRow(model.getRowCount() - 1);
-		}
-	}
-
-	/**
-	 * Append a flag to the table.
-	 *
-	 * @param flag the row to append.
-	 */
-	public void appendRow(Flag flag) {
-		model.addRow(flag.toObject());
-	}
-
-	/**
-	 * Retrieve the current row by row number.
-	 *
-	 * @param rowNumber row to retrieve.
-	 *
-	 * @return the row.
-	 */
-	public Flag getRow(int rowNumber) {
-		if (rowNumber < 0 || rowNumber >= table.getRowCount()) {
-			return null;
-		}
-		String flag = (String) table.getValueAt(rowNumber, Flag.Columns.FLAG.ordinal());
-		String description = (String) table.getValueAt(rowNumber, Flag.Columns.DESCRIPTION.ordinal());
-		String authority = (String) table.getValueAt(rowNumber, Flag.Columns.AUTHORITY.ordinal());
-		String url = (String) table.getValueAt(rowNumber, Flag.Columns.URL.ordinal());
-		String column = (String) table.getValueAt(rowNumber, Flag.Columns.COLUMN.ordinal());
-		String row = (String) table.getValueAt(rowNumber, Flag.Columns.ROW.ordinal());
-		String actionStatus = (String) table.getValueAt(rowNumber, Flag.Columns.ACTION.ordinal());
-
-		return new Flag(flag, description, authority, url, column, row, actionStatus);
-	}
-
-	/**
-	 * Retrieve the currently selected row.
-	 *
-	 * @return the row.
-	 */
-	public Flag getSelected() {
-		return getRow(table.getSelectedRow());
-	}
-
-	/**
-	 * Generate a CSV representation of entire data table.
-	 *
-	 * @param writer output stream to write to.
-	 *
-	 * @throws IOException
-	 */
-	public void exportToCSV(BufferedWriter writer) throws IOException {
-		staticExportToCSV(table, writer);
-	}
-
-	/**
-	 * Retrieve the total number of rows.
-	 *
-	 * @return the number of rows.
-	 */
-	public int getRowCount() {
-		return table.getRowCount();
-	}
-
-	/**
-	 * Check to see if there are any rows.
-	 *
-	 * @return true if there are no rows, false otherwise.
-	 */
-	public boolean empty() {
-		return table.getRowCount() == 0;
-	}
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Generate a CSV representation of entire data table.
 	 *
 	 * The CSVPrinter is a static class, so a static implementation is needed.
 	 *
-	 * @param table CSV source data.
-	 * @param writer output stream.
+	 * @param table
+	 *            CSV source data.
+	 * @param writer
+	 *            output stream.
 	 *
 	 * @throws IOException
 	 */
@@ -165,5 +70,107 @@ public class FlagPanel extends JPanel {
 			i++;
 		}
 		printer.close();
+	}
+
+	private UrlFlagPanelTableModel model;
+
+	private JTable table;
+
+	private JScrollPane scrollPane;
+
+	/**
+	 * Initialize the class.
+	 */
+	public FlagPanel() {
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+		model = new UrlFlagPanelTableModel();
+		model.setColumnIdentifiers(Flag.ColumnNames);
+		table = new JTable(model);
+		table.setPreferredScrollableViewportSize(getMaximumSize());
+
+		scrollPane = new JScrollPane(table);
+		add(scrollPane);
+	}
+
+	/**
+	 * Append a flag to the table.
+	 *
+	 * @param flag
+	 *            the row to append.
+	 */
+	public void appendRow(Flag flag) {
+		model.addRow(flag.toObject());
+	}
+
+	/**
+	 * Removes all rows from the table.
+	 */
+	public void clear() {
+		while (model.getRowCount() > 0) {
+			model.removeRow(model.getRowCount() - 1);
+		}
+	}
+
+	/**
+	 * Check to see if there are any rows.
+	 *
+	 * @return true if there are no rows, false otherwise.
+	 */
+	public boolean empty() {
+		return table.getRowCount() == 0;
+	}
+
+	/**
+	 * Generate a CSV representation of entire data table.
+	 *
+	 * @param writer
+	 *            output stream to write to.
+	 *
+	 * @throws IOException
+	 */
+	public void exportToCSV(BufferedWriter writer) throws IOException {
+		staticExportToCSV(table, writer);
+	}
+
+	/**
+	 * Retrieve the current row by row number.
+	 *
+	 * @param rowNumber
+	 *            row to retrieve.
+	 *
+	 * @return the row.
+	 */
+	public Flag getRow(int rowNumber) {
+		if (rowNumber < 0 || rowNumber >= table.getRowCount()) {
+			return null;
+		}
+		String flag = (String) table.getValueAt(rowNumber, Flag.Columns.FLAG.ordinal());
+		String description = (String) table.getValueAt(rowNumber, Flag.Columns.DESCRIPTION.ordinal());
+		String authority = (String) table.getValueAt(rowNumber, Flag.Columns.AUTHORITY.ordinal());
+		String url = (String) table.getValueAt(rowNumber, Flag.Columns.URL.ordinal());
+		String column = (String) table.getValueAt(rowNumber, Flag.Columns.COLUMN.ordinal());
+		String row = (String) table.getValueAt(rowNumber, Flag.Columns.ROW.ordinal());
+		String actionStatus = (String) table.getValueAt(rowNumber, Flag.Columns.ACTION.ordinal());
+
+		return new Flag(flag, description, authority, url, column, row, actionStatus);
+	}
+
+	/**
+	 * Retrieve the total number of rows.
+	 *
+	 * @return the number of rows.
+	 */
+	public int getRowCount() {
+		return table.getRowCount();
+	}
+
+	/**
+	 * Retrieve the currently selected row.
+	 *
+	 * @return the row.
+	 */
+	public Flag getSelected() {
+		return getRow(table.getSelectedRow());
 	}
 }

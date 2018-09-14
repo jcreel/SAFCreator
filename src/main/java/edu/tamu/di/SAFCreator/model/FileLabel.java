@@ -1,7 +1,6 @@
 package edu.tamu.di.SAFCreator.model;
 
-public class FileLabel extends CellDatumImpl implements ColumnLabel 
-{
+public class FileLabel extends CellDatumImpl implements ColumnLabel {
 	private String bundleName;
 
 	public FileLabel(String bundleName) {
@@ -12,19 +11,22 @@ public class FileLabel extends CellDatumImpl implements ColumnLabel
 		return bundleName;
 	}
 
-	public void setBundleName(String bundleName) {
-		this.bundleName = bundleName;
-	}
-	
-	public boolean isHandle() {
-	    return true;
-	}
-    
+	@Override
 	public boolean isField() {
 		return false;
 	}
 
+	@Override
 	public boolean isFile() {
 		return true;
+	}
+
+	@Override
+	public boolean isHandle() {
+		return true;
+	}
+
+	public void setBundleName(String bundleName) {
+		this.bundleName = bundleName;
 	}
 }

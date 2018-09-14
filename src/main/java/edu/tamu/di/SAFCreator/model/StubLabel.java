@@ -1,23 +1,19 @@
 package edu.tamu.di.SAFCreator.model;
 
-public class StubLabel extends CellDatumImpl implements ColumnLabel
-{
+public class StubLabel extends CellDatumImpl implements ColumnLabel {
 
 	@Override
-	public boolean isHandle()
-	{
+	public boolean isField() {
 		return false;
 	}
 
 	@Override
-	public boolean isField()
-	{
+	public boolean isFile() {
 		return false;
 	}
 
 	@Override
-	public boolean isFile()
-	{
+	public boolean isHandle() {
 		return false;
 	}
 }

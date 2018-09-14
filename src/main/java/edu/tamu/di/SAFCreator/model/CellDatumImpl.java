@@ -1,22 +1,22 @@
 package edu.tamu.di.SAFCreator.model;
 
-public class CellDatumImpl implements CellDatum 
-{
+public class CellDatumImpl implements CellDatum {
 	private int column;
 	private int row;
 
+	@Override
 	public int getColumn() {
 		return column;
 	}
 
+	@Override
 	public String getColumnLabel() {
 		int dividend = column;
 		String label = "";
 		int modulo;
 		char character;
 
-		while (dividend > 0)
-		{
+		while (dividend > 0) {
 			modulo = (dividend - 1) % 26;
 			character = Character.valueOf((char) (65 + modulo));
 
@@ -27,17 +27,18 @@ public class CellDatumImpl implements CellDatum
 		return label;
 	}
 
-	public void setColumn(int column)
-	{
-		this.column = column;
-	}
-
+	@Override
 	public int getRow() {
 		return row;
 	}
-	
-	public void setRow(int row)
-	{
+
+	@Override
+	public void setColumn(int column) {
+		this.column = column;
+	}
+
+	@Override
+	public void setRow(int row) {
 		this.row = row;
 	}
 
