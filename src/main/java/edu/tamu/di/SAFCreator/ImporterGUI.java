@@ -39,9 +39,11 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import edu.tamu.di.SAFCreator.enums.ActionStatus;
+import edu.tamu.di.SAFCreator.enums.FieldChangeStatus;
+import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
-import edu.tamu.di.SAFCreator.model.Flag.Columns;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
@@ -52,18 +54,11 @@ import edu.tamu.di.SAFCreator.verify.RemoteFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
 
 public class ImporterGUI extends JFrame {
-    private enum ActionStatus {
-        NONE_LOADED, LOADED, FAILED_VERIFICATION, VERIFIED, WRITTEN, CLEANED
-    }
 
-    private enum FieldChangeStatus {
-        NO_CHANGES, CHANGES
-    }
-
-    private static final long serialVersionUID = 1L;;
+    private static final long serialVersionUID = 1L;
     private static final String defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0";
 
-    private static final int defaultProcessDelay = 400;;
+    private static final int defaultProcessDelay = 400;
     private static final int defaultRemoteFileTimeout = 10000;
     private static final String csvOutputFileName = "SAF-Flags.csv";
     private static String sourceDirectoryName;
@@ -815,30 +810,30 @@ public class ImporterGUI extends JFrame {
                     return;
                 }
 
-                Problem problem = new Problem(true, row.getCell(Columns.DESCRIPTION));
-                console.append("\nFlag Name: " + row.getCell(Columns.FLAG) + "\n");
+                Problem problem = new Problem(true, row.getCell(FlagColumns.DESCRIPTION));
+                console.append("\nFlag Name: " + row.getCell(FlagColumns.FLAG) + "\n");
                 console.append("Flag Description: " + problem.toString() + "\n");
 
-                if (!row.getCell(Columns.AUTHORITY).isEmpty()) {
-                    console.append("Flag Authority: " + row.getCell(Columns.AUTHORITY) + "\n");
+                if (!row.getCell(FlagColumns.AUTHORITY).isEmpty()) {
+                    console.append("Flag Authority: " + row.getCell(FlagColumns.AUTHORITY) + "\n");
                 }
 
-                if (!row.getCell(Columns.URL).isEmpty()) {
-                    console.append("Flag URL: " + row.getCell(Columns.URL) + "\n");
+                if (!row.getCell(FlagColumns.URL).isEmpty()) {
+                    console.append("Flag URL: " + row.getCell(FlagColumns.URL) + "\n");
                 }
 
-                if (row.getCell(Columns.COLUMN).isEmpty()) {
-                    if (!row.getCell(Columns.ROW).isEmpty()) {
-                        console.append("Flag Row: " + row.getCell(Columns.ROW) + "\n");
+                if (row.getCell(FlagColumns.COLUMN).isEmpty()) {
+                    if (!row.getCell(FlagColumns.ROW).isEmpty()) {
+                        console.append("Flag Row: " + row.getCell(FlagColumns.ROW) + "\n");
                     }
-                } else if (row.getCell(Columns.ROW).isEmpty()) {
-                    console.append("Flag Column: " + row.getCell(Columns.COLUMN) + "\n");
+                } else if (row.getCell(FlagColumns.ROW).isEmpty()) {
+                    console.append("Flag Column: " + row.getCell(FlagColumns.COLUMN) + "\n");
                 } else {
-                    console.append("Flag Column, Row: " + row.getCell(Columns.COLUMN) + ", " + row.getCell(Columns.ROW) + "\n");
+                    console.append("Flag Column, Row: " + row.getCell(FlagColumns.COLUMN) + ", " + row.getCell(FlagColumns.ROW) + "\n");
                 }
 
-                if (!row.getCell(Columns.ACTION).isEmpty()) {
-                    console.append("Flag Action: " + row.getCell(Columns.ACTION) + "\n");
+                if (!row.getCell(FlagColumns.ACTION).isEmpty()) {
+                    console.append("Flag Action: " + row.getCell(FlagColumns.ACTION) + "\n");
                 }
             }
         });

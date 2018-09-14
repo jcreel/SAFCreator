@@ -2,11 +2,9 @@ package edu.tamu.di.SAFCreator.model;
 
 import java.util.ArrayList;
 
-public class Flag {
-    public static enum Columns {
-        FLAG, DESCRIPTION, AUTHORITY, URL, COLUMN, ROW, ACTION
-    };
+import edu.tamu.di.SAFCreator.enums.FlagColumns;
 
+public class Flag {
     public static String[] ColumnNames = { "Flag", "Description", "Authority", "URL", "Column", "Row", "Action" };
 
     public static String ACCESS_DENIED = "Access Denied";
@@ -123,24 +121,24 @@ public class Flag {
      * Resets all cells to empty strings.
      */
     public void clear() {
-        rowData.set(Columns.FLAG.ordinal(), "");
-        rowData.set(Columns.DESCRIPTION.ordinal(), "");
-        rowData.set(Columns.AUTHORITY.ordinal(), "");
-        rowData.set(Columns.URL.ordinal(), "");
-        rowData.set(Columns.COLUMN.ordinal(), "");
-        rowData.set(Columns.ROW.ordinal(), "");
-        rowData.set(Columns.ACTION.ordinal(), "");
+        rowData.set(FlagColumns.FLAG.ordinal(), "");
+        rowData.set(FlagColumns.DESCRIPTION.ordinal(), "");
+        rowData.set(FlagColumns.AUTHORITY.ordinal(), "");
+        rowData.set(FlagColumns.URL.ordinal(), "");
+        rowData.set(FlagColumns.COLUMN.ordinal(), "");
+        rowData.set(FlagColumns.ROW.ordinal(), "");
+        rowData.set(FlagColumns.ACTION.ordinal(), "");
     }
 
     /**
      * Retrieve data from a cell.
-     * 
+     *
      * @param column
      *            the Row.Columns column id.
      *
      * @return String of data for the specified column.
      */
-    public String getCell(Columns column) {
+    public String getCell(FlagColumns column) {
         return rowData.get(column.ordinal());
     }
 
@@ -151,13 +149,13 @@ public class Flag {
      */
     public ArrayList<String> getRow() {
         ArrayList<String> returnData = new ArrayList<String>();
-        returnData.set(Columns.FLAG.ordinal(), rowData.get(Columns.FLAG.ordinal()));
-        returnData.set(Columns.DESCRIPTION.ordinal(), rowData.get(Columns.DESCRIPTION.ordinal()));
-        returnData.set(Columns.AUTHORITY.ordinal(), rowData.get(Columns.AUTHORITY.ordinal()));
-        returnData.set(Columns.URL.ordinal(), rowData.get(Columns.URL.ordinal()));
-        returnData.set(Columns.COLUMN.ordinal(), rowData.get(Columns.COLUMN.ordinal()));
-        returnData.set(Columns.ROW.ordinal(), rowData.get(Columns.ROW.ordinal()));
-        returnData.set(Columns.ACTION.ordinal(), rowData.get(Columns.ACTION.ordinal()));
+        returnData.set(FlagColumns.FLAG.ordinal(), rowData.get(FlagColumns.FLAG.ordinal()));
+        returnData.set(FlagColumns.DESCRIPTION.ordinal(), rowData.get(FlagColumns.DESCRIPTION.ordinal()));
+        returnData.set(FlagColumns.AUTHORITY.ordinal(), rowData.get(FlagColumns.AUTHORITY.ordinal()));
+        returnData.set(FlagColumns.URL.ordinal(), rowData.get(FlagColumns.URL.ordinal()));
+        returnData.set(FlagColumns.COLUMN.ordinal(), rowData.get(FlagColumns.COLUMN.ordinal()));
+        returnData.set(FlagColumns.ROW.ordinal(), rowData.get(FlagColumns.ROW.ordinal()));
+        returnData.set(FlagColumns.ACTION.ordinal(), rowData.get(FlagColumns.ACTION.ordinal()));
 
         return returnData;
     }
@@ -170,7 +168,7 @@ public class Flag {
      * @param data
      *            the data to assign.
      */
-    public void setCell(Columns column, String data) {
+    public void setCell(FlagColumns column, String data) {
         rowData.set(column.ordinal(), data);
     }
 
@@ -194,13 +192,13 @@ public class Flag {
      */
     public void setRow(String flagCode, String flagName, String authority, String url, String column, String row,
             String action) {
-        rowData.set(Columns.FLAG.ordinal(), flagCode);
-        rowData.set(Columns.DESCRIPTION.ordinal(), flagName);
-        rowData.set(Columns.AUTHORITY.ordinal(), authority);
-        rowData.set(Columns.URL.ordinal(), url);
-        rowData.set(Columns.COLUMN.ordinal(), column);
-        rowData.set(Columns.ROW.ordinal(), row);
-        rowData.set(Columns.ACTION.ordinal(), action);
+        rowData.set(FlagColumns.FLAG.ordinal(), flagCode);
+        rowData.set(FlagColumns.DESCRIPTION.ordinal(), flagName);
+        rowData.set(FlagColumns.AUTHORITY.ordinal(), authority);
+        rowData.set(FlagColumns.URL.ordinal(), url);
+        rowData.set(FlagColumns.COLUMN.ordinal(), column);
+        rowData.set(FlagColumns.ROW.ordinal(), row);
+        rowData.set(FlagColumns.ACTION.ordinal(), action);
     }
 
     /**
@@ -209,9 +207,9 @@ public class Flag {
      * @return an object array of the row cells.
      */
     public Object[] toObject() {
-        return new Object[] { rowData.get(Columns.FLAG.ordinal()), rowData.get(Columns.DESCRIPTION.ordinal()),
-                rowData.get(Columns.AUTHORITY.ordinal()), rowData.get(Columns.URL.ordinal()),
-                rowData.get(Columns.COLUMN.ordinal()), rowData.get(Columns.ROW.ordinal()),
-                rowData.get(Columns.ACTION.ordinal()), };
+        return new Object[] { rowData.get(FlagColumns.FLAG.ordinal()), rowData.get(FlagColumns.DESCRIPTION.ordinal()),
+                rowData.get(FlagColumns.AUTHORITY.ordinal()), rowData.get(FlagColumns.URL.ordinal()),
+                rowData.get(FlagColumns.COLUMN.ordinal()), rowData.get(FlagColumns.ROW.ordinal()),
+                rowData.get(FlagColumns.ACTION.ordinal()), };
     }
 }

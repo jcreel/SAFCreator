@@ -12,6 +12,8 @@ import javax.swing.table.DefaultTableModel;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
+import edu.tamu.di.SAFCreator.enums.FlagColumns;
+
 /**
  * An alternative (and limited) error handling class for displaying and exporting specific errors.
  */
@@ -57,13 +59,13 @@ public class FlagPanel extends JPanel {
         int length = table.getRowCount();
         int i = 0;
         while (i < length) {
-            flag = (String) table.getValueAt(i, Flag.Columns.FLAG.ordinal());
-            description = (String) table.getValueAt(i, Flag.Columns.DESCRIPTION.ordinal());
-            authority = (String) table.getValueAt(i, Flag.Columns.AUTHORITY.ordinal());
-            url = (String) table.getValueAt(i, Flag.Columns.URL.ordinal());
-            column = (String) table.getValueAt(i, Flag.Columns.COLUMN.ordinal());
-            row = (String) table.getValueAt(i, Flag.Columns.ROW.ordinal());
-            action = (String) table.getValueAt(i, Flag.Columns.ACTION.ordinal());
+            flag = (String) table.getValueAt(i, FlagColumns.FLAG.ordinal());
+            description = (String) table.getValueAt(i, FlagColumns.DESCRIPTION.ordinal());
+            authority = (String) table.getValueAt(i, FlagColumns.AUTHORITY.ordinal());
+            url = (String) table.getValueAt(i, FlagColumns.URL.ordinal());
+            column = (String) table.getValueAt(i, FlagColumns.COLUMN.ordinal());
+            row = (String) table.getValueAt(i, FlagColumns.ROW.ordinal());
+            action = (String) table.getValueAt(i, FlagColumns.ACTION.ordinal());
 
             printer.printRecord(flag, description, authority, url, column, row, action);
             printer.flush();
@@ -145,13 +147,13 @@ public class FlagPanel extends JPanel {
         if (rowNumber < 0 || rowNumber >= table.getRowCount()) {
             return null;
         }
-        String flag = (String) table.getValueAt(rowNumber, Flag.Columns.FLAG.ordinal());
-        String description = (String) table.getValueAt(rowNumber, Flag.Columns.DESCRIPTION.ordinal());
-        String authority = (String) table.getValueAt(rowNumber, Flag.Columns.AUTHORITY.ordinal());
-        String url = (String) table.getValueAt(rowNumber, Flag.Columns.URL.ordinal());
-        String column = (String) table.getValueAt(rowNumber, Flag.Columns.COLUMN.ordinal());
-        String row = (String) table.getValueAt(rowNumber, Flag.Columns.ROW.ordinal());
-        String actionStatus = (String) table.getValueAt(rowNumber, Flag.Columns.ACTION.ordinal());
+        String flag = (String) table.getValueAt(rowNumber, FlagColumns.FLAG.ordinal());
+        String description = (String) table.getValueAt(rowNumber, FlagColumns.DESCRIPTION.ordinal());
+        String authority = (String) table.getValueAt(rowNumber, FlagColumns.AUTHORITY.ordinal());
+        String url = (String) table.getValueAt(rowNumber, FlagColumns.URL.ordinal());
+        String column = (String) table.getValueAt(rowNumber, FlagColumns.COLUMN.ordinal());
+        String row = (String) table.getValueAt(rowNumber, FlagColumns.ROW.ordinal());
+        String actionStatus = (String) table.getValueAt(rowNumber, FlagColumns.ACTION.ordinal());
 
         return new Flag(flag, description, authority, url, column, row, actionStatus);
     }

@@ -35,7 +35,7 @@ import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
 
-import edu.tamu.di.SAFCreator.model.Flag.Columns;
+import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Bitstream extends CellDatumImpl {
@@ -263,7 +263,7 @@ public class Bitstream extends CellDatumImpl {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
                                     Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                            flag.getCell(Columns.DESCRIPTION), flag);
+                                            flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (mimeType == null || mimeType.toString().isEmpty()) {
                                     flag = new Flag(Flag.INVALID_MIME,
@@ -278,7 +278,7 @@ public class Bitstream extends CellDatumImpl {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
                                     Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                            flag.getCell(Columns.DESCRIPTION), flag);
+                                            flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
                                     flag = new Flag(Flag.INVALID_MIME,
@@ -297,7 +297,7 @@ public class Bitstream extends CellDatumImpl {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
                                     Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                            flag.getCell(Columns.DESCRIPTION), flag);
+                                            flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
                                     flag = new Flag(Flag.INVALID_MIME,
@@ -315,7 +315,7 @@ public class Bitstream extends CellDatumImpl {
                             Flag flag = renameFileUsingMimeType(destination, originalMimeType);
                             if (flag != null) {
                                 Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                        flag.getCell(Columns.DESCRIPTION), flag);
+                                        flag.getCell(FlagColumns.DESCRIPTION), flag);
                                 problems.add(problem);
                             }
                         } else if (response != java.net.HttpURLConnection.HTTP_SEE_OTHER

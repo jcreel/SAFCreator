@@ -4,11 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Batch {
+import edu.tamu.di.SAFCreator.enums.BatchStatus;
 
-    public static enum BatchStatus {
-        UNVERIFIED, FAILED_VERIFICATION, VERIFIED
-    };
+public class Batch {
 
     private String name;
     private BatchStatus status;
