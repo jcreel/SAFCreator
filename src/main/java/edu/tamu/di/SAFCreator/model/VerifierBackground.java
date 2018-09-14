@@ -7,72 +7,72 @@ import javax.swing.SwingWorker;
 public abstract class VerifierBackground extends SwingWorker<List<Verifier.Problem>, VerifierBackground.VerifierUpdates>
         implements Verifier {
 
-	public class VerifierUpdates {
-		private int processed;
-		private int total;
+    public class VerifierUpdates {
+        private int processed;
+        private int total;
 
-		public VerifierUpdates() {
-			processed = 0;
-			total = 0;
-		}
+        public VerifierUpdates() {
+            processed = 0;
+            total = 0;
+        }
 
-		public VerifierUpdates(int processed, int total) {
-			this.processed = processed;
-			this.total = total;
-		}
+        public VerifierUpdates(int processed, int total) {
+            this.processed = processed;
+            this.total = total;
+        }
 
-		public int getProcessed() {
-			return processed;
-		}
+        public int getProcessed() {
+            return processed;
+        }
 
-		public int getTotal() {
-			return total;
-		}
+        public int getTotal() {
+            return total;
+        }
 
-		public void setProcessed(int processed) {
-			this.processed = processed;
-		}
+        public void setProcessed(int processed) {
+            this.processed = processed;
+        }
 
-		public void setTotal(int total) {
-			this.total = total;
-		}
-	}
+        public void setTotal(int total) {
+            this.total = total;
+        }
+    }
 
-	private boolean enabled;
+    private boolean enabled;
 
-	public VerifierBackground() {
-		enabled = true;
-	}
+    public VerifierBackground() {
+        enabled = true;
+    }
 
-	public VerifierBackground(VerifierProperty settings) {
-		this();
-		enabled = settings.isEnabled();
-	}
+    public VerifierBackground(VerifierProperty settings) {
+        this();
+        enabled = settings.isEnabled();
+    }
 
-	/**
-	 * Provide a way to close active connections or similar situations on cancel.
-	 *
-	 * This must be provided in addition to cancel() because that method as provided by SwingWorker is a final method.
-	 */
-	public abstract void doCancel();
+    /**
+     * Provide a way to close active connections or similar situations on cancel.
+     *
+     * This must be provided in addition to cancel() because that method as provided by SwingWorker is a final method.
+     */
+    public abstract void doCancel();
 
-	@Override
-	protected List<Problem> doInBackground() {
-		return null;
-	}
+    @Override
+    protected List<Problem> doInBackground() {
+        return null;
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	@Override
-	public boolean isSwingWorker() {
-		return true;
-	}
+    @Override
+    public boolean isSwingWorker() {
+        return true;
+    }
 
-	@Override
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }
