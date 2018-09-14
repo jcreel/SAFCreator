@@ -77,6 +77,7 @@ public class ImporterGUI extends JFrame {
 	private FieldChangeStatus itemProcessDelayFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 	private FieldChangeStatus remoteFileTimeoutFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 	private FieldChangeStatus userAgentFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
+
 	// tabbed views
 	private final JTabbedPane tabs = new JTabbedPane();
 	private final JPanel mainTab = new JPanel();
@@ -85,6 +86,7 @@ public class ImporterGUI extends JFrame {
 	private final JPanel validationTab = new JPanel();
 	private final JPanel advancedSettingsTab = new JPanel();
 	private final JPanel flagTableTab = new JPanel();
+
 	// Components of the Batch Detail tab
 	private final JButton chooseInputFileBtn = new JButton("Select metadata CSV file");
 	private final JButton chooseSourceDirectoryBtn = new JButton("Select source files directory");
@@ -100,6 +102,7 @@ public class ImporterGUI extends JFrame {
 	private final JButton loadBatchBtn = new JButton("Load specified batch now!");
 	private final JButton writeSAFBtn = new JButton("No batch loaded");
 	private final JButton writeCancelBtn = new JButton("Cancel");
+
 	// Components of the License tab
 	private final JPanel addLicenseFilePanel = new JPanel();
 	private final JCheckBox addLicenseCheckbox = new JCheckBox("Add a license:");
@@ -119,6 +122,7 @@ public class ImporterGUI extends JFrame {
 	private final JButton verifyCancelBtn = new JButton("Cancel");
 	private JTable verifierTbl = null;
 	private List<String> verifierNamesMap = new ArrayList<String>();
+
 	// Components of the Advanced Settings tab
 	private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
 	private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
@@ -128,13 +132,13 @@ public class ImporterGUI extends JFrame {
 	private final JTextField remoteFileTimeoutField = new JTextField(String.valueOf(defaultRemoteFileTimeout), 10);
 	private final JLabel userAgentLabel = new JLabel("User agent:");
 	private final JTextField userAgentField = new JTextField(defaultUserAgent, 48);
-	private final JCheckBox continueOnRemoteErrorBox = new JCheckBox(
-	        "Allow writing even if remote bitstream verification flags an error:");
+	private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error:");
 
 	// Components of the Flag List tab
 	private final FlagPanel flagPanel = new FlagPanel();
 	private final JButton flagsDownloadCsvBtn = new JButton("Generate CSV");
 	private final JButton flagsReportSelectedBtn = new JButton("Display Selected Row");
+
 	// Components shown under any tab
 	private final JPanel statusPanel = new JPanel();
 
@@ -145,6 +149,7 @@ public class ImporterGUI extends JFrame {
 	private String metadataInputFileName;
 
 	private final ImportDataProcessor processor;
+
 	// swing background process handling
 	private ImportDataWriter currentWriter = null;
 	private ImportDataCleaner currentCleaner = null;
@@ -521,8 +526,7 @@ public class ImporterGUI extends JFrame {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				if (inputFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					console.append("You have selected this input CSV file: "
-					        + inputFileChooser.getSelectedFile().getName() + ".\n");
+					console.append("You have selected this input CSV file: " + inputFileChooser.getSelectedFile().getName() + ".\n");
 					metadataInputFileName = inputFileChooser.getSelectedFile().getAbsolutePath();
 					inputFileNameField.setText(metadataInputFileName);
 
@@ -558,8 +562,7 @@ public class ImporterGUI extends JFrame {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				if (sourceDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					console.append("You have selected this source directory: "
-					        + sourceDirectoryChooser.getSelectedFile().getName() + "\n");
+					console.append("You have selected this source directory: " + sourceDirectoryChooser.getSelectedFile().getName() + "\n");
 					sourceDirectoryName = sourceDirectoryChooser.getSelectedFile().getAbsolutePath();
 					sourceDirectoryNameField.setText(sourceDirectoryName);
 				}
@@ -570,8 +573,7 @@ public class ImporterGUI extends JFrame {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				if (outputDirectoryChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					console.append("You have selected this target directory: "
-					        + outputDirectoryChooser.getSelectedFile().getName() + "\n");
+					console.append("You have selected this target directory: " + outputDirectoryChooser.getSelectedFile().getName() + "\n");
 					outputDirectoryName = outputDirectoryChooser.getSelectedFile().getAbsolutePath();
 					outputDirectoryNameField.setText(outputDirectoryName);
 				}
@@ -587,8 +589,7 @@ public class ImporterGUI extends JFrame {
 				        || actionStatus.equals(ActionStatus.FAILED_VERIFICATION)) {
 					// Attempt to load the batch and set status to LOADED if successful, NONE_LOADED if failing
 					console.append("\nLoading batch for " + metadataInputFileName + "...\n");
-					batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName,
-					        console);
+					batch = processor.loadBatch(metadataInputFileName, sourceDirectoryName, outputDirectoryName, console);
 					if (batch == null) {
 						console.append("\nFAILED TO READ BATCH.\n\n");
 						actionStatus = ActionStatus.NONE_LOADED;
@@ -670,8 +671,7 @@ public class ImporterGUI extends JFrame {
 
 							ImportDataWriter.Updates update = updates.get(updates.size() - 1);
 							if (update != null && update.getTotal() > 0) {
-								statusIndicator.setText("Batch Status:\n Verified\n Written:\n " + update.getProcessed()
-								        + " / " + update.getTotal());
+								statusIndicator.setText("Batch Status:\n Verified\n Written:\n " + update.getProcessed() + " / " + update.getTotal());
 							}
 						}
 					};
@@ -681,8 +681,7 @@ public class ImporterGUI extends JFrame {
 					currentWriter.setConsole(console);
 					currentWriter.setFlags(flagPanel);
 					currentWriter.execute();
-				} else if (actionStatus.equals(ActionStatus.LOADED)
-				        || actionStatus.equals(ActionStatus.FAILED_VERIFICATION)) {
+				} else if (actionStatus.equals(ActionStatus.LOADED) || actionStatus.equals(ActionStatus.FAILED_VERIFICATION)) {
 					console.append("\nPlease verify the batch before writing.\n\n");
 				} else if (actionStatus.equals(ActionStatus.NONE_LOADED)) {
 					console.append("\nNo loaded SAF data to write.\n\n");
@@ -880,8 +879,7 @@ public class ImporterGUI extends JFrame {
 		addLicenseCheckbox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN)
-				        && !actionStatus.equals(ActionStatus.CLEANED)) {
+				if (!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN) && !actionStatus.equals(ActionStatus.CLEANED)) {
 					if (!addLicenseCheckbox.isSelected()) {
 						// user clicked to disable the license
 						console.append("License disabled.\n");
@@ -929,8 +927,7 @@ public class ImporterGUI extends JFrame {
 		restrictToGroupCheckbox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN)
-				        && !actionStatus.equals(ActionStatus.CLEANED)) {
+				if (!actionStatus.equals(ActionStatus.NONE_LOADED) && !actionStatus.equals(ActionStatus.WRITTEN) && !actionStatus.equals(ActionStatus.CLEANED)) {
 					if (!restrictToGroupCheckbox.isSelected()) {
 						// user clicked to disable the restriction
 						console.append("Group restriction disabled.\n");
@@ -954,8 +951,7 @@ public class ImporterGUI extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (!restrictToGroupField.isEditable()) {
-					console.append("Restriction to group \"" + restrictToGroupField.getText()
-					        + "\" affixed to items - disable restriction to edit the group name.\n");
+					console.append("Restriction to group \"" + restrictToGroupField.getText() + "\" affixed to items - disable restriction to edit the group name.\n");
 				}
 			}
 
@@ -1033,8 +1029,7 @@ public class ImporterGUI extends JFrame {
 							verifierTbl.setValueAt(verifier.isEnabled(), row, column);
 
 							unlockVerifyButtons();
-							console.append(verifier.prettyName() + " is now "
-							        + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
+							console.append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
 
 							// the verification process must be when status is LOADED.
 							if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
@@ -1357,8 +1352,7 @@ public class ImporterGUI extends JFrame {
 
 				VerifierBackground.VerifierUpdates update = updates.get(updates.size() - 1);
 				if (update != null && update.getTotal() > 0) {
-					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed()
-					        + " / " + update.getTotal());
+					statusIndicator.setText("Batch Status:\n Unverified\n Schema Name?\n " + update.getProcessed() + " / " + update.getTotal());
 				}
 			}
 		};
@@ -1375,7 +1369,6 @@ public class ImporterGUI extends JFrame {
 	}
 
 	private void createVerifierSettings() {
-
 		VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
 		verifierSettings.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
 

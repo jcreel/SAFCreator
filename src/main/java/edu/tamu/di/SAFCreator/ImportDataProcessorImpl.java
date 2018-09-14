@@ -82,8 +82,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 		}
 
 		if (!(outputDirFileForChecking.exists() && outputDirFileForChecking.isDirectory())) {
-			console.append("\tERROR: Designated SAF output directory " + outputDirectoryName
-			        + " is not an available directory.\n");
+			console.append("\tERROR: Designated SAF output directory " + outputDirectoryName + " is not an available directory.\n");
 			return null;
 		}
 
@@ -104,13 +103,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 				MediaType mediaType = detector.detect(tikaStream, metadata);
 
 				if (!mediaType.toString().equalsIgnoreCase("text/plain")) {
-					console.append("\tERROR: input CSV file " + metadataInputFile
-					        + " is not a valid CSV file, reason: mime-type is: " + mediaType.toString() + ".\n");
+					console.append("\tERROR: input CSV file " + metadataInputFile + " is not a valid CSV file, reason: mime-type is: " + mediaType.toString() + ".\n");
 					return null;
 				}
 			} catch (IOException e) {
-				console.append("\tERROR: input CSV file " + metadataInputFile + " had an I/O error, reason: "
-				        + e.getMessage() + ".\n");
+				console.append("\tERROR: input CSV file " + metadataInputFile + " had an I/O error, reason: " + e.getMessage() + ".\n");
 				return null;
 			} finally {
 				if (tikaStream != null) {
@@ -194,9 +191,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 
 				int totalLength = nextLine.length;
 				if (nextLine.length < columnLabels.size()) {
-					console.append("\tWARNING: row " + linenumber + ": there are fewer columns (" + nextLine.length
-					        + ") than there are labels (" + columnLabels.size()
-					        + "), manually adding empty columns.\n");
+					console.append("\tWARNING: row " + linenumber + ": there are fewer columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), manually adding empty columns.\n");
 					totalLength = columnLabels.size();
 
 					int columnIndex = nextLine.length;
@@ -208,8 +203,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 					nextLine = new String[totalLength];
 					nextLine = correctedSet.toArray(nextLine);
 				} else if (nextLine.length > columnLabels.size()) {
-					console.append("\tWARNING: row " + linenumber + ": there are more columns (" + nextLine.length
-					        + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
+					console.append("\tWARNING: row " + linenumber + ": there are more columns (" + nextLine.length + ") than there are labels (" + columnLabels.size() + "), ignoring additional columns.\n");
 					totalLength = columnLabels.size();
 				}
 
