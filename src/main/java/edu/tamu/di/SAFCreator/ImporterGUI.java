@@ -45,13 +45,13 @@ import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
-import edu.tamu.di.SAFCreator.model.Verifier;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
-import edu.tamu.di.SAFCreator.model.VerifierBackground;
-import edu.tamu.di.SAFCreator.model.VerifierProperty;
-import edu.tamu.di.SAFCreator.verify.LocalFilesExistVerifierImpl;
-import edu.tamu.di.SAFCreator.verify.RemoteFilesExistVerifierImpl;
-import edu.tamu.di.SAFCreator.verify.ValidSchemaNameVerifierImpl;
+import edu.tamu.di.SAFCreator.model.verify.Verifier;
+import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
+import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
+import edu.tamu.di.SAFCreator.model.verify.impl.LocalFilesExistVerifierImpl;
+import edu.tamu.di.SAFCreator.model.verify.impl.RemoteFilesExistVerifierImpl;
+import edu.tamu.di.SAFCreator.model.verify.impl.ValidSchemaNameVerifierImpl;
 
 public class ImporterGUI extends JFrame {
 

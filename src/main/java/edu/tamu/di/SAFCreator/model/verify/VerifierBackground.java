@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator.model;
+package edu.tamu.di.SAFCreator.model.verify;
 
 import java.util.List;
 

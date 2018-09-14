@@ -11,8 +11,8 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.ImportDataOperator;
 import edu.tamu.di.SAFCreator.model.Item;
-import edu.tamu.di.SAFCreator.model.Verifier;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
+import edu.tamu.di.SAFCreator.model.verify.Verifier;
+import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
 
 public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Updates> implements ImportDataOperator {
     private Batch batch = null;

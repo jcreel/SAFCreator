@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator.verify;
+package edu.tamu.di.SAFCreator.model.verify.impl;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,8 +30,8 @@ import edu.tamu.di.SAFCreator.model.Bundle;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.Item;
-import edu.tamu.di.SAFCreator.model.VerifierBackground;
-import edu.tamu.di.SAFCreator.model.VerifierProperty;
+import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 
 public class RemoteFilesExistVerifierImpl extends VerifierBackground {
     private static int TimeoutRead = 20000;

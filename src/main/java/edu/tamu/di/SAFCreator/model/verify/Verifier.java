@@ -1,8 +1,12 @@
-package edu.tamu.di.SAFCreator.model;
+package edu.tamu.di.SAFCreator.model.verify;
 
 import java.util.List;
 
 import javax.swing.JTextArea;
+
+import edu.tamu.di.SAFCreator.model.Batch;
+import edu.tamu.di.SAFCreator.model.Flag;
+import edu.tamu.di.SAFCreator.model.FlagPanel;
 
 public interface Verifier extends VerifierProperty {
 

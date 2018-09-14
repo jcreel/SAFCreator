@@ -34,8 +34,8 @@ import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
 import edu.tamu.di.SAFCreator.model.StubLabel;
-import edu.tamu.di.SAFCreator.model.Verifier;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
+import edu.tamu.di.SAFCreator.model.verify.Verifier;
+import edu.tamu.di.SAFCreator.model.verify.Verifier.Problem;
 
 public class ImportDataProcessorImpl implements ImportDataProcessor {
     private static String PdfPrefix = "document-";

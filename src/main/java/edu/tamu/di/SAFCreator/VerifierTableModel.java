@@ -5,7 +5,7 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-import edu.tamu.di.SAFCreator.model.Verifier;
+import edu.tamu.di.SAFCreator.model.verify.Verifier;
 
 public class VerifierTableModel extends AbstractTableModel {
 
