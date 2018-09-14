@@ -99,6 +99,7 @@ public class Bitstream extends CellDatumImpl
 		return line;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void copyMe(List<Problem> problems)
 	{
 		// Avoid writing to existing files, primarily to avoid potential network overhead of downloading remote files.
@@ -160,6 +161,11 @@ public class Bitstream extends CellDatumImpl
 
 					//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, timeout);
 					client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
+
+					// Note: this deprecated function actually sets the timeout correctly whereas the above SO_TIMEOUT does not.
+					// guarantee the timeout to work as expected by utilizing this timeout.
+					// see: https://issues.apache.org/jira/browse/HTTPCLIENT-478?focusedCommentId=12382474&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12382474
+					client.setConnectionTimeout(remoteFileTimeout);
 
 					try
 					{

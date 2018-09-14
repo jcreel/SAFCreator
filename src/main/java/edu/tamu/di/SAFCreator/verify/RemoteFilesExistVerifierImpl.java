@@ -67,6 +67,7 @@ public class RemoteFilesExistVerifierImpl extends VerifierBackground {
 		return verify(batch, null, null);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
 	{
@@ -202,6 +203,11 @@ public class RemoteFilesExistVerifierImpl extends VerifierBackground {
 							//client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, remoteFileTimeout);
 							client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
 							client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
+
+							// Note: this deprecated function actually sets the timeout correctly whereas the above SO_TIMEOUT does not.
+							// guarantee the timeout to work as expected by utilizing this timeout.
+							// see: https://issues.apache.org/jira/browse/HTTPCLIENT-478?focusedCommentId=12382474&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12382474
+							client.setConnectionTimeout(remoteFileTimeout);
 
 							try
 							{
