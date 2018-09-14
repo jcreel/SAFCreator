@@ -30,8 +30,8 @@ public class Util {
 			name = name.trim();
 			// System.out.println("Got name:"+name);
 			return name;
-		} else // unqualified label...
-		{
+		} else {
+			// unqualified label...
 			return string.substring(string.indexOf('.') + 1);
 		}
 	}
@@ -45,8 +45,8 @@ public class Util {
 			qualifier = qualifier.trim();
 			// System.out.println("Got qualifier: "+qualifier);
 			return qualifier;
-		} else // unqualified label...
-		{
+		} else {
+			// unqualified label...
 			return null;
 		}
 	}
@@ -95,12 +95,15 @@ public class Util {
 		if (aFile == null) {
 			throw new IllegalArgumentException("File should not be null.");
 		}
+
 		if (!aFile.exists()) {
 			throw new FileNotFoundException("File does not exist: " + aFile);
 		}
+
 		if (!aFile.isFile()) {
 			throw new IllegalArgumentException("Should not be a directory: " + aFile);
 		}
+
 		if (!aFile.canWrite()) {
 			throw new IllegalArgumentException("File cannot be written: " + aFile);
 		}
