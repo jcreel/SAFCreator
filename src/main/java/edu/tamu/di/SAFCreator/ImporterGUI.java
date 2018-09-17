@@ -749,6 +749,7 @@ public class ImporterGUI extends JFrame
 		};
 
 		if (batch != null) {
+			batch.clearFailedRows();
 			batch.clearIgnoredRows();
 		}
 
