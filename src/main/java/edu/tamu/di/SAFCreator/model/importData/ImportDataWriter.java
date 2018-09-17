@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator;
+package edu.tamu.di.SAFCreator.model.importData;
 
 import java.io.File;
 import java.lang.reflect.Method;

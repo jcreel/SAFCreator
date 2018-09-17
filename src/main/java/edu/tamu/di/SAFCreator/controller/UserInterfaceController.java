@@ -23,15 +23,15 @@ import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import edu.tamu.di.SAFCreator.ImportDataCleaner;
-import edu.tamu.di.SAFCreator.ImportDataProcessor;
-import edu.tamu.di.SAFCreator.ImportDataWriter;
 import edu.tamu.di.SAFCreator.enums.ActionStatus;
 import edu.tamu.di.SAFCreator.enums.FieldChangeStatus;
 import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.Problem;
+import edu.tamu.di.SAFCreator.model.importData.ImportDataCleaner;
+import edu.tamu.di.SAFCreator.model.importData.ImportDataProcessor;
+import edu.tamu.di.SAFCreator.model.importData.ImportDataWriter;
 import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 import edu.tamu.di.SAFCreator.model.verify.impl.LocalFilesExistVerifierImpl;

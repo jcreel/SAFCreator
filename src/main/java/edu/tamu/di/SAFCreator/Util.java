@@ -21,7 +21,7 @@ public class Util {
         return dateFormat.format(date);
     }
 
-    protected static String getElementName(String string) {
+    public static String getElementName(String string) {
         string = removeLanguage(string);
 
         // if qualified label...
@@ -36,7 +36,7 @@ public class Util {
         }
     }
 
-    protected static String getElementQualifier(String string) {
+    public static String getElementQualifier(String string) {
         string = removeLanguage(string);
 
         // if qualified label...
@@ -51,11 +51,11 @@ public class Util {
         }
     }
 
-    protected static String getLanguage(String string) {
+    public static String getLanguage(String string) {
         return string.contains("[") ? string.split("\\[")[1].replace("]", "") : null;
     }
 
-    protected static String getSchemaName(String string) {
+    public static String getSchemaName(String string) {
         string = removeLanguage(string);
         return string.split("\\.")[0].trim();
     }

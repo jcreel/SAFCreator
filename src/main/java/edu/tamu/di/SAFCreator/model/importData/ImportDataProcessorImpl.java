@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator;
+package edu.tamu.di.SAFCreator.model.importData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +22,7 @@ import org.apache.tika.mime.MimeTypes;
 
 import com.opencsv.CSVReader;
 
+import edu.tamu.di.SAFCreator.Util;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
 import edu.tamu.di.SAFCreator.model.Bundle;
@@ -162,8 +163,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                     fieldLabel.setRow(1);
                     columnLabels.add(fieldLabel);
                 } else {
-                    console.append("\tWARNING: Ignoring invalid label for column " + columnNumberToLabel(column) + ": "
-                            + cell + "\n");
+                    console.append("\tWARNING: Ignoring invalid label for column " + columnNumberToLabel(column) + ": " + cell + "\n");
                     StubLabel stubLabel = new StubLabel();
                     stubLabel.setColumn(column);
                     stubLabel.setRow(1);
