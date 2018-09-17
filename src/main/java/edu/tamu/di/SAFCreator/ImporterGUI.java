@@ -241,7 +241,7 @@ public class ImporterGUI extends JFrame
 
 				int row = verifierTbl.rowAtPoint(evt.getPoint());
 				int column = verifierTbl.columnAtPoint(evt.getPoint());
-				if (column == 2 && row < verifierNamesMap.size()) {
+				if (column == 2 && row >= 0 && row < verifierNamesMap.size()) {
 					String verifierName = verifierNamesMap.get(row);
 					if (verifierName != null) {
 						VerifierProperty verifier = verifierSettings.get(verifierName);
