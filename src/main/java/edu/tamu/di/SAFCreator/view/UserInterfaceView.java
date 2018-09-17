@@ -4,11 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.Map.Entry;
 
 
 import javax.swing.BorderFactory;
@@ -26,9 +22,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EtchedBorder;
-import javax.swing.table.DefaultTableModel;
 
 import edu.tamu.di.SAFCreator.model.FlagPanel;
+import edu.tamu.di.SAFCreator.model.VerifierTableModel;
 import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 import edu.tamu.di.SAFCreator.model.verify.impl.LocalFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.model.verify.impl.RemoteFilesExistVerifierImpl;
@@ -104,9 +100,8 @@ public final class UserInterfaceView extends JFrame {
     private final JButton verifyCancelBtn = new JButton("Cancel");
 
     private final JTable verifierTbl = new JTable();
-
-    private final Map<String, VerifierProperty> verifierSettings = new HashMap<String, VerifierProperty>();
-    private final List<String> verifierNamesMap = new ArrayList<String>();
+    private final VerifierTableModel verifierTableModel;
+    private List<VerifierProperty> verifierProperties = new ArrayList<VerifierProperty>();
 
 
     // Components of the Advanced Settings tab
@@ -139,7 +134,15 @@ public final class UserInterfaceView extends JFrame {
 
 
     public UserInterfaceView() {
-        createVerifierSettings();
+        VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
+        VerifierProperty localFileExistsVerifier = new LocalFilesExistVerifierImpl();
+        VerifierProperty remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl();
+
+        verifierProperties.add(validSchemaVerifier);
+        verifierProperties.add(localFileExistsVerifier);
+        verifierProperties.add(remoteFileExistsVerifier);
+
+        verifierTableModel = new VerifierTableModel(verifierProperties);
 
         createBatchDetailsTab();
 
@@ -333,6 +336,10 @@ public final class UserInterfaceView extends JFrame {
         return tabs;
     }
 
+    public VerifierTableModel getTableModel() {
+        return verifierTableModel;
+    }
+
     public JTextField getUserAgentField() {
         return userAgentField;
     }
@@ -343,14 +350,6 @@ public final class UserInterfaceView extends JFrame {
 
     public JPanel getValidationTab() {
         return validationTab;
-    }
-
-    public List<String> getVerifierNamesMap() {
-        return verifierNamesMap;
-    }
-
-    public Map<String, VerifierProperty> getVerifierSettings() {
-        return verifierSettings;
     }
 
     public JTable getVerifierTbl() {
@@ -457,6 +456,7 @@ public final class UserInterfaceView extends JFrame {
         flagsDownloadCsvBtn.setEnabled(false);
         flagsReportSelectedBtn.setEnabled(false);
     }
+
     private void createLicenseTab() {
         licenseTab.setLayout(new BoxLayout(licenseTab, BoxLayout.Y_AXIS));
 
@@ -491,35 +491,14 @@ public final class UserInterfaceView extends JFrame {
     }
 
     private void createVerificationTab() {
-        validationTab.setLayout(new BoxLayout(validationTab, BoxLayout.Y_AXIS));
-
-        Vector<String> columnNames = new Vector<String>();
-        Vector<Vector<Object>> rowData = new Vector<Vector<Object>>();
-
-        columnNames.add("Verifier");
-        columnNames.add("Generates Errors");
-        columnNames.add("Is Enabled");
-
-        for (Entry<String, VerifierProperty> entry : verifierSettings.entrySet()) {
-            VerifierProperty verifier = entry.getValue();
-            Vector<Object> row = new Vector<Object>();
-
-            row.add(verifier.prettyName());
-            row.add(verifier.generatesError());
-            row.add(verifier.isEnabled());
-
-            verifierNamesMap.add(verifier.getClass().getName());
-
-            rowData.add(row);
-        }
-
-        verifierTbl.setModel(new DefaultTableModel(rowData, columnNames));
+        verifierTbl.setModel(verifierTableModel);
         verifierTbl.setPreferredScrollableViewportSize(new Dimension(400, 50));
         verifierTbl.setEnabled(false);
 
         JScrollPane verifierTblScrollPane = new JScrollPane(verifierTbl);
         verifierTbl.setFillsViewportHeight(true);
-        verifierTbl.setAutoCreateRowSorter(true);
+
+        validationTab.setLayout(new BoxLayout(validationTab, BoxLayout.Y_AXIS));
 
         validationTab.add(verifierTblScrollPane);
 
@@ -530,17 +509,6 @@ public final class UserInterfaceView extends JFrame {
         validationTab.add(verifyBatchBtnPanel);
 
         tabs.addTab("Batch Verification", validationTab);
-    }
-
-    private void createVerifierSettings() {
-        VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
-        verifierSettings.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
-
-        VerifierProperty localFileExistsVerifier = new LocalFilesExistVerifierImpl();
-        verifierSettings.put(LocalFilesExistVerifierImpl.class.getName(), localFileExistsVerifier);
-
-        VerifierProperty remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl();
-        verifierSettings.put(RemoteFilesExistVerifierImpl.class.getName(), remoteFileExistsVerifier);
     }
 
     private void initializeState() {

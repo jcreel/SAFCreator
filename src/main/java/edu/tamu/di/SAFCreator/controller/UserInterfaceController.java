@@ -29,6 +29,7 @@ import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.Problem;
+import edu.tamu.di.SAFCreator.model.VerifierTableModel;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataCleaner;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataProcessor;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataWriter;
@@ -118,7 +119,7 @@ public class UserInterfaceController {
             batch.clearFailedRows();
         }
 
-        settings = userInterface.getVerifierSettings().get(ValidSchemaNameVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(ValidSchemaNameVerifierImpl.class.getName());
 
         ValidSchemaNameVerifierImpl validSchemaVerifier = new ValidSchemaNameVerifierImpl(settings) {
             @Override
@@ -201,7 +202,7 @@ public class UserInterfaceController {
 
         verifiers.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
 
-        settings = userInterface.getVerifierSettings().get(LocalFilesExistVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(LocalFilesExistVerifierImpl.class.getName());
 
         LocalFilesExistVerifierImpl localFileExistsVerifier = new LocalFilesExistVerifierImpl(settings) {
             @Override
@@ -284,7 +285,7 @@ public class UserInterfaceController {
 
         verifiers.put(LocalFilesExistVerifierImpl.class.getName(), localFileExistsVerifier);
 
-        settings = userInterface.getVerifierSettings().get(RemoteFilesExistVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(RemoteFilesExistVerifierImpl.class.getName());
 
         RemoteFilesExistVerifierImpl remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl(settings) {
             @Override
@@ -1213,20 +1214,17 @@ public class UserInterfaceController {
 
                 int row = userInterface.getVerifierTbl().rowAtPoint(evt.getPoint());
                 int column = userInterface.getVerifierTbl().columnAtPoint(evt.getPoint());
-                if (column == 2 && row >= 0 && row < userInterface.getVerifierNamesMap().size()) {
-                    String verifierName = userInterface.getVerifierNamesMap().get(row);
-                    if (verifierName != null) {
-                        VerifierProperty verifier = userInterface.getVerifierSettings().get(verifierName);
-                        if (verifier != null) {
-                            verifier.setEnabled(!verifier.isEnabled());
-                            userInterface.getVerifierTbl().setValueAt(verifier.isEnabled(), row, column);
-                            unlockVerifyButtons();
-                            userInterface.getConsole().append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
+                if (column == 2 && row >= 0 && row < userInterface.getVerifierTbl().getColumnModel().getColumnCount()) {
+                    VerifierProperty verifier = userInterface.getTableModel().getVerifierPropertyAt(row);
+                    if (verifier != null) {
+                        userInterface.getVerifierTbl().setValueAt(verifier.getActivated() ? VerifierTableModel.VERIFIER_INACTIVE : VerifierTableModel.VERIFIER_ACTIVE, row, column);
+                        userInterface.getConsole().append(verifier.prettyName() + " is now " + (verifier.getActivated() ? "Active" : "Inactive") + ".\n");
 
-                            // the verification process must be when status is LOADED.
-                            if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
-                                transitionToLoaded();
-                            }
+                        unlockVerifyButtons();
+
+                        // the verification process must be when status is LOADED.
+                        if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
+                            transitionToLoaded();
                         }
                     }
                 }
@@ -1247,7 +1245,7 @@ public class UserInterfaceController {
 
                     for (Entry<String, VerifierBackground> entry : verifiers.entrySet()) {
                         VerifierBackground verifier = entry.getValue();
-                        if (verifier.isEnabled() && verifier.isSwingWorker()) {
+                        if (verifier.getActivated() && verifier.isSwingWorker()) {
                             currentVerifiers.add(verifier);
                         }
                     }
