@@ -7,6 +7,7 @@ public class Problem {
     private String note;
     private Flag flag;
 
+
     public Problem(boolean error, String note) {
         this.error = error;
         this.note = note;

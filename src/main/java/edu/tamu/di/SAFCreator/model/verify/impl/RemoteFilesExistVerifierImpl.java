@@ -45,6 +45,7 @@ public class RemoteFilesExistVerifierImpl extends VerifierBackground {
     private HttpClient client;
     private int remoteFileTimeout;
 
+
     public RemoteFilesExistVerifierImpl() {
         super();
         retryHandler = new DefaultHttpMethodRetryHandler(1, false);

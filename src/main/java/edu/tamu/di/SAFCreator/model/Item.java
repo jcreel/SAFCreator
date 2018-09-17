@@ -20,6 +20,7 @@ public class Item {
 
     private File itemDirectory;
 
+
     public Item(int row, Batch batch) {
         this.batch = batch;
         schemata = new ArrayList<SchematicFieldSet>();
@@ -96,6 +97,24 @@ public class Item {
         this.handle = handle;
     }
 
+    public List<Problem> writeItemSAF(Object object, Method method) {
+        List<Problem> problems = new ArrayList<Problem>();
+
+        cancelled = false;
+
+        if (!cancelled) {
+            writeContents(problems, object, method);
+        }
+        if (!cancelled) {
+            writeMetadata(problems, object, method);
+        }
+        if (!cancelled && getHandle() != null) {
+            writeHandle(problems, object, method);
+        }
+
+        return problems;
+    }
+
     private void writeContents(List<Problem> problems, Object object, Method method) {
         String contentsString = "";
         for (Bundle bundle : bundles) {
@@ -162,24 +181,6 @@ public class Item {
                     + ", reason: " + e.getMessage());
             problems.add(problem);
         }
-    }
-
-    public List<Problem> writeItemSAF(Object object, Method method) {
-        List<Problem> problems = new ArrayList<Problem>();
-
-        cancelled = false;
-
-        if (!cancelled) {
-            writeContents(problems, object, method);
-        }
-        if (!cancelled) {
-            writeMetadata(problems, object, method);
-        }
-        if (!cancelled && getHandle() != null) {
-            writeHandle(problems, object, method);
-        }
-
-        return problems;
     }
 
     private void writeMetadata(List<Problem> problems, Object object, Method method) {

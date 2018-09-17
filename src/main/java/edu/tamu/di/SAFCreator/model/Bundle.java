@@ -8,6 +8,7 @@ public class Bundle {
     private Item item;
     private List<Bitstream> bitstreams = new ArrayList<Bitstream>();
 
+
     public void addBitstream(Bitstream bitstream) {
         bitstreams.add(bitstream);
 

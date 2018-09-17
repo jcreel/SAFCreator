@@ -32,53 +32,12 @@ public class FlagPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Generate a CSV representation of entire data table.
-     *
-     * The CSVPrinter is a static class, so a static implementation is needed.
-     *
-     * @param table
-     *            CSV source data.
-     * @param writer
-     *            output stream.
-     *
-     * @throws IOException
-     */
-    private static void staticExportToCSV(JTable table, BufferedWriter writer) throws IOException {
-        CSVFormat format = CSVFormat.RFC4180.withHeader(Flag.ColumnNames);
-        CSVPrinter printer = new CSVPrinter(writer, format);
-
-        String flag = null;
-        String description = null;
-        String authority = null;
-        String url = null;
-        String column = null;
-        String row = null;
-        String action = null;
-
-        int length = table.getRowCount();
-        int i = 0;
-        while (i < length) {
-            flag = (String) table.getValueAt(i, FlagColumns.FLAG.ordinal());
-            description = (String) table.getValueAt(i, FlagColumns.DESCRIPTION.ordinal());
-            authority = (String) table.getValueAt(i, FlagColumns.AUTHORITY.ordinal());
-            url = (String) table.getValueAt(i, FlagColumns.URL.ordinal());
-            column = (String) table.getValueAt(i, FlagColumns.COLUMN.ordinal());
-            row = (String) table.getValueAt(i, FlagColumns.ROW.ordinal());
-            action = (String) table.getValueAt(i, FlagColumns.ACTION.ordinal());
-
-            printer.printRecord(flag, description, authority, url, column, row, action);
-            printer.flush();
-            i++;
-        }
-        printer.close();
-    }
-
     private UrlFlagPanelTableModel model;
 
     private JTable table;
 
     private JScrollPane scrollPane;
+
 
     /**
      * Initialize the class.
@@ -174,5 +133,47 @@ public class FlagPanel extends JPanel {
      */
     public Flag getSelected() {
         return getRow(table.getSelectedRow());
+    }
+
+    /**
+     * Generate a CSV representation of entire data table.
+     *
+     * The CSVPrinter is a static class, so a static implementation is needed.
+     *
+     * @param table
+     *            CSV source data.
+     * @param writer
+     *            output stream.
+     *
+     * @throws IOException
+     */
+    private static void staticExportToCSV(JTable table, BufferedWriter writer) throws IOException {
+        CSVFormat format = CSVFormat.RFC4180.withHeader(Flag.ColumnNames);
+        CSVPrinter printer = new CSVPrinter(writer, format);
+
+        String flag = null;
+        String description = null;
+        String authority = null;
+        String url = null;
+        String column = null;
+        String row = null;
+        String action = null;
+
+        int length = table.getRowCount();
+        int i = 0;
+        while (i < length) {
+            flag = (String) table.getValueAt(i, FlagColumns.FLAG.ordinal());
+            description = (String) table.getValueAt(i, FlagColumns.DESCRIPTION.ordinal());
+            authority = (String) table.getValueAt(i, FlagColumns.AUTHORITY.ordinal());
+            url = (String) table.getValueAt(i, FlagColumns.URL.ordinal());
+            column = (String) table.getValueAt(i, FlagColumns.COLUMN.ordinal());
+            row = (String) table.getValueAt(i, FlagColumns.ROW.ordinal());
+            action = (String) table.getValueAt(i, FlagColumns.ACTION.ordinal());
+
+            printer.printRecord(flag, description, authority, url, column, row, action);
+            printer.flush();
+            i++;
+        }
+        printer.close();
     }
 }

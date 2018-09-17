@@ -14,6 +14,7 @@ import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
 import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 
 public class ValidHandleVerifierImpl extends VerifierBackground {
+
     public ValidHandleVerifierImpl() {
         super();
     }

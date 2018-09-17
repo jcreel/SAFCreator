@@ -6,8 +6,7 @@ import javax.swing.SwingWorker;
 
 import edu.tamu.di.SAFCreator.model.Problem;
 
-public abstract class VerifierBackground extends SwingWorker<List<Problem>, VerifierBackground.VerifierUpdates>
-        implements Verifier {
+public abstract class VerifierBackground extends SwingWorker<List<Problem>, VerifierBackground.VerifierUpdates> implements Verifier {
 
     public class VerifierUpdates {
         private int processed;

@@ -29,6 +29,7 @@ public class Flag {
 
     private ArrayList<String> rowData;
 
+
     /**
      * Initialize row with empty cells.
      */

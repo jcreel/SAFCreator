@@ -7,7 +7,6 @@ import java.util.List;
 import edu.tamu.di.SAFCreator.enums.BatchStatus;
 
 public class Batch {
-
     private String name;
     private BatchStatus status;
     private File inputFilesDir;
@@ -24,6 +23,7 @@ public class Batch {
     private List<Integer> ignoreRows = new ArrayList<Integer>();
     private List<Integer> failedRows = new ArrayList<Integer>();
     private String action = "";
+
 
     /**
      * Add a new item to the list of items contained within this batch.

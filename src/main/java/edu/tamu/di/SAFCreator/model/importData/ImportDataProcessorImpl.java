@@ -70,8 +70,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
     }
 
     @Override
-    public Batch loadBatch(String metadataInputFileName, String sourceDirectoryName, String outputDirectoryName,
-            JTextArea console) {
+    public Batch loadBatch(String metadataInputFileName, String sourceDirectoryName, String outputDirectoryName, JTextArea console) {
 
         File sourceDirFileForChecking = new File(sourceDirectoryName);
         File outputDirFileForChecking = new File(outputDirectoryName);
@@ -343,7 +342,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
         } else {
             return batch;
         }
-
     }
 
     @Override
