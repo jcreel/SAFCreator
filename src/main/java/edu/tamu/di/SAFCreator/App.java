@@ -1,16 +1,23 @@
 package edu.tamu.di.SAFCreator;
 
+import edu.tamu.di.SAFCreator.controller.UserInterfaceController;
+import edu.tamu.di.SAFCreator.view.UserInterfaceView;
+
 /**
  *
  */
 public class App {
-    static ImportDataProcessor processor = new ImportDataProcessorImpl();
+    private static ImportDataProcessor processor = new ImportDataProcessorImpl();
 
-    static ImporterGUI gui = new ImporterGUI(processor);
+    private static UserInterfaceView view = new UserInterfaceView();
+
+    @SuppressWarnings("unused")
+    private static UserInterfaceController controller = new UserInterfaceController(processor, view);
+
 
     public static void main(String[] args) {
-        gui.setSize(800, 640);
-        gui.setResizable(false);
-        gui.setVisible(true);
+        view.setSize(800, 640);
+        view.setResizable(false);
+        view.setVisible(true);
     }
 }
