@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator;
+package edu.tamu.di.SAFCreator.model;
 
 import java.util.List;
 import java.util.Vector;
