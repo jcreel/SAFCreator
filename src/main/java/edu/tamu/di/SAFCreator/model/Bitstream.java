@@ -215,10 +215,12 @@ public class Bitstream extends CellDatumImpl {
                             FileUtils.copyToFile(input, destination);
                             input.close();
 
-                            String contentTypeHeader = get.getResponseHeader("Content-Type").getValue();
+
+                            Header contentTypeHeader = get.getResponseHeader("Content-Type");
+                            String contentTypeHeaderValue = contentTypeHeader == null ? "" : contentTypeHeader.getValue();
                             get.releaseConnection();
 
-                            String[] contentTypeHeaderParts = contentTypeHeader.split("[;]");
+                            String[] contentTypeHeaderParts = contentTypeHeaderValue.split("[;]");
                             String contentType = "";
                             if (contentTypeHeaderParts.length > 0) {
                                 contentType = contentTypeHeaderParts[0];
