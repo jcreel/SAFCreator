@@ -18,6 +18,10 @@ public class App {
 
 
     public static void main(String[] args) {
+        // disable SNI, which must be set before any SSL connection is opened or it will not have any effect.
+        // this avoids "SSL handshake alert: unrecognized_name".
+        System.setProperty("jsse.enableSNIExtension", "false");
+
         view.setSize(800, 640);
         view.setResizable(false);
         view.setVisible(true);
