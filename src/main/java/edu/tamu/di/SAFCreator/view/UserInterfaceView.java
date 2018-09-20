@@ -42,7 +42,7 @@ public final class UserInterfaceView extends JFrame {
 
 
     // defaults
-    public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0";
+    public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0";
     public static final int DEFAULT_PROCESS_DELAY = 400;
     public static final int DEFAULT_REMOTE_FILE_TIMEOUT = 10000;
     public static final String DEFAULT_CSV_OUTPUT_NAME = "SAF-Flags.csv";
