@@ -107,6 +107,7 @@ public final class UserInterfaceView extends JFrame {
     // Components of the Advanced Settings tab
     private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
     private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error:");
+    private final JCheckBox allowSelfSignedBox = new JCheckBox("Allow Self-Signed SSL Certificates:");
 
     private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
     private final JLabel remoteFileTimeoutLabel = new JLabel("Remote File Timeout (in milliseconds):");
@@ -195,6 +196,10 @@ public final class UserInterfaceView extends JFrame {
     }
     public JPanel getAdvancedSettingsTab() {
         return advancedSettingsTab;
+    }
+
+    public JCheckBox getAllowSelfSignedBox() {
+        return allowSelfSignedBox;
     }
 
     public JButton getChooseInputFileBtn() {
@@ -376,6 +381,10 @@ public final class UserInterfaceView extends JFrame {
         advancedSettingsTab.setLayout(new BoxLayout(advancedSettingsTab, BoxLayout.Y_AXIS));
         advancedSettingsTab.add(ignoreFilesBox);
         advancedSettingsTab.add(continueOnRemoteErrorBox);
+        advancedSettingsTab.add(allowSelfSignedBox);
+
+        // initialize checkbox as selected.
+        allowSelfSignedBox.setSelected(true);
 
         tabs.addTab("Advanced Settings", advancedSettingsTab);
 
@@ -397,6 +406,7 @@ public final class UserInterfaceView extends JFrame {
         // initialize as disabled so that it will only be enable once a batch is assigned.
         ignoreFilesBox.setEnabled(false);
         continueOnRemoteErrorBox.setEnabled(false);
+        allowSelfSignedBox.setEnabled(false);
         itemProcessDelayField.setEnabled(false);
         remoteFileTimeoutField.setEnabled(false);
         userAgentField.setEnabled(false);

@@ -384,6 +384,7 @@ public class UserInterfaceController {
         if (actionStatus != ActionStatus.NONE_LOADED) {
             userInterface.getIgnoreFilesBox().setEnabled(false);
             userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+            userInterface.getAllowSelfSignedBox().setEnabled(false);
             userInterface.getItemProcessDelayField().setEnabled(false);
             userInterface.getRemoteFileTimeoutField().setEnabled(false);
             userInterface.getUserAgentField().setEnabled(false);
@@ -434,6 +435,7 @@ public class UserInterfaceController {
 
         batch.setIgnoreFiles(userInterface.getIgnoreFilesBox().isSelected());
         batch.setRemoteBitstreamErrorContinue(userInterface.getContinueOnRemoteErrorBox().isSelected());
+        batch.setAllowSelfSigned(userInterface.getAllowSelfSignedBox().isSelected());
         batch.setItemProcessDelay(userInterface.getItemProcessDelayField().getText());
         batch.setUserAgent(userInterface.getUserAgentField().getText());
 
@@ -441,6 +443,7 @@ public class UserInterfaceController {
 
         userInterface.getIgnoreFilesBox().setEnabled(true);
         userInterface.getContinueOnRemoteErrorBox().setEnabled(true);
+        userInterface.getAllowSelfSignedBox().setEnabled(true);
         userInterface.getItemProcessDelayField().setEnabled(true);
         userInterface.getRemoteFileTimeoutField().setEnabled(true);
         userInterface.getUserAgentField().setEnabled(true);
@@ -563,6 +566,7 @@ public class UserInterfaceController {
         if (actionStatus != ActionStatus.NONE_LOADED) {
             userInterface.getIgnoreFilesBox().setEnabled(true);
             userInterface.getContinueOnRemoteErrorBox().setEnabled(true);
+            userInterface.getAllowSelfSignedBox().setEnabled(true);
             userInterface.getItemProcessDelayField().setEnabled(true);
             userInterface.getRemoteFileTimeoutField().setEnabled(true);
             userInterface.getUserAgentField().setEnabled(true);
@@ -598,6 +602,7 @@ public class UserInterfaceController {
 
                         userInterface.getIgnoreFilesBox().setEnabled(false);
                         userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+                        userInterface.getAllowSelfSignedBox().setEnabled(false);
                         userInterface.getItemProcessDelayField().setEnabled(false);
                         userInterface.getRemoteFileTimeoutField().setEnabled(false);
                         userInterface.getUserAgentField().setEnabled(false);
@@ -654,6 +659,7 @@ public class UserInterfaceController {
 
                         userInterface.getIgnoreFilesBox().setEnabled(false);
                         userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+                        userInterface.getAllowSelfSignedBox().setEnabled(false);
                         userInterface.getItemProcessDelayField().setEnabled(false);
                         userInterface.getRemoteFileTimeoutField().setEnabled(false);
                         userInterface.getUserAgentField().setEnabled(false);
@@ -1024,6 +1030,41 @@ public class UserInterfaceController {
                 } else {
                     userInterface.getConsole().append("Denying write if the remote bitstream verification flags an error.\n");
                     batch.setRemoteBitstreamErrorContinue(false);
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+        });
+
+        userInterface.getAllowSelfSignedBox().addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!userInterface.getIgnoreFilesBox().isEnabled()) {
+                    // checkbox mouse clicks still trigger even when set to disabled.
+                    return;
+                }
+
+                if (userInterface.getAllowSelfSignedBox().isSelected()) {
+                    userInterface.getConsole().append("Self-Signed SSL Certificates will always be allowed when generating SAF.\n");
+                    batch.setAllowSelfSigned(true);
+                }
+                else {
+                    userInterface.getConsole().append("Self-Signed SSL Certificates will not always be allowed when generating SAF.\n");
+                    batch.setAllowSelfSigned(false);
                 }
             }
 

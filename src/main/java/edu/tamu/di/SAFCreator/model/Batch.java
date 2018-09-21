@@ -16,6 +16,7 @@ public class Batch {
     private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
     private Boolean ignoreFiles = false;
     private Boolean processUri = false;
+    private Boolean allowSelfSigned = true;
     private Boolean remoteBitstreamErrorContinue = false;
     private int itemProcessDelay = 0;
     private int remoteFileTimeout = 10000;
@@ -64,6 +65,16 @@ public class Batch {
         return action;
     }
 
+    /**
+     * @return Whether or not self-signed certificates are always allowed.
+     */
+    public Boolean getAllowSelfSigned() {
+        return allowSelfSigned;
+    }
+
+    /**
+     * @return Whether or not to ignore files.
+     */
     public Boolean getIgnoreFiles() {
         return ignoreFiles;
     }
@@ -222,6 +233,20 @@ public class Batch {
         this.action = action;
     }
 
+    /**
+     * Set the whether or not to always allow self-signed SSL certificates.
+     *
+     * @param allowSelfSigned
+     */
+    public void setAllowSelfSigned(Boolean allowSelfSigned) {
+        this.allowSelfSigned = allowSelfSigned;
+    }
+
+    /**
+     * Set the whether or not to ignore files.
+     *
+     * @param ignoreFiles
+     */
     public void setIgnoreFiles(Boolean ignoreFiles) {
         this.ignoreFiles = ignoreFiles;
     }

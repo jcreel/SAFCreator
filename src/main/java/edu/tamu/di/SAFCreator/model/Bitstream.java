@@ -12,20 +12,31 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLProtocolException;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
@@ -50,7 +61,6 @@ public class Bitstream extends CellDatumImpl {
     private MimeType mimeType = null;
 
 
-    @SuppressWarnings("deprecation")
     public void copyMe(List<Problem> problems) {
         // Avoid writing to existing files, primarily to avoid potential network overhead of downloading remote files.
         if (destination.exists()) {
@@ -101,33 +111,27 @@ public class Bitstream extends CellDatumImpl {
                     }
                 } else {
                     String userAgent = bundle.getItem().getBatch().getUserAgent();
-                    HttpClient client = new HttpClient();
-                    GetMethod get = null;
-                    int response = 0;
-
-                    // client.getParams().setParameter(HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT, timeout);
-                    client.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, remoteFileTimeout);
-
-                    // Note: this deprecated function actually sets the timeout correctly whereas the above SO_TIMEOUT does not.
-                    // guarantee the timeout to work as expected by utilizing this timeout.
-                    // see: https://issues.apache.org/jira/browse/HTTPCLIENT-478?focusedCommentId=12382474&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12382474
-                    client.setConnectionTimeout(remoteFileTimeout);
+                    CloseableHttpClient httpClient = createHttpClient(bundle.getItem().getBatch().getAllowSelfSigned());
+                    CloseableHttpResponse httpResponse = null;
+                    HttpGet httpGet = null;
+                    RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(remoteFileTimeout).setConnectTimeout(remoteFileTimeout).build();
+                    int responseCode = 0;
 
                     try {
-                        client.getHttpConnectionManager().getParams().setConnectionTimeout(remoteFileTimeout);
-                        get = new GetMethod(url.toString());
+                        httpGet = new HttpGet(url.toString());
+                        httpGet.setConfig(requestConfig);
                         if (userAgent != null) {
-                            get.addRequestHeader("User-Agent", userAgent);
+                            httpGet.addHeader("User-Agent", userAgent);
                         }
-                        get.setFollowRedirects(true);
-                        response = client.executeMethod(get);
+                        httpResponse = httpClient.execute(httpGet);
+                        responseCode = getResponseCode(httpResponse);
 
-                        if (response == java.net.HttpURLConnection.HTTP_SEE_OTHER || response == java.net.HttpURLConnection.HTTP_MOVED_PERM || response == java.net.HttpURLConnection.HTTP_MOVED_TEMP) {
+                        if (responseCode == java.net.HttpURLConnection.HTTP_SEE_OTHER || responseCode == java.net.HttpURLConnection.HTTP_MOVED_PERM || responseCode == java.net.HttpURLConnection.HTTP_MOVED_TEMP) {
                             int totalRedirects = 0;
                             HashSet<String> previousUrls = new HashSet<String>();
                             previousUrls.add(source.toString());
                             URL previousUrl = url;
-                            Header redirectTo = get.getResponseHeader("Location");
+                            Header redirectTo = httpResponse.getFirstHeader("Location");
 
                             do {
                                 if (totalRedirects++ > MaxRedirects) {
@@ -198,27 +202,38 @@ public class Bitstream extends CellDatumImpl {
                                     break;
                                 }
 
-                                get.releaseConnection();
-                                get = new GetMethod(redirectToLocation);
-                                get.setFollowRedirects(true);
+                                httpGet.releaseConnection();
+                                httpGet = new HttpGet(redirectToLocation);
                                 if (userAgent != null) {
-                                    get.addRequestHeader("User-Agent", userAgent);
+                                    httpGet.addHeader("User-Agent", userAgent);
                                 }
-                                response = client.executeMethod(get);
+                                httpResponse = httpClient.execute(httpGet);
+                                responseCode = getResponseCode(httpResponse);
                                 previousUrl = redirectToUri.toURL();
-                                redirectTo = get.getResponseHeader("Location");
-                            } while (response == java.net.HttpURLConnection.HTTP_SEE_OTHER || response == java.net.HttpURLConnection.HTTP_MOVED_PERM || response == java.net.HttpURLConnection.HTTP_MOVED_TEMP);
+                                redirectTo = httpResponse.getFirstHeader("Location");
+                            } while (responseCode == java.net.HttpURLConnection.HTTP_SEE_OTHER || responseCode == java.net.HttpURLConnection.HTTP_MOVED_PERM || responseCode == java.net.HttpURLConnection.HTTP_MOVED_TEMP);
                         }
 
-                        if (response == java.net.HttpURLConnection.HTTP_OK) {
-                            InputStream input = get.getResponseBodyAsStream();
-                            FileUtils.copyToFile(input, destination);
-                            input.close();
+                        if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                            HttpEntity httpEntity = httpResponse.getEntity();
+                            InputStream input = null;
 
+                            try {
+                                input = httpEntity.getContent();
+                                FileUtils.copyToFile(input, destination);
+                            } catch (IOException e) {
+                                throw e;
+                            }
+                            finally {
+                                if (input != null) {
+                                    input.close();
+                                }
+                            }
 
-                            Header contentTypeHeader = get.getResponseHeader("Content-Type");
+                            Header contentTypeHeader = httpResponse.getFirstHeader("Content-Type");
                             String contentTypeHeaderValue = contentTypeHeader == null ? "" : contentTypeHeader.getValue();
-                            get.releaseConnection();
+                            httpGet.releaseConnection();
+                            httpGet = null;
 
                             String[] contentTypeHeaderParts = contentTypeHeaderValue.split("[;]");
                             String contentType = "";
@@ -278,56 +293,65 @@ public class Bitstream extends CellDatumImpl {
                                 Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
                                 problems.add(problem);
                             }
-                        } else if (response != java.net.HttpURLConnection.HTTP_SEE_OTHER && response != java.net.HttpURLConnection.HTTP_MOVED_PERM && response != java.net.HttpURLConnection.HTTP_MOVED_TEMP) {
-                            if (response == 304 || response == 509) {
-                                Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download/bandwidth limit), HTTP response code: " + response + ".", action, this);
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP service was denied, HTTP response code: " + response + ".", flag);
+                        } else if (responseCode != java.net.HttpURLConnection.HTTP_SEE_OTHER && responseCode != java.net.HttpURLConnection.HTTP_MOVED_PERM && responseCode != java.net.HttpURLConnection.HTTP_MOVED_TEMP) {
+                            if (responseCode == 304 || responseCode == 509) {
+                                Flag flag = new Flag(Flag.SERVICE_REJECTED, "HTTP service was denied (may have a download/bandwidth limit), HTTP response code: " + responseCode + ".", action, this);
+                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP service was denied, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
-                            } else if (response == 404) {
-                                Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found, HTTP response code: " + response + ".", action, this);
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP file was not found, HTTP response code: " + response + ".", flag);
+                            } else if (responseCode == 404) {
+                                Flag flag = new Flag(Flag.NOT_FOUND, "HTTP file was not found, HTTP response code: " + responseCode + ".", action, this);
+                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP file was not found, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
-                            } else if (response == 403) {
-                                Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + response + ".", action, this);
+                            } else if (responseCode == 403) {
+                                Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + responseCode + ".", action, this);
                                 Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                        "HTTP file access was denied, HTTP response code: " + response + ".", flag);
+                                        "HTTP file access was denied, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
-                            } else if (response == 500) {
-                                Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + response + ".", action, this);
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP server had an internal error, HTTP response code: " + response + ".", flag);
+                            } else if (responseCode == 500) {
+                                Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + responseCode + ".", action, this);
+                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP server had an internal error, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
                             } else {
-                                Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP failure, HTTP response code: " + response + ".", action, this);
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP failure, HTTP response code: " + response + ".", flag);
+                                Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP failure, HTTP response code: " + responseCode + ".", action, this);
+                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP failure, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
                             }
                         }
                     } catch (SSLProtocolException e) {
-                        String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+                        String responseString = (responseCode > 0 ? ", HTTP response code: " + responseCode : "");
                         Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an SSL failure" + responseString + ", reason: " + e.getMessage() + ".", action, this);
                         Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had an SSL failure" + responseString + ".", flag);
                         problems.add(problem);
-                    } catch (HttpException e) {
-                        String responseString = (response > 0 ? ", HTTP response code: " + response : "");
-                        Flag flag = new Flag(Flag.HTTP_FAILURE, "HTTP URL had an HTTP error" + responseString + ", reason: " + e.getMessage() + ".", action, this);
-                        Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had an HTTP error" + responseString + ".", flag);
-                        problems.add(problem);
                     } catch (SocketException e) {
-                        String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+                        String responseString = (responseCode > 0 ? ", HTTP response code: " + responseCode : "");
                         Flag flag = new Flag(Flag.SOCKET_ERROR, "HTTP URL had a socket error" + responseString + ", reason: " + e.getMessage() + ".", action, this);
                         Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had a socket error" + responseString + ".", flag);
                         problems.add(problem);
                     } catch (IOException e) {
-                        String responseString = (response > 0 ? ", HTTP response code: " + response : "");
+                        String responseString = (responseCode > 0 ? ", HTTP response code: " + responseCode : "");
                         Flag flag = new Flag(Flag.IO_FAILURE, "HTTP URL had a connection error" + responseString + ", reason: " + e.getMessage() + ".", action, this);
                         Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL had a connection error" + responseString + ".", flag);
                         problems.add(problem);
                     } finally {
-                        if (get != null) {
-                            get.releaseConnection();
+                        if (httpResponse != null) {
+                            try {
+                                httpResponse.close();
+                            } catch (IOException e) {
+                            }
+                            httpResponse = null;
                         }
-                        if (client != null) {
-                            client.getHttpConnectionManager().closeIdleConnections(remoteFileTimeout);
+
+                        if (httpGet != null) {
+                            httpGet.releaseConnection();
+                            httpGet = null;
+                        }
+
+                        if (httpClient != null) {
+                            try {
+                                httpClient.close();
+                            } catch (IOException e) {
+                            }
+                            httpClient = null;
                         }
                     }
                 }
@@ -498,5 +522,38 @@ public class Bitstream extends CellDatumImpl {
 
     public void setSource(URI source) {
         this.source = source;
+    }
+
+    private int getResponseCode(CloseableHttpResponse httpResponse) {
+        int responseCode = 0;
+
+        if (httpResponse != null) {
+            StatusLine statusLine = httpResponse.getStatusLine();
+            if (statusLine != null) {
+                responseCode = statusLine.getStatusCode();
+            }
+        }
+
+        return responseCode;
+    }
+
+    private CloseableHttpClient createHttpClient(boolean allowSelfSigned) {
+        CloseableHttpClient httpClient = null;
+
+        if (allowSelfSigned) {
+            try {
+                SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
+                SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
+                httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory).build();
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (httpClient == null) {
+            httpClient = HttpClients.createDefault();
+        }
+
+        return httpClient;
     }
 }
