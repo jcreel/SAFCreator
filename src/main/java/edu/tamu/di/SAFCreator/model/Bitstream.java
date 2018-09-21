@@ -253,8 +253,8 @@ public class Bitstream extends CellDatumImpl {
 
                             Problem problem = null;
                             MimeType originalMimeType = mimeType;
-                            if (contentType.equalsIgnoreCase("text/html")) {
-                                Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL did not return the expected file, reason: an HTML page was returned.", action, this);
+                            if (contentType.equalsIgnoreCase("text/html") || contentType.equalsIgnoreCase("text/plain")) {
+                                Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL did not return the expected file, reason: an HTML page or plain text page was returned.", action, this);
                                 problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL did not return the expected file.", flag);
                                 problems.add(problem);
                             }
