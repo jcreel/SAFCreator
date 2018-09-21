@@ -383,7 +383,7 @@ public final class UserInterfaceView extends JFrame {
         advancedSettingsTab.add(continueOnRemoteErrorBox);
         advancedSettingsTab.add(allowSelfSignedBox);
 
-        // initialize checkbox as selected.
+        // default to enabled.
         allowSelfSignedBox.setSelected(true);
 
         tabs.addTab("Advanced Settings", advancedSettingsTab);

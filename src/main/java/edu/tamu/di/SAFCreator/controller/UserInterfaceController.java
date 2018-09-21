@@ -982,11 +982,12 @@ public class UserInterfaceController {
     }
 
     private void createSettingsListeners() {
-        userInterface.getIgnoreFilesBox().addMouseListener(new MouseListener() {
+        userInterface.getIgnoreFilesBox().addActionListener(new ActionListener() {
+
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 if (!userInterface.getIgnoreFilesBox().isEnabled()) {
-                    // checkbox mouse clicks still trigger even when set to disabled.
+                    // do nothing when field is disabled.
                     return;
                 }
 
@@ -998,29 +999,13 @@ public class UserInterfaceController {
                     batch.setIgnoreFiles(false);
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
         });
 
-        userInterface.getContinueOnRemoteErrorBox().addMouseListener(new MouseListener() {
+        userInterface.getContinueOnRemoteErrorBox().addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 if (!userInterface.getContinueOnRemoteErrorBox().isEnabled()) {
-                    // checkbox mouse clicks still trigger even when set to disabled.
+                    // do nothing when field is disabled.
                     return;
                 }
 
@@ -1032,29 +1017,13 @@ public class UserInterfaceController {
                     batch.setRemoteBitstreamErrorContinue(false);
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
         });
 
-        userInterface.getAllowSelfSignedBox().addMouseListener(new MouseListener() {
+        userInterface.getAllowSelfSignedBox().addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 if (!userInterface.getIgnoreFilesBox().isEnabled()) {
-                    // checkbox mouse clicks still trigger even when set to disabled.
+                    // do nothing when field is disabled.
                     return;
                 }
 
@@ -1066,22 +1035,6 @@ public class UserInterfaceController {
                     userInterface.getConsole().append("Self-Signed SSL Certificates will not always be allowed when generating SAF.\n");
                     batch.setAllowSelfSigned(false);
                 }
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
             }
         });
 
