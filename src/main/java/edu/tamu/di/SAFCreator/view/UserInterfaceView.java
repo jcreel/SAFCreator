@@ -105,9 +105,9 @@ public final class UserInterfaceView extends JFrame {
 
 
     // Components of the Advanced Settings tab
-    private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF:");
-    private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error:");
-    private final JCheckBox allowSelfSignedBox = new JCheckBox("Allow Self-Signed SSL Certificates:");
+    private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF.");
+    private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error.");
+    private final JCheckBox allowSelfSignedBox = new JCheckBox("Allow Self-Signed SSL Certificates.");
 
     private final JLabel itemProcessDelayLabel = new JLabel("Item Processing Delay (in milliseconds):");
     private final JLabel remoteFileTimeoutLabel = new JLabel("Remote File Timeout (in milliseconds):");
