@@ -251,47 +251,60 @@ public class Bitstream extends CellDatumImpl {
                                 }
                             }
 
+                            Problem problem = null;
                             MimeType originalMimeType = mimeType;
-                            if (contentType.equalsIgnoreCase("application/octet-stream")) {
+                            if (contentType.equalsIgnoreCase("text/html")) {
+                                Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL did not return the expected file, reason: an HTML page was returned.", action, this);
+                                problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL did not return the expected file.", flag);
+                                problems.add(problem);
+                            }
+                            else if (contentType.equalsIgnoreCase("application/octet-stream")) {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (mimeType == null || mimeType.toString().isEmpty()) {
                                     flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid file, reason: unable to determine mime-type.", action, this);
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid file.", flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid file.", flag);
                                     problems.add(problem);
                                     mimeType = originalMimeType;
                                 }
                             } else if (contentType.equalsIgnoreCase("application/pdf")) {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
                                     flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid PDF, reason: server designated a mimetype of " + contentType + ", detected mimetype is " + mimeType + ".", action, this);
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid PDF.", flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid PDF.", flag);
                                     problems.add(problem);
                                     mimeType = originalMimeType;
                                 }
                             } else if (contentType.equalsIgnoreCase("image/png") || contentType.equalsIgnoreCase("image/jpg") || contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/gif")) {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 } else if (!contentType.equalsIgnoreCase(mimeType.toString())) {
                                     flag = new Flag(Flag.INVALID_MIME, "HTTP URL may not be a valid image, reason: server designated a mimetype of " + contentType + ", detected mimetype is " + mimeType + ".", action, this);
-                                    Problem problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid image.", flag);
+                                    problem = new Problem(getRow(), getColumnLabel(), false, "HTTP URL may not be a valid image.", flag);
                                     problems.add(problem);
                                     mimeType = originalMimeType;
                                 }
                             }
 
                             // rename destination file on mime type change.
-                            Flag flag = renameFileUsingMimeType(destination, originalMimeType);
-                            if (flag != null) {
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
-                                problems.add(problem);
+                            if (problem == null) {
+                                Flag flag = renameFileUsingMimeType(destination, originalMimeType);
+                                if (flag != null) {
+                                    problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
+                                    problems.add(problem);
+                                }
+                            }
+                            else {
+                                if (problem.isError() && destination.exists()) {
+                                    destination.delete();
+                                }
                             }
                         } else if (responseCode != java.net.HttpURLConnection.HTTP_SEE_OTHER && responseCode != java.net.HttpURLConnection.HTTP_MOVED_PERM && responseCode != java.net.HttpURLConnection.HTTP_MOVED_TEMP) {
                             if (responseCode == 304 || responseCode == 509) {
