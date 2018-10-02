@@ -408,8 +408,7 @@ public class Bitstream extends CellDatumImpl {
             MediaType mediaType = detector.detect(tikaStream, metadata);
             setMimeType(mediaType.toString());
         } catch (MimeTypeException e) {
-            return new Flag(Flag.INVALID_MIME, "Unable to determine mime type of file, reason: " + e.getMessage() + ".",
-                    action, this);
+            return new Flag(Flag.INVALID_MIME, "Unable to determine mime type of file, reason: " + e.getMessage() + ".", action, this);
         } catch (IOException e) {
             return new Flag(Flag.IO_FAILURE, "File read failed, reason: " + e.getMessage() + ".", action, this);
         } finally {
