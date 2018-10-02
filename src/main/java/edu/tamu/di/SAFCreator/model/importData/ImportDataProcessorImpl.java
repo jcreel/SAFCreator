@@ -296,7 +296,15 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                         }
                                     }
                                 } else {
-                                    URI fileUri = URI.create(batch.getinputFilesDir() + File.separator + value);
+                                    String fileUriPath = batch.getinputFilesDir() + File.separator + value;
+                                    URI fileUri = null;
+                                    try {
+                                        fileUri = URI.create(fileUriPath);
+                                    } catch (IllegalArgumentException e) {
+                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + "'.\n");
+                                        errorState = true;
+                                    }
+
                                     if (fileUri != null) {
                                         Bitstream bitstream = new Bitstream();
                                         bitstream.setBundle(bundle);
