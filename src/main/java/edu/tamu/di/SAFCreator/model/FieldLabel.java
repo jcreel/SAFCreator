@@ -32,9 +32,9 @@ public class FieldLabel extends CellDatumImpl implements ColumnLabel
 		this.language = language;
 	}
 	public boolean isHandle() {
-            return true;
-        }
-        public boolean isField() {
+	    return true;
+	}
+    public boolean isField() {
 		return true;
 	}
 	public boolean isFile() {

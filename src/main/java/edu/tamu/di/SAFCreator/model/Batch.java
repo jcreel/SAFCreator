@@ -17,6 +17,11 @@ public class Batch {
 	private License license;
 	private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
 	private Boolean ignoreFiles = false;
+	private Boolean processUri = false;
+	private Boolean remoteBitstreamErrorContinue = false;
+	private int itemProcessDelay = 0;
+	private String userAgent = null;
+	private List<Integer> ignoreRows = new ArrayList<Integer>();
 	
 	public void setLicense(String filename, String bundleName, String licenseText)
 	{
@@ -160,5 +165,130 @@ public class Batch {
 	public void setIgnoreFiles(Boolean ignoreFiles) {
 		this.ignoreFiles = ignoreFiles;
 	}
-	
+
+        public Boolean getProcessUri() {
+                return processUri;
+        }
+
+        public void setProcessUri(Boolean processUri) {
+                this.processUri = processUri;
+        }
+
+	/**
+	 * Set the item process delay time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setItemProcessDelay(int itemProcessDelay)
+	{
+		this.itemProcessDelay = itemProcessDelay;
+	}
+
+	/**
+	 * Set the item process delay time (in milliseconds).
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setItemProcessDelay(String itemProcessDelay)
+	{
+		this.itemProcessDelay = Integer.parseInt(itemProcessDelay);
+	}
+
+	/**
+	 * @return The item process delay time (in milliseconds).
+	 */
+	public int getItemProcessDelay()
+	{
+		return itemProcessDelay;
+	}
+
+	/**
+	 * Set the user agent string.
+	 *
+	 * @param itemProcessDelay
+	 *	The process delay time.
+	 */
+	public void setUserAgent(String userAgent)
+	{
+		this.userAgent = userAgent;
+	}
+
+	/**
+	 * @return The item process delay time (in milliseconds).
+	 */
+	public String getUserAgent()
+	{
+		return userAgent;
+	}
+
+	/**
+	 * Set the remote bitstream error continue status.
+	 *
+	 * @param remoteBitstreamErrorContinue
+	 *	Set to true to enable ignoring errors, false to stop on errors.
+	 */
+	public void setRemoteBitstreamErrorContinue(Boolean remoteBitstreamErrorContinue)
+	{
+		this.remoteBitstreamErrorContinue = remoteBitstreamErrorContinue;
+	}
+
+	/**
+	 * @return The remote bitstream error continue status.
+	 *          When true to enable ignoring errors.
+	 *          When false to stop on errors.
+	 */
+	public Boolean getRemoteBitstreamErrorContinue()
+	{
+		return remoteBitstreamErrorContinue;
+	}
+
+	/**
+	 * Ignore a specific batch row.
+	 *
+	 * A particular row number for the items list can be ignored.
+	 * This is intended to be used when remoteBitstreamErrorContinue is true.
+	 * If any single column is invalid, the entire row is to be ignored.
+	 *
+	 * @param row the number of the row to ignore.
+	 */
+	public void ignoreRow(Integer row) {
+		ignoreRows.add(row);
+	}
+
+	/**
+	 * Check to see if a row is flagged to be ignored.
+	 *
+	 * @param row the number of the row that may be ignored.
+	 *
+	 * @return true if ignored, false otherwise.
+	 *          When remoteBitstreamErrorContinue is false, this always returns false.
+	 */
+	public boolean isIgnoredRow(Integer row) {
+		if (!remoteBitstreamErrorContinue) {
+			return false;
+		}
+		return ignoreRows.contains(row);
+	}
+
+	/**
+	 * Removes all assigned ignore row values.
+	 */
+	public void clearIgnoredRows() {
+		ignoreRows.clear();
+	}
+
+	/**
+	 * Reports whether or not any rows are assigned to be ignored.
+	 * 
+	 * @return true if any row is assigned to be ignored, false otherwise.
+	 *          When remoteBitstreamErrorContinue is false, this always returns false.
+	 */
+	public boolean hasIgnoredRows() {
+		if (!remoteBitstreamErrorContinue) {
+			return false;
+		}
+		return !ignoreRows.isEmpty();
+	}
 }
