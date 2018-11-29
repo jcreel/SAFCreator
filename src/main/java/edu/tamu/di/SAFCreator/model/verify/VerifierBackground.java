@@ -47,7 +47,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Problem>, Veri
 
     public VerifierBackground(VerifierProperty settings) {
         this();
-        enabled = settings.isEnabled();
+        enabled = settings.getActivated();
     }
 
     /**
@@ -63,7 +63,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Problem>, Veri
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean getActivated() {
         return enabled;
     }
 
@@ -73,7 +73,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Problem>, Veri
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setActivated(boolean enabled) {
         this.enabled = enabled;
     }
 }

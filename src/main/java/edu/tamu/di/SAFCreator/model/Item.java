@@ -155,12 +155,10 @@ public class Item {
             }
             Util.setFileContents(contentsFile, contentsString);
         } catch (FileNotFoundException e) {
-            Problem problem = new Problem(true, "Unable to write to missing contents file for item directory "
-                    + getSAFDirectory() + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Unable to write to missing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         } catch (IOException e) {
-            Problem problem = new Problem(true, "Error writing contents file for item directory " + getSAFDirectory()
-                    + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Error writing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         }
     }
@@ -173,12 +171,10 @@ public class Item {
             }
             Util.setFileContents(handleFile, getHandle());
         } catch (FileNotFoundException e) {
-            Problem problem = new Problem(true, "Unable to write to missing handle file for item directory "
-                    + getSAFDirectory() + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Unable to write to missing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         } catch (IOException e) {
-            Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory()
-                    + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         }
     }
@@ -193,12 +189,10 @@ public class Item {
                 }
                 Util.setFileContents(metadataFile, schema.getXML());
             } catch (FileNotFoundException e) {
-                Problem problem = new Problem(true, "Unable to write to missing metadata file "
-                        + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
+                Problem problem = new Problem(true, "Unable to write to missing metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
                 problems.add(problem);
             } catch (IOException e) {
-                Problem problem = new Problem(true, "Unable to create metadata file " + metadataFile.getAbsolutePath()
-                        + ", reason: " + e.getMessage());
+                Problem problem = new Problem(true, "Unable to create metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
                 problems.add(problem);
             }
         }

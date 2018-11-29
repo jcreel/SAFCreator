@@ -29,6 +29,7 @@ import edu.tamu.di.SAFCreator.enums.FlagColumns;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.Problem;
+import edu.tamu.di.SAFCreator.model.VerifierTableModel;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataCleaner;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataProcessor;
 import edu.tamu.di.SAFCreator.model.importData.ImportDataWriter;
@@ -118,7 +119,7 @@ public class UserInterfaceController {
             batch.clearFailedRows();
         }
 
-        settings = userInterface.getVerifierSettings().get(ValidSchemaNameVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(ValidSchemaNameVerifierImpl.class.getName());
 
         ValidSchemaNameVerifierImpl validSchemaVerifier = new ValidSchemaNameVerifierImpl(settings) {
             @Override
@@ -201,7 +202,7 @@ public class UserInterfaceController {
 
         verifiers.put(ValidSchemaNameVerifierImpl.class.getName(), validSchemaVerifier);
 
-        settings = userInterface.getVerifierSettings().get(LocalFilesExistVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(LocalFilesExistVerifierImpl.class.getName());
 
         LocalFilesExistVerifierImpl localFileExistsVerifier = new LocalFilesExistVerifierImpl(settings) {
             @Override
@@ -284,7 +285,7 @@ public class UserInterfaceController {
 
         verifiers.put(LocalFilesExistVerifierImpl.class.getName(), localFileExistsVerifier);
 
-        settings = userInterface.getVerifierSettings().get(RemoteFilesExistVerifierImpl.class.getName());
+        settings = userInterface.getTableModel().getVerifierWithName(RemoteFilesExistVerifierImpl.class.getName());
 
         RemoteFilesExistVerifierImpl remoteFileExistsVerifier = new RemoteFilesExistVerifierImpl(settings) {
             @Override
@@ -383,6 +384,7 @@ public class UserInterfaceController {
         if (actionStatus != ActionStatus.NONE_LOADED) {
             userInterface.getIgnoreFilesBox().setEnabled(false);
             userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+            userInterface.getAllowSelfSignedBox().setEnabled(false);
             userInterface.getItemProcessDelayField().setEnabled(false);
             userInterface.getRemoteFileTimeoutField().setEnabled(false);
             userInterface.getUserAgentField().setEnabled(false);
@@ -433,6 +435,7 @@ public class UserInterfaceController {
 
         batch.setIgnoreFiles(userInterface.getIgnoreFilesBox().isSelected());
         batch.setRemoteBitstreamErrorContinue(userInterface.getContinueOnRemoteErrorBox().isSelected());
+        batch.setAllowSelfSigned(userInterface.getAllowSelfSignedBox().isSelected());
         batch.setItemProcessDelay(userInterface.getItemProcessDelayField().getText());
         batch.setUserAgent(userInterface.getUserAgentField().getText());
 
@@ -440,6 +443,7 @@ public class UserInterfaceController {
 
         userInterface.getIgnoreFilesBox().setEnabled(true);
         userInterface.getContinueOnRemoteErrorBox().setEnabled(true);
+        userInterface.getAllowSelfSignedBox().setEnabled(true);
         userInterface.getItemProcessDelayField().setEnabled(true);
         userInterface.getRemoteFileTimeoutField().setEnabled(true);
         userInterface.getUserAgentField().setEnabled(true);
@@ -562,6 +566,7 @@ public class UserInterfaceController {
         if (actionStatus != ActionStatus.NONE_LOADED) {
             userInterface.getIgnoreFilesBox().setEnabled(true);
             userInterface.getContinueOnRemoteErrorBox().setEnabled(true);
+            userInterface.getAllowSelfSignedBox().setEnabled(true);
             userInterface.getItemProcessDelayField().setEnabled(true);
             userInterface.getRemoteFileTimeoutField().setEnabled(true);
             userInterface.getUserAgentField().setEnabled(true);
@@ -597,6 +602,7 @@ public class UserInterfaceController {
 
                         userInterface.getIgnoreFilesBox().setEnabled(false);
                         userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+                        userInterface.getAllowSelfSignedBox().setEnabled(false);
                         userInterface.getItemProcessDelayField().setEnabled(false);
                         userInterface.getRemoteFileTimeoutField().setEnabled(false);
                         userInterface.getUserAgentField().setEnabled(false);
@@ -653,6 +659,7 @@ public class UserInterfaceController {
 
                         userInterface.getIgnoreFilesBox().setEnabled(false);
                         userInterface.getContinueOnRemoteErrorBox().setEnabled(false);
+                        userInterface.getAllowSelfSignedBox().setEnabled(false);
                         userInterface.getItemProcessDelayField().setEnabled(false);
                         userInterface.getRemoteFileTimeoutField().setEnabled(false);
                         userInterface.getUserAgentField().setEnabled(false);
@@ -975,11 +982,12 @@ public class UserInterfaceController {
     }
 
     private void createSettingsListeners() {
-        userInterface.getIgnoreFilesBox().addMouseListener(new MouseListener() {
+        userInterface.getIgnoreFilesBox().addActionListener(new ActionListener() {
+
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 if (!userInterface.getIgnoreFilesBox().isEnabled()) {
-                    // checkbox mouse clicks still trigger even when set to disabled.
+                    // do nothing when field is disabled.
                     return;
                 }
 
@@ -991,29 +999,13 @@ public class UserInterfaceController {
                     batch.setIgnoreFiles(false);
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
         });
 
-        userInterface.getContinueOnRemoteErrorBox().addMouseListener(new MouseListener() {
+        userInterface.getContinueOnRemoteErrorBox().addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 if (!userInterface.getContinueOnRemoteErrorBox().isEnabled()) {
-                    // checkbox mouse clicks still trigger even when set to disabled.
+                    // do nothing when field is disabled.
                     return;
                 }
 
@@ -1025,21 +1017,24 @@ public class UserInterfaceController {
                     batch.setRemoteBitstreamErrorContinue(false);
                 }
             }
+        });
 
+        userInterface.getAllowSelfSignedBox().addActionListener(new ActionListener() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-            }
+            public void actionPerformed(ActionEvent e) {
+                if (!userInterface.getIgnoreFilesBox().isEnabled()) {
+                    // do nothing when field is disabled.
+                    return;
+                }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
+                if (userInterface.getAllowSelfSignedBox().isSelected()) {
+                    userInterface.getConsole().append("Self-Signed SSL Certificates will always be allowed when generating SAF.\n");
+                    batch.setAllowSelfSigned(true);
+                }
+                else {
+                    userInterface.getConsole().append("Self-Signed SSL Certificates will not always be allowed when generating SAF.\n");
+                    batch.setAllowSelfSigned(false);
+                }
             }
         });
 
@@ -1213,20 +1208,17 @@ public class UserInterfaceController {
 
                 int row = userInterface.getVerifierTbl().rowAtPoint(evt.getPoint());
                 int column = userInterface.getVerifierTbl().columnAtPoint(evt.getPoint());
-                if (column == 2 && row >= 0 && row < userInterface.getVerifierNamesMap().size()) {
-                    String verifierName = userInterface.getVerifierNamesMap().get(row);
-                    if (verifierName != null) {
-                        VerifierProperty verifier = userInterface.getVerifierSettings().get(verifierName);
-                        if (verifier != null) {
-                            verifier.setEnabled(!verifier.isEnabled());
-                            userInterface.getVerifierTbl().setValueAt(verifier.isEnabled(), row, column);
-                            unlockVerifyButtons();
-                            userInterface.getConsole().append(verifier.prettyName() + " is now " + (verifier.isEnabled() ? "Enabled" : "Disabled") + ".\n");
+                if (column == 2 && row >= 0 && row < userInterface.getVerifierTbl().getColumnModel().getColumnCount()) {
+                    VerifierProperty verifier = userInterface.getTableModel().getVerifierPropertyAt(row);
+                    if (verifier != null) {
+                        userInterface.getVerifierTbl().setValueAt(verifier.getActivated() ? VerifierTableModel.VERIFIER_INACTIVE : VerifierTableModel.VERIFIER_ACTIVE, row, column);
+                        userInterface.getConsole().append(verifier.prettyName() + " is now " + (verifier.getActivated() ? "Active" : "Inactive") + ".\n");
 
-                            // the verification process must be when status is LOADED.
-                            if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
-                                transitionToLoaded();
-                            }
+                        unlockVerifyButtons();
+
+                        // the verification process must be when status is LOADED.
+                        if (actionStatus != ActionStatus.NONE_LOADED && actionStatus != ActionStatus.LOADED) {
+                            transitionToLoaded();
                         }
                     }
                 }
@@ -1247,7 +1239,7 @@ public class UserInterfaceController {
 
                     for (Entry<String, VerifierBackground> entry : verifiers.entrySet()) {
                         VerifierBackground verifier = entry.getValue();
-                        if (verifier.isEnabled() && verifier.isSwingWorker()) {
+                        if (verifier.getActivated() && verifier.isSwingWorker()) {
                             currentVerifiers.add(verifier);
                         }
                     }
