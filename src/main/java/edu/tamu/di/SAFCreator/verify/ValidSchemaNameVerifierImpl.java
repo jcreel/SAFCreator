@@ -16,72 +16,69 @@ import edu.tamu.di.SAFCreator.model.VerifierProperty;
 
 public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 
-	public ValidSchemaNameVerifierImpl() {
-		super();
-	}
+    public ValidSchemaNameVerifierImpl() {
+        super();
+    }
 
-	public ValidSchemaNameVerifierImpl(VerifierProperty settings) {
-		super(settings);
-	}
+    public ValidSchemaNameVerifierImpl(VerifierProperty settings) {
+        super(settings);
+    }
 
-	@Override
-	public void doCancel() {
-	}
+    @Override
+    public void doCancel() {
+    }
 
-	@Override
-	public List<Problem> verify(Batch batch)
-	{
-		return verify(batch, null, null);
-	}
+    @Override
+    public boolean generatesError() {
+        return true;
+    }
 
-	@Override
-	public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel)
-	{
-		List<Problem> badSchemata = new ArrayList<Problem>();
+    @Override
+    public String prettyName() {
+        return "Syntactically Valid Schema Names Verifier";
+    }
 
-		int totalLabels = batch.getLabels().size();
-		int labelCount = 0;
-		for(ColumnLabel label : batch.getLabels())
-		{
-			if(label.isField())
-			{
-				FieldLabel fieldLabel = (FieldLabel) label;
-				if(Util.regexMatchCounter(".*\\W+.*", fieldLabel.getSchema()) > 0)
-				{
-					Flag flag = new Flag(Flag.BAD_SCHEMA_NAME, "Bad schema name for row " + labelCount + ".", "", "", label.getColumnLabel(), "" + label.getRow(), batch.getAction());
-					Problem badSchema = new Problem (label.getRow(), label.getColumnLabel(), generatesError(), "Bad schema name " + fieldLabel.getSchema());
-					badSchema.setFlag(flag);
-					batch.failedRow(label.getRow());
-					badSchemata.add(badSchema);
-					if (console != null) console.append("\t" + badSchemata.toString()+"\n");
-					if (flagPanel != null) flagPanel.appendRow(flag);
-				}
-				else
-				{
-					//System.out.println("looks fine: " + fieldLabel.getSchema());
-				}
-			}
+    @Override
+    public List<Problem> verify(Batch batch) {
+        return verify(batch, null, null);
+    }
 
-			if (isCancelled()) {
-				return badSchemata;
-			}
+    @Override
+    public List<Problem> verify(Batch batch, JTextArea console, FlagPanel flagPanel) {
+        List<Problem> badSchemata = new ArrayList<Problem>();
 
-			labelCount++;
-			publish(new VerifierBackground.VerifierUpdates(labelCount, totalLabels));
-		}
+        int totalLabels = batch.getLabels().size();
+        int labelCount = 0;
+        for (ColumnLabel label : batch.getLabels()) {
+            if (label.isField()) {
+                FieldLabel fieldLabel = (FieldLabel) label;
+                if (Util.regexMatchCounter(".*\\W+.*", fieldLabel.getSchema()) > 0) {
+                    Flag flag = new Flag(Flag.BAD_SCHEMA_NAME, "Bad schema name for row " + labelCount + ".", "", "",
+                            label.getColumnLabel(), "" + label.getRow(), batch.getAction());
+                    Problem badSchema = new Problem(label.getRow(), label.getColumnLabel(), generatesError(),
+                            "Bad schema name " + fieldLabel.getSchema());
+                    badSchema.setFlag(flag);
+                    batch.failedRow(label.getRow());
+                    badSchemata.add(badSchema);
+                    if (console != null) {
+                        console.append("\t" + badSchemata.toString() + "\n");
+                    }
+                    if (flagPanel != null) {
+                        flagPanel.appendRow(flag);
+                    }
+                } else {
+                    // System.out.println("looks fine: " + fieldLabel.getSchema());
+                }
+            }
 
-		return badSchemata;
-	}
+            if (isCancelled()) {
+                return badSchemata;
+            }
 
-	@Override
-	public boolean generatesError()
-	{
-		return true;
-	}
+            labelCount++;
+            publish(new VerifierBackground.VerifierUpdates(labelCount, totalLabels));
+        }
 
-	@Override
-	public String prettyName()
-	{
-		return "Syntactically Valid Schema Names Verifier";
-	}
+        return badSchemata;
+    }
 }
