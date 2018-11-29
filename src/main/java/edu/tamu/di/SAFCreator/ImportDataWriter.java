@@ -1,6 +1,7 @@
 package edu.tamu.di.SAFCreator;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.swing.JTextArea;
@@ -8,117 +9,120 @@ import javax.swing.SwingWorker;
 
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
+import edu.tamu.di.SAFCreator.model.ImportDataOperator;
 import edu.tamu.di.SAFCreator.model.Item;
 import edu.tamu.di.SAFCreator.model.Verifier;
 import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
-public class ImportDataWriter extends SwingWorker<Boolean, ImportDataWriter.WriterUpdates>
-{
-	private Batch batch = null;
-	private JTextArea console = null;
-	private FlagPanel flags = null;
+public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Updates> implements ImportDataOperator {
+    private Batch batch = null;
+    private JTextArea console = null;
+    private FlagPanel flags = null;
 
-	public class WriterUpdates {
-		private int processed;
-		private int total;
+    @Override
+    protected Boolean doInBackground() {
+        boolean noErrors = true;
+        int itemCount = 1;
+        int totalItems = batch.getItems().size();
+        String cancelledMessage = "Cancelled writing SAF.\n";
 
-		public WriterUpdates() {
-			processed = 0;
-			total = 0;
-		}
+        for (Item item : batch.getItems()) {
+            if (isCancelled()) {
+                console.append(cancelledMessage);
+                return null;
+            }
 
-		public WriterUpdates(int processed, int total) {
-			this.processed = processed;
-			this.total = total;
-		}
+            if (batch.isIgnoredRow(++itemCount)) {
+                File directory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + itemCount);
+                directory.delete();
 
-		public int getProcessed() {
-			return processed;
-		}
+                console.append("\tSkipped item (row " + itemCount + "), because of verification failure.\n");
+                publish(new ImportDataOperator.Updates(itemCount - 1, totalItems));
+                continue;
+            }
 
-		public int getTotal() {
-			return total;
-		}
+            if (isCancelled()) {
+                console.append(cancelledMessage);
+                return null;
+            }
 
-		public void setProcessed(int processed) {
-			this.processed = processed;
-		}
+            boolean hasError = false;
+            Method method;
+            List<Problem> problems = null;
+            try {
+                method = this.getClass().getMethod("isCancelled");
+                problems = item.writeItemSAF(this, method);
 
-		public void setTotal(int total) {
-			this.total = total;
-		}
-	}
+                for (Verifier.Problem problem : problems) {
+                    if (isCancelled()) {
+                        console.append(cancelledMessage);
+                        return null;
+                    }
 
-	public Batch getBatch() {
-		return batch;
-	}
+                    console.append("\t" + problem.toString() + "\n");
+                    if (problem.isError()) {
+                        hasError = true;
+                        noErrors = false;
+                    }
+                    if (problem.isFlagged()) {
+                        flags.appendRow(problem.getFlag());
+                    }
+                }
+            } catch (NoSuchMethodException | SecurityException e) {
+                e.printStackTrace();
+            }
 
-	public void setBatch(Batch batch) {
-		this.batch = batch;
-	}
+            if (isCancelled()) {
+                console.append(cancelledMessage);
+                return null;
+            }
 
-	public void setConsole(JTextArea console) {
-		this.console = console;
-	}
+            if (hasError) {
+                batch.failedRow(itemCount);
+                console.append("\tFailed to write item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
+            } else {
+                console.append("\tWrote item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
+            }
 
-	public void setFlags(FlagPanel flags) {
-		this.flags = flags;
-	}
+            publish(new ImportDataOperator.Updates(itemCount - 1, totalItems));
+        }
 
-	public JTextArea getConsole() {
-		return console;
-	}
+        if (isCancelled()) {
+            console.append(cancelledMessage);
+            return null;
+        }
 
-	public FlagPanel getFlags() {
-		return flags;
-	}
+        console.append("Done writing SAF data.\n");
+        return noErrors;
+    }
 
-	@Override
-	protected Boolean doInBackground()
-	{
-		boolean noErrors = true;
-		int itemCount = 1;
-		int totalItems = batch.getItems().size();
-		for(Item item : batch.getItems())
-		{
-			if (batch.isIgnoredRow(++itemCount)) {
-				File directory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + itemCount);
-				directory.delete();
+    @Override
+    public Batch getBatch() {
+        return batch;
+    }
 
-				console.append("\tSkipped item (row " + itemCount + "), because of verification failure.\n");
-				publish(new ImportDataWriter.WriterUpdates(itemCount-1, totalItems));
-				continue;
-			}
+    @Override
+    public JTextArea getConsole() {
+        return console;
+    }
 
-			boolean hasError = false;
-			List<Problem> problems = item.writeItemSAF();
-			for(Verifier.Problem problem : problems)
-			{
-				console.append("\t" + problem.toString()+"\n");
-				if (problem.isError()) {
-					hasError = true;
-					noErrors = false;
-				}
-				if (problem.isFlagged()) {
-					flags.appendRow(problem.getFlag());
-				}
-			}
+    @Override
+    public FlagPanel getFlags() {
+        return flags;
+    }
 
-			if (hasError) {
-				console.append("\tFailed to write item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
-			} else {
-				console.append("\tWrote item (row " + itemCount + ") " + item.getSAFDirectory() + ".\n");
-			}
+    @Override
+    public void setBatch(Batch batch) {
+        this.batch = batch;
+    }
 
-			if (isCancelled()) {
-				console.append("Cancelled writing SAF.\n");
-				return (Boolean) null;
-			}
+    @Override
+    public void setConsole(JTextArea console) {
+        this.console = console;
+    }
 
-			publish(new ImportDataWriter.WriterUpdates(itemCount-1, totalItems));
-		}
-
-		console.append("Done writing SAF data.\n");
-		return noErrors;
-	}
+    @Override
+    public void setFlags(FlagPanel flags) {
+        this.flags = flags;
+    }
 }
