@@ -1,11 +1,12 @@
-package edu.tamu.di.SAFCreator.model;
+package edu.tamu.di.SAFCreator.model.verify;
 
 import java.util.List;
 
 import javax.swing.SwingWorker;
 
-public abstract class VerifierBackground extends SwingWorker<List<Verifier.Problem>, VerifierBackground.VerifierUpdates>
-        implements Verifier {
+import edu.tamu.di.SAFCreator.model.Problem;
+
+public abstract class VerifierBackground extends SwingWorker<List<Problem>, VerifierBackground.VerifierUpdates> implements Verifier {
 
     public class VerifierUpdates {
         private int processed;
@@ -46,7 +47,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Verifier.Probl
 
     public VerifierBackground(VerifierProperty settings) {
         this();
-        enabled = settings.isEnabled();
+        enabled = settings.getActivated();
     }
 
     /**
@@ -62,7 +63,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Verifier.Probl
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean getActivated() {
         return enabled;
     }
 
@@ -72,7 +73,7 @@ public abstract class VerifierBackground extends SwingWorker<List<Verifier.Probl
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setActivated(boolean enabled) {
         this.enabled = enabled;
     }
 }

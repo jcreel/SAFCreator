@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator;
+package edu.tamu.di.SAFCreator.model.importData;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -11,8 +11,7 @@ import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.ImportDataOperator;
 import edu.tamu.di.SAFCreator.model.Item;
-import edu.tamu.di.SAFCreator.model.Verifier;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
+import edu.tamu.di.SAFCreator.model.Problem;
 
 public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Updates> implements ImportDataOperator {
     private Batch batch = null;
@@ -53,7 +52,7 @@ public class ImportDataWriter extends SwingWorker<Boolean, ImportDataOperator.Up
                 method = this.getClass().getMethod("isCancelled");
                 problems = item.writeItemSAF(this, method);
 
-                for (Verifier.Problem problem : problems) {
+                for (Problem problem : problems) {
                     if (isCancelled()) {
                         console.append(cancelledMessage);
                         return null;

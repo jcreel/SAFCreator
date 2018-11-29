@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator.verify;
+package edu.tamu.di.SAFCreator.model.verify.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,9 @@ import edu.tamu.di.SAFCreator.model.ColumnLabel;
 import edu.tamu.di.SAFCreator.model.FieldLabel;
 import edu.tamu.di.SAFCreator.model.Flag;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
-import edu.tamu.di.SAFCreator.model.VerifierBackground;
-import edu.tamu.di.SAFCreator.model.VerifierProperty;
+import edu.tamu.di.SAFCreator.model.Problem;
+import edu.tamu.di.SAFCreator.model.verify.VerifierBackground;
+import edu.tamu.di.SAFCreator.model.verify.VerifierProperty;
 
 public class ValidSchemaNameVerifierImpl extends VerifierBackground {
 
