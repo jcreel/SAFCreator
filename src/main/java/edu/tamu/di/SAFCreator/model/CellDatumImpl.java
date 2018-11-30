@@ -1,44 +1,45 @@
 package edu.tamu.di.SAFCreator.model;
 
-public class CellDatumImpl implements CellDatum 
-{
-	private int column;
-	private int row;
+public class CellDatumImpl implements CellDatum {
+    private int column;
+    private int row;
 
-	public int getColumn() {
-		return column;
-	}
 
-	public String getColumnLabel() {
-		int dividend = column;
-		String label = "";
-		int modulo;
-		char character;
+    @Override
+    public int getColumn() {
+        return column;
+    }
 
-		while (dividend > 0)
-		{
-			modulo = (dividend - 1) % 26;
-			character = Character.valueOf((char) (65 + modulo));
+    @Override
+    public String getColumnLabel() {
+        int dividend = column;
+        String label = "";
+        int modulo;
+        char character;
 
-			label = character + label;
-			dividend = (int) ((dividend - modulo) / 26);
-		}
+        while (dividend > 0) {
+            modulo = (dividend - 1) % 26;
+            character = Character.valueOf((char) (65 + modulo));
 
-		return label;
-	}
+            label = character + label;
+            dividend = (dividend - modulo) / 26;
+        }
 
-	public void setColumn(int column)
-	{
-		this.column = column;
-	}
+        return label;
+    }
 
-	public int getRow() {
-		return row;
-	}
-	
-	public void setRow(int row)
-	{
-		this.row = row;
-	}
+    @Override
+    public int getRow() {
+        return row;
+    }
 
+    @Override
+    public void setColumn(int column) {
+        this.column = column;
+    }
+
+    @Override
+    public void setRow(int row) {
+        this.row = row;
+    }
 }
