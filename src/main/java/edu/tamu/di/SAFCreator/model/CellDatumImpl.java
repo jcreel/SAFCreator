@@ -4,6 +4,7 @@ public class CellDatumImpl implements CellDatum {
     private int column;
     private int row;
 
+
     @Override
     public int getColumn() {
         return column;
@@ -21,7 +22,7 @@ public class CellDatumImpl implements CellDatum {
             character = Character.valueOf((char) (65 + modulo));
 
             label = character + label;
-            dividend = (int) ((dividend - modulo) / 26);
+            dividend = (dividend - modulo) / 26;
         }
 
         return label;
@@ -41,5 +42,4 @@ public class CellDatumImpl implements CellDatum {
     public void setRow(int row) {
         this.row = row;
     }
-
 }

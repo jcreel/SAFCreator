@@ -1,4 +1,4 @@
-package edu.tamu.di.SAFCreator;
+package edu.tamu.di.SAFCreator.model.importData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +22,7 @@ import org.apache.tika.mime.MimeTypes;
 
 import com.opencsv.CSVReader;
 
+import edu.tamu.di.SAFCreator.Util;
 import edu.tamu.di.SAFCreator.model.Batch;
 import edu.tamu.di.SAFCreator.model.Bitstream;
 import edu.tamu.di.SAFCreator.model.Bundle;
@@ -32,10 +33,9 @@ import edu.tamu.di.SAFCreator.model.FileLabel;
 import edu.tamu.di.SAFCreator.model.FlagPanel;
 import edu.tamu.di.SAFCreator.model.HandleLabel;
 import edu.tamu.di.SAFCreator.model.Item;
+import edu.tamu.di.SAFCreator.model.Problem;
 import edu.tamu.di.SAFCreator.model.SchematicFieldSet;
 import edu.tamu.di.SAFCreator.model.StubLabel;
-import edu.tamu.di.SAFCreator.model.Verifier;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class ImportDataProcessorImpl implements ImportDataProcessor {
     private static String PdfPrefix = "document-";
@@ -70,9 +70,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
     }
 
     @Override
-    public Batch loadBatch(String metadataInputFileName, String sourceDirectoryName, String outputDirectoryName,
-            JTextArea console) {
-
+    public Batch loadBatch(String metadataInputFileName, String sourceDirectoryName, String outputDirectoryName, JTextArea console) {
         File sourceDirFileForChecking = new File(sourceDirectoryName);
         File outputDirFileForChecking = new File(outputDirectoryName);
 
@@ -127,6 +125,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
         batch.setOutputSAFDir(outputDirectoryName);
         List<ColumnLabel> columnLabels = new ArrayList<ColumnLabel>();
         CSVReader reader = null;
+        int linenumber = 1;
 
         try {
             reader = new CSVReader(new FileReader(metadataInputFileName));
@@ -163,8 +162,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                     fieldLabel.setRow(1);
                     columnLabels.add(fieldLabel);
                 } else {
-                    console.append("\tWARNING: Ignoring invalid label for column " + columnNumberToLabel(column) + ": "
-                            + cell + "\n");
+                    console.append("\tWARNING: Ignoring invalid label for column " + columnNumberToLabel(column) + ": " + cell + "\n");
                     StubLabel stubLabel = new StubLabel();
                     stubLabel.setColumn(column);
                     stubLabel.setRow(1);
@@ -183,7 +181,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                 return null;
             }
 
-            int linenumber = 1;
             while ((nextLine = reader.readNext()) != null) {
                 linenumber++;
                 Item item = new Item(linenumber, batch);
@@ -251,8 +248,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         try {
                             uri = URI.create(cell);
                         } catch (IllegalArgumentException e1) {
-                            console.append("\tERROR: row " + linenumber + " column " + columnNumberToLabel(column)
-                                    + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
+                            console.append("\tERROR: row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
                             errorState = true;
                             addItem = false;
                             break;
@@ -260,8 +256,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 
                         if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
                             String scheme = uri.getScheme().toString();
-                            if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")
-                                    || scheme.equalsIgnoreCase("ftp")) {
+                            if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
                                 Bitstream bitstream = new Bitstream();
                                 bitstream.setBundle(bundle);
                                 bitstream.setSource(uri);
@@ -270,8 +265,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                 bitstream.setRow(linenumber);
                                 bundle.addBitstream(bitstream);
                             } else {
-                                console.append("\tWARNING: row " + linenumber + " column " + columnNumberToLabel(column)
-                                        + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
+                                console.append("\tWARNING: row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
                             }
                         } else {
                             int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
@@ -286,12 +280,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                 // otherwise, just get the single named file
                                 if (value.endsWith(File.separator + "*")) {
                                     String directoryName = value.substring(0, value.length() - 2);
-                                    File directory = new File(
-                                            batch.getinputFilesDir() + File.separator + directoryName);
+                                    File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
                                     File[] files = directory.listFiles();
                                     if (files == null) {
-                                        console.append("\nWARNING: No files found for item directory "
-                                                + directory.getPath() + " ***\n");
+                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " ***\n");
                                     } else {
                                         for (File file : files) {
                                             Bitstream bitstream = new Bitstream();
@@ -304,7 +296,15 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                         }
                                     }
                                 } else {
-                                    URI fileUri = URI.create(batch.getinputFilesDir() + File.separator + value);
+                                    String fileUriPath = batch.getinputFilesDir() + File.separator + value;
+                                    URI fileUri = null;
+                                    try {
+                                        fileUri = URI.create(fileUriPath);
+                                    } catch (IllegalArgumentException e) {
+                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + "'.\n");
+                                        errorState = true;
+                                    }
+
                                     if (fileUri != null) {
                                         Bitstream bitstream = new Bitstream();
                                         bitstream.setBundle(bundle);
@@ -329,6 +329,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                 }
             }
             reader.close();
+            reader = null;
         } catch (FileNotFoundException e) {
             console.append("\tERROR: Metadata input file " + metadataInputFileName + " does not exist.\n");
             e.printStackTrace();
@@ -337,6 +338,18 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
             console.append("\tERROR: CSV file reader failed to read line or failed to close.\n");
             e.printStackTrace();
             errorState = true;
+        } catch (IllegalArgumentException e) {
+            console.append("\tERROR: CSV file reader failed to read line " + linenumber + ".\n");
+            e.printStackTrace();
+            errorState = true;
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                    reader = null;
+                }
+            } catch (IOException e) {
+            }
         }
 
         if (errorState) {
@@ -344,7 +357,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
         } else {
             return batch;
         }
-
     }
 
     @Override
@@ -366,7 +378,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                 method = this.getClass().getMethod("isCancelled");
                 problems = item.writeItemSAF(this, method);
 
-                for (Verifier.Problem problem : problems) {
+                for (Problem problem : problems) {
                     console.append("\t" + problem.toString() + "\n");
                     if (problem.isError()) {
                         hasError = true;

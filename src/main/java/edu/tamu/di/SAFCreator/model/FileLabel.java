@@ -3,6 +3,7 @@ package edu.tamu.di.SAFCreator.model;
 public class FileLabel extends CellDatumImpl implements ColumnLabel {
     private String bundleName;
 
+
     public FileLabel(String bundleName) {
         setBundleName(bundleName);
     }

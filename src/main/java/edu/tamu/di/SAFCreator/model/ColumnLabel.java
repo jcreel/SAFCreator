@@ -6,5 +6,4 @@ public interface ColumnLabel extends CellDatum {
     public boolean isFile();
 
     public boolean isHandle();
-
 }

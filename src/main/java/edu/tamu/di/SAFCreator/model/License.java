@@ -10,6 +10,7 @@ public class License {
     private String bundleName;
     private String licenseText;
 
+
     public String getBundleName() {
         return bundleName;
     }

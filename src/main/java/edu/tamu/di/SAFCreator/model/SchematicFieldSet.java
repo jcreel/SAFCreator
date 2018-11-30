@@ -8,6 +8,7 @@ public class SchematicFieldSet {
     private String schemaName;
     private List<Field> fields = new ArrayList<Field>();
 
+
     public void addField(Field field) {
         fields.add(field);
     }
