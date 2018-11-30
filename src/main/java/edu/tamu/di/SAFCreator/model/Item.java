@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.di.SAFCreator.Util;
-import edu.tamu.di.SAFCreator.model.Verifier.Problem;
 
 public class Item {
     private Batch batch;
@@ -20,6 +19,7 @@ public class Item {
     private boolean cancelled;
 
     private File itemDirectory;
+
 
     public Item(int row, Batch batch) {
         this.batch = batch;
@@ -97,6 +97,24 @@ public class Item {
         this.handle = handle;
     }
 
+    public List<Problem> writeItemSAF(Object object, Method method) {
+        List<Problem> problems = new ArrayList<Problem>();
+
+        cancelled = false;
+
+        if (!cancelled) {
+            writeContents(problems, object, method);
+        }
+        if (!cancelled) {
+            writeMetadata(problems, object, method);
+        }
+        if (!cancelled && getHandle() != null) {
+            writeHandle(problems, object, method);
+        }
+
+        return problems;
+    }
+
     private void writeContents(List<Problem> problems, Object object, Method method) {
         String contentsString = "";
         for (Bundle bundle : bundles) {
@@ -137,12 +155,10 @@ public class Item {
             }
             Util.setFileContents(contentsFile, contentsString);
         } catch (FileNotFoundException e) {
-            Problem problem = new Problem(true, "Unable to write to missing contents file for item directory "
-                    + getSAFDirectory() + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Unable to write to missing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         } catch (IOException e) {
-            Problem problem = new Problem(true, "Error writing contents file for item directory " + getSAFDirectory()
-                    + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Error writing contents file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         }
     }
@@ -155,32 +171,12 @@ public class Item {
             }
             Util.setFileContents(handleFile, getHandle());
         } catch (FileNotFoundException e) {
-            Problem problem = new Problem(true, "Unable to write to missing handle file for item directory "
-                    + getSAFDirectory() + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Unable to write to missing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         } catch (IOException e) {
-            Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory()
-                    + ", reason: " + e.getMessage());
+            Problem problem = new Problem(true, "Error writing handle file for item directory " + getSAFDirectory() + ", reason: " + e.getMessage());
             problems.add(problem);
         }
-    }
-
-    public List<Problem> writeItemSAF(Object object, Method method) {
-        List<Problem> problems = new ArrayList<Problem>();
-
-        cancelled = false;
-
-        if (!cancelled) {
-            writeContents(problems, object, method);
-        }
-        if (!cancelled) {
-            writeMetadata(problems, object, method);
-        }
-        if (!cancelled && getHandle() != null) {
-            writeHandle(problems, object, method);
-        }
-
-        return problems;
     }
 
     private void writeMetadata(List<Problem> problems, Object object, Method method) {
@@ -193,12 +189,10 @@ public class Item {
                 }
                 Util.setFileContents(metadataFile, schema.getXML());
             } catch (FileNotFoundException e) {
-                Problem problem = new Problem(true, "Unable to write to missing metadata file "
-                        + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
+                Problem problem = new Problem(true, "Unable to write to missing metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
                 problems.add(problem);
             } catch (IOException e) {
-                Problem problem = new Problem(true, "Unable to create metadata file " + metadataFile.getAbsolutePath()
-                        + ", reason: " + e.getMessage());
+                Problem problem = new Problem(true, "Unable to create metadata file " + metadataFile.getAbsolutePath() + ", reason: " + e.getMessage());
                 problems.add(problem);
             }
         }

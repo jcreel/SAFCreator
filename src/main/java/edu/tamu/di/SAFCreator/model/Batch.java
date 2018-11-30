@@ -4,12 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.tamu.di.SAFCreator.enums.BatchStatus;
+
 public class Batch {
-
-    public static enum BatchStatus {
-        UNVERIFIED, FAILED_VERIFICATION, VERIFIED
-    };
-
     private String name;
     private BatchStatus status;
     private File inputFilesDir;
@@ -19,6 +16,7 @@ public class Batch {
     private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
     private Boolean ignoreFiles = false;
     private Boolean processUri = false;
+    private Boolean allowSelfSigned = true;
     private Boolean remoteBitstreamErrorContinue = false;
     private int itemProcessDelay = 0;
     private int remoteFileTimeout = 10000;
@@ -26,6 +24,7 @@ public class Batch {
     private List<Integer> ignoreRows = new ArrayList<Integer>();
     private List<Integer> failedRows = new ArrayList<Integer>();
     private String action = "";
+
 
     /**
      * Add a new item to the list of items contained within this batch.
@@ -66,6 +65,16 @@ public class Batch {
         return action;
     }
 
+    /**
+     * @return Whether or not self-signed certificates are always allowed.
+     */
+    public Boolean getAllowSelfSigned() {
+        return allowSelfSigned;
+    }
+
+    /**
+     * @return Whether or not to ignore files.
+     */
     public Boolean getIgnoreFiles() {
         return ignoreFiles;
     }
@@ -224,6 +233,20 @@ public class Batch {
         this.action = action;
     }
 
+    /**
+     * Set the whether or not to always allow self-signed SSL certificates.
+     *
+     * @param allowSelfSigned
+     */
+    public void setAllowSelfSigned(Boolean allowSelfSigned) {
+        this.allowSelfSigned = allowSelfSigned;
+    }
+
+    /**
+     * Set the whether or not to ignore files.
+     *
+     * @param ignoreFiles
+     */
     public void setIgnoreFiles(Boolean ignoreFiles) {
         this.ignoreFiles = ignoreFiles;
     }
