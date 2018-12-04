@@ -67,7 +67,9 @@ public class Bitstream extends CellDatumImpl {
             return;
         }
 
-        if (source.isAbsolute() && !source.getScheme().toString().equalsIgnoreCase("file")) {
+        String sourceScheme = source.getScheme() == null ? "file" : source.getScheme().toString();
+
+        if (source.isAbsolute() && !sourceScheme.equalsIgnoreCase("file")) {
             int itemProcessDelay = bundle.getItem().getBatch().getItemProcessDelay();
             if (itemProcessDelay > 0) {
                 try {
@@ -82,7 +84,7 @@ public class Bitstream extends CellDatumImpl {
 
             try {
                 URL url = source.toURL();
-                if (source.getScheme().toString().equalsIgnoreCase("ftp")) {
+                if (sourceScheme.equalsIgnoreCase("ftp")) {
                     FTPClient conn = new FTPClient();
 
                     try {
