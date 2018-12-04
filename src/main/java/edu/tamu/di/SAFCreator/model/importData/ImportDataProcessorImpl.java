@@ -261,8 +261,8 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                 break;
                             }
 
-                            if (uri.isAbsolute() && uri.getScheme() != null && !uri.getScheme().toString().equalsIgnoreCase("file")) {
-                                String scheme = uri.getScheme().toString();
+                            String scheme = uri.getScheme() == null ? "file" : uri.getScheme().toString();
+                            if (uri.isAbsolute() && scheme.equalsIgnoreCase("file")) {
                                 if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
                                     Bitstream bitstream = new Bitstream();
                                     bitstream.setBundle(bundle);
