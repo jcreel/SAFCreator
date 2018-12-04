@@ -378,7 +378,7 @@ public class Bitstream extends CellDatumImpl {
                 File file = new File(source.getPath());
                 FileUtils.copyFile(file, destination);
             } catch (IOException e) {
-                Flag flag = new Flag(Flag.IO_FAILURE, "Source file path failed to copy, reason" + e.getMessage() + ".", "local", source.toString(), getColumnLabel(), "" + getRow(), action);
+                Flag flag = new Flag(Flag.IO_FAILURE, "Source file path failed to copy, reason: " + e.getMessage() + ".", "local", source.toString(), getColumnLabel(), "" + getRow(), action);
                 Problem problem = new Problem(getRow(), getColumnLabel(), true, "Source file path failed to copy.", flag);
                 problems.add(problem);
             }
