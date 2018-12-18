@@ -213,20 +213,22 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         continue;
                     }
 
+                    // eliminate trailing ||
+                    if (cell.endsWith("||")) {
+                        cell = cell.substring(0, cell.length() - 2);
+                    }
+
+                    // break cell into multiple values separated by '||'.
+                    int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
+                    String[] values = cell.split("\\|\\|");
+
                     if (label.isField()) {
                         // get the Field's schema
                         FieldLabel fieldLabel = (FieldLabel) label;
                         String schemaName = Util.getSchemaName(fieldLabel.getSchema());
                         SchematicFieldSet schema = item.getOrCreateSchema(schemaName);
 
-                        // eliminate trailing ||
-                        if (cell.endsWith("||")) {
-                            cell = cell.substring(0, cell.length() - 2);
-                        }
-
                         // create Field(s) within the schema
-                        int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
-                        String[] values = cell.split("\\|\\|");
                         for (int valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
                             String value = values[valueCounter].trim();
                             Field field = new Field();
@@ -244,35 +246,35 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         String bundleName = fileLabel.getBundleName();
                         Bundle bundle = item.getOrCreateBundle(bundleName);
                         URI uri = null;
+                        int valueCounter = 0;
+                        String value = null;
 
-                        try {
-                            uri = URI.create(cell);
-                        } catch (IllegalArgumentException e1) {
-                            console.append("\tERROR: row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
-                            errorState = true;
-                            addItem = false;
-                            break;
-                        }
+                        for (valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
+                            value = values[valueCounter].trim();
 
-                        if (uri.isAbsolute() && !uri.getScheme().toString().equalsIgnoreCase("file")) {
-                            String scheme = uri.getScheme().toString();
-                            if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
-                                Bitstream bitstream = new Bitstream();
-                                bitstream.setBundle(bundle);
-                                bitstream.setSource(uri);
-                                bitstream.setRelativePath(PdfPrefix + (++fileNumber) + PdfSuffix);
-                                bitstream.setColumn(column);
-                                bitstream.setRow(linenumber);
-                                bundle.addBitstream(bitstream);
-                            } else {
-                                console.append("\tWARNING: row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
+                            try {
+                                uri = URI.create(value);
+                            } catch (IllegalArgumentException e1) {
+                                console.append("\tERROR: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
+                                errorState = true;
+                                addItem = false;
+                                break;
                             }
-                        } else {
-                            int numberOfValues = Util.regexMatchCounter("\\|\\|", cell) + 1;
-                            String[] values = cell.split("\\|\\|");
-                            for (int valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
-                                String value = values[valueCounter].trim();
 
+                            String scheme = uri.getScheme() == null ? "file" : uri.getScheme().toString();
+                            if (uri.isAbsolute() && !scheme.equalsIgnoreCase("file")) {
+                                if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
+                                    Bitstream bitstream = new Bitstream();
+                                    bitstream.setBundle(bundle);
+                                    bitstream.setSource(uri);
+                                    bitstream.setRelativePath(PdfPrefix + (++fileNumber) + PdfSuffix);
+                                    bitstream.setColumn(column);
+                                    bitstream.setRow(linenumber);
+                                    bundle.addBitstream(bitstream);
+                                } else {
+                                    console.append("\tWARNING: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
+                                }
+                            } else {
                                 value = value.replace("/", File.separator);
 
                                 // if the value is of the form foo/* then get all the files in foo
@@ -283,7 +285,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
                                     File[] files = directory.listFiles();
                                     if (files == null) {
-                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " ***\n");
+                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + " ***\n");
                                     } else {
                                         for (File file : files) {
                                             Bitstream bitstream = new Bitstream();
@@ -301,7 +303,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     try {
                                         fileUri = URI.create(fileUriPath);
                                     } catch (IllegalArgumentException e) {
-                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + "'.\n");
+                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + "'.\n");
                                         errorState = true;
                                     }
 
@@ -315,6 +317,10 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                         bundle.addBitstream(bitstream);
                                     }
                                 }
+                            }
+
+                            if (errorState) {
+                                break;
                             }
                         }
                     } else if (label.isHandle()) {
