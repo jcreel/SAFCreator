@@ -278,7 +278,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     console.append("\tWARNING: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
                                 }
                             } else {
-                                value = value.replace("/", File.separator);
+                                if (!File.separator.equals("/")) {
+                                    value = value.replace("/", File.separator);
+                                }
 
                                 // if the value is of the form foo/* then get all the files in foo
                                 // (note that at present this assumes no further subdirectories under foo)
