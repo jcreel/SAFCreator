@@ -289,10 +289,12 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     String directoryName = value.substring(0, value.length() - 2);
                                     File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
                                     File[] files = directory.listFiles();
-                                    if (files == null) {
-                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + " ***\n");
-                                    } else {
+                                    boolean noFilesAdded = true;
+                                    if (files != null) {
                                         for (File file : files) {
+                                            if (file.isDirectory()) {
+                                                continue;
+                                            }
                                             Bitstream bitstream = new Bitstream();
                                             bitstream.setBundle(bundle);
                                             bitstream.setSource(file.toURI());
@@ -300,7 +302,12 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                             bitstream.setColumn(column);
                                             bitstream.setRow(linenumber);
                                             bundle.addBitstream(bitstream);
+                                            noFilesAdded = false;
                                         }
+                                    }
+
+                                    if (noFilesAdded) {
+                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + " ***\n");
                                     }
                                 } else {
                                     String fileUriPath = batch.getinputFilesDir() + File.separator + value;
