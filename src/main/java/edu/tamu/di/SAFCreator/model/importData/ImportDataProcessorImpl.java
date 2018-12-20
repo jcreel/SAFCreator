@@ -249,6 +249,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         URI uri = null;
                         int valueCounter = 0;
                         String value = null;
+                        File filePath = null;
 
                         for (valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
                             value = values[valueCounter].trim();
@@ -301,23 +302,14 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     }
                                 } else {
                                     String fileUriPath = batch.getinputFilesDir() + File.separator + value;
-                                    URI fileUri = null;
-                                    try {
-                                        fileUri = URI.create(fileUriPath);
-                                    } catch (IllegalArgumentException e) {
-                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + "'.\n");
-                                        errorState = true;
-                                    }
-
-                                    if (fileUri != null) {
-                                        Bitstream bitstream = new Bitstream();
-                                        bitstream.setBundle(bundle);
-                                        bitstream.setSource(fileUri);
-                                        bitstream.setRelativePath(value);
-                                        bitstream.setColumn(column);
-                                        bitstream.setRow(linenumber);
-                                        bundle.addBitstream(bitstream);
-                                    }
+                                    filePath = new File(fileUriPath);
+                                    Bitstream bitstream = new Bitstream();
+                                    bitstream.setBundle(bundle);
+                                    bitstream.setSource(filePath.toURI());
+                                    bitstream.setRelativePath(value);
+                                    bitstream.setColumn(column);
+                                    bitstream.setRow(linenumber);
+                                    bundle.addBitstream(bitstream);
                                 }
                             }
 
