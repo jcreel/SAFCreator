@@ -106,6 +106,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                 }
             } catch (IOException e) {
                 console.append("\tERROR: input CSV file " + metadataInputFile + " had an I/O error, reason: " + e.getMessage() + ".\n");
+                e.printStackTrace();
                 return null;
             } finally {
                 if (tikaStream != null) {
@@ -248,6 +249,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         URI uri = null;
                         int valueCounter = 0;
                         String value = null;
+                        File filePath = null;
 
                         for (valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
                             value = values[valueCounter].trim();
@@ -256,6 +258,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                 uri = URI.create(value);
                             } catch (IllegalArgumentException e1) {
                                 console.append("\tERROR: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
+                                e1.printStackTrace();
                                 errorState = true;
                                 addItem = false;
                                 break;
@@ -275,7 +278,9 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     console.append("\tWARNING: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": URL protocol must be one of: HTTP, HTTPS, or FTP. ***\n");
                                 }
                             } else {
-                                value = value.replace("/", File.separator);
+                                if (!File.separator.equals("/")) {
+                                    value = value.replace("/", File.separator);
+                                }
 
                                 // if the value is of the form foo/* then get all the files in foo
                                 // (note that at present this assumes no further subdirectories under foo)
@@ -284,10 +289,12 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                     String directoryName = value.substring(0, value.length() - 2);
                                     File directory = new File(batch.getinputFilesDir() + File.separator + directoryName);
                                     File[] files = directory.listFiles();
-                                    if (files == null) {
-                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + " ***\n");
-                                    } else {
+                                    boolean noFilesAdded = true;
+                                    if (files != null) {
                                         for (File file : files) {
+                                            if (file.isDirectory()) {
+                                                continue;
+                                            }
                                             Bitstream bitstream = new Bitstream();
                                             bitstream.setBundle(bundle);
                                             bitstream.setSource(file.toURI());
@@ -295,27 +302,23 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                             bitstream.setColumn(column);
                                             bitstream.setRow(linenumber);
                                             bundle.addBitstream(bitstream);
+                                            noFilesAdded = false;
                                         }
+                                    }
+
+                                    if (noFilesAdded) {
+                                        console.append("\nWARNING: No files found for item directory " + directory.getPath() + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + " ***\n");
                                     }
                                 } else {
                                     String fileUriPath = batch.getinputFilesDir() + File.separator + value;
-                                    URI fileUri = null;
-                                    try {
-                                        fileUri = URI.create(fileUriPath);
-                                    } catch (IllegalArgumentException e) {
-                                        console.append("\tERROR: CSV file reader failed to read line " + linenumber + " due to invalid URI: '" + fileUriPath + " at index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + "'.\n");
-                                        errorState = true;
-                                    }
-
-                                    if (fileUri != null) {
-                                        Bitstream bitstream = new Bitstream();
-                                        bitstream.setBundle(bundle);
-                                        bitstream.setSource(fileUri);
-                                        bitstream.setRelativePath(value);
-                                        bitstream.setColumn(column);
-                                        bitstream.setRow(linenumber);
-                                        bundle.addBitstream(bitstream);
-                                    }
+                                    filePath = new File(fileUriPath);
+                                    Bitstream bitstream = new Bitstream();
+                                    bitstream.setBundle(bundle);
+                                    bitstream.setSource(filePath.toURI());
+                                    bitstream.setRelativePath(value);
+                                    bitstream.setColumn(column);
+                                    bitstream.setRow(linenumber);
+                                    bundle.addBitstream(bitstream);
                                 }
                             }
 
@@ -341,11 +344,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
             e.printStackTrace();
             errorState = true;
         } catch (IOException e) {
-            console.append("\tERROR: CSV file reader failed to read line or failed to close.\n");
+            console.append("\tERROR: CSV file reader failed to read line or failed to close, reason: " + e.getMessage() + ".\n");
             e.printStackTrace();
             errorState = true;
         } catch (IllegalArgumentException e) {
-            console.append("\tERROR: CSV file reader failed to read line " + linenumber + ".\n");
+            console.append("\tERROR: CSV file reader failed to read line " + linenumber + ", reason: " + e.getMessage() + ".\n");
             e.printStackTrace();
             errorState = true;
         } finally {
