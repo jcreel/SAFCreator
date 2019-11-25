@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JTextArea;
 
@@ -250,22 +251,36 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                         int valueCounter = 0;
                         String value = null;
                         File filePath = null;
+                        Boolean valueIsLocalFile = null;
 
                         for (valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
                             value = values[valueCounter].trim();
+                            
+                            String[] valueParts = value.split("://");
+                            String prospectiveProtocol = valueParts[0];
+                            
+                            if(valueParts.length > 1 && (prospectiveProtocol.equalsIgnoreCase("http") || prospectiveProtocol.equalsIgnoreCase("https") || value.equalsIgnoreCase("ftp")))
+                                valueIsLocalFile = false;
+                            else
+                                valueIsLocalFile = true;
+                            
 
-                            try {
-                                uri = URI.create(value);
-                            } catch (IllegalArgumentException e1) {
-                                console.append("\tERROR: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
-                                e1.printStackTrace();
-                                errorState = true;
-                                addItem = false;
-                                break;
+                            String scheme = valueIsLocalFile ? "file" : prospectiveProtocol;
+                            
+                            if(!valueIsLocalFile) {
+                                try {
+                                    uri = URI.create(value);
+                                } catch (IllegalArgumentException e1) {
+                                    console.append("\tERROR: index " + valueCounter + " row " + linenumber + " column " + columnNumberToLabel(column) + ": invalid file path/URI, reason: " + e1.getMessage() + ".\n");
+                                    e1.printStackTrace();
+                                    errorState = true;
+                                    addItem = false;
+                                    break;
+                                }
                             }
 
-                            String scheme = uri.getScheme() == null ? "file" : uri.getScheme().toString();
-                            if (uri.isAbsolute() && !scheme.equalsIgnoreCase("file")) {
+                            
+                            if (uri != null && uri.isAbsolute() && !scheme.equalsIgnoreCase("file")) {
                                 if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
                                     Bitstream bitstream = new Bitstream();
                                     bitstream.setBundle(bundle);
