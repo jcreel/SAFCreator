@@ -10,7 +10,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import javax.swing.JTextArea;
 
@@ -255,19 +254,18 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 
                         for (valueCounter = 0; valueCounter < numberOfValues; valueCounter++) {
                             value = values[valueCounter].trim();
-                            
+
                             String[] valueParts = value.split("://");
                             String prospectiveProtocol = valueParts[0];
-                            
-                            if(valueParts.length > 1 && (prospectiveProtocol.equalsIgnoreCase("http") || prospectiveProtocol.equalsIgnoreCase("https") || value.equalsIgnoreCase("ftp")))
+
+                            if (valueParts.length > 1 && (prospectiveProtocol.equalsIgnoreCase("http") || prospectiveProtocol.equalsIgnoreCase("https") || value.equalsIgnoreCase("ftp")))
                                 valueIsLocalFile = false;
                             else
                                 valueIsLocalFile = true;
-                            
 
                             String scheme = valueIsLocalFile ? "file" : prospectiveProtocol;
-                            
-                            if(!valueIsLocalFile) {
+
+                            if (!valueIsLocalFile) {
                                 try {
                                     uri = URI.create(value);
                                 } catch (IllegalArgumentException e1) {
@@ -279,7 +277,6 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                 }
                             }
 
-                            
                             if (uri != null && uri.isAbsolute() && !scheme.equalsIgnoreCase("file")) {
                                 if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("ftp")) {
                                     Bitstream bitstream = new Bitstream();
