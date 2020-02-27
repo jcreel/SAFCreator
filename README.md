@@ -3,10 +3,12 @@ is a desktop application written in Java.  Its purpose is to prepare <a href="ht
 
 ## Deployment basics
 Requires Apache Maven and a JVM.
-Build with "mvn clean package".  Run (replacing the version as appropriate) with "java -jar target/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar"
 
 If you prefer not to build from source, a compiled jar is provided at this link:
 https://github.com/jcreel/SAFCreator/raw/master/jarfile/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar
+
+Build with "mvn clean package".  Run (replacing the version as appropriate) with "java -jar target/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar"
+
 
 ## Usage instructions
 Basically, you need a spreadsheet (a CSV file) with the metadata and references to the files.  Each row represents one item, and each column a metadata field.  This is a typical starting format for digital library metadata.
