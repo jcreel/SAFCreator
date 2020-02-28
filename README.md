@@ -2,12 +2,12 @@
 is a desktop application written in Java.  Its purpose is to prepare <a href="https://wiki.duraspace.org/display/DSDOC6x/Importing+and+Exporting+Items+via+Simple+Archive+Format">Simple Archive Format (SAF)</a> archives for importation into <a href="https://duraspace.org/dspace/">DSpace</a> repositories.  There are a number of good tools for this purpose, and every use case is different.  Many digital curators choose to package their SAF with local custom scripts.  But general purpose tools can be immensely useful, especially when supplemented by custom scripts.  Other popular general-purpose SAF support tools that may meet your needs include <a href="https://github.com/cstarcher/pysaf">PySAF</a> and <a href="https://github.com/DSpace-Labs/SAFBuilder">SAFBuilder</a>.
 
 ## Deployment basics
-Requires Apache Maven and a JVM.
+Running SAFCreator requires a JVM.
 
 If you prefer not to build from source, a compiled jar is provided at this link:
 https://github.com/jcreel/SAFCreator/raw/master/jarfile/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar
 
-Build with "mvn clean package".  Run (replacing the version as appropriate) with "java -jar target/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar"
+Building SAFCreator requires Apache Maven.  Build with "mvn clean package".  Run (replacing the version as appropriate) with "java -jar target/SAFCreator-0.0.2-SNAPSHOT.one-jar.jar"
 
 
 ## Usage instructions
