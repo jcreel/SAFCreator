@@ -16,6 +16,7 @@ public class Batch {
     private List<ColumnLabel> labels = new ArrayList<ColumnLabel>();
     private Boolean ignoreFiles = false;
     private Boolean processUri = false;
+    private Boolean flattenDirectories = true;
     private Boolean allowSelfSigned = true;
     private Boolean remoteBitstreamErrorContinue = false;
     private int itemProcessDelay = 0;
@@ -24,7 +25,6 @@ public class Batch {
     private List<Integer> ignoreRows = new ArrayList<Integer>();
     private List<Integer> failedRows = new ArrayList<Integer>();
     private String action = "";
-
 
     /**
      * Add a new item to the list of items contained within this batch.
@@ -51,8 +51,7 @@ public class Batch {
     /**
      * Flag a specific batch row as failed.
      *
-     * @param row
-     *            the number of the row to ignore.
+     * @param row the number of the row to ignore.
      */
     public void failedRow(Integer row) {
         failedRows.add(row);
@@ -175,11 +174,9 @@ public class Batch {
     /**
      * Ignore a specific batch row.
      *
-     * A particular row number for the items list can be ignored. This is intended to be used when remoteBitstreamErrorContinue is true. If any single column is invalid, the entire row is to be
-     * ignored.
+     * A particular row number for the items list can be ignored. This is intended to be used when remoteBitstreamErrorContinue is true. If any single column is invalid, the entire row is to be ignored.
      *
-     * @param row
-     *            the number of the row to ignore.
+     * @param row the number of the row to ignore.
      */
     public void ignoreRow(Integer row) {
         ignoreRows.add(row);
@@ -188,8 +185,7 @@ public class Batch {
     /**
      * Check to see if a row is flagged as failed.
      *
-     * @param row
-     *            the number of the row that has failed.
+     * @param row the number of the row that has failed.
      *
      * @return true if failed, false otherwise.
      */
@@ -200,8 +196,7 @@ public class Batch {
     /**
      * Check to see if a row is flagged to be ignored.
      *
-     * @param row
-     *            the number of the row that may be ignored.
+     * @param row the number of the row that may be ignored.
      *
      * @return true if ignored, false otherwise. When remoteBitstreamErrorContinue is false, this always returns false.
      */
@@ -226,8 +221,7 @@ public class Batch {
     /**
      * Set the action status associated with this batch.
      *
-     * @param action
-     *            The new action name.
+     * @param action The new action name.
      */
     public void setAction(String action) {
         this.action = action;
@@ -254,8 +248,7 @@ public class Batch {
     /**
      * Set the base directory from where to begin searching for any associated files.
      *
-     * @param directory
-     *            The new base directory.
+     * @param directory The new base directory.
      */
     public void setinputFilesDir(File directory) {
         inputFilesDir = directory;
@@ -268,8 +261,7 @@ public class Batch {
     /**
      * Set the item process delay time (in milliseconds).
      *
-     * @param itemProcessDelay
-     *            The process delay time.
+     * @param itemProcessDelay The process delay time.
      */
     public void setItemProcessDelay(int itemProcessDelay) {
         this.itemProcessDelay = itemProcessDelay;
@@ -278,8 +270,7 @@ public class Batch {
     /**
      * Set the item process delay time (in milliseconds).
      *
-     * @param itemProcessDelay
-     *            The process delay time.
+     * @param itemProcessDelay The process delay time.
      */
     public void setItemProcessDelay(String itemProcessDelay) {
         this.itemProcessDelay = Integer.parseInt(itemProcessDelay);
@@ -299,8 +290,7 @@ public class Batch {
     /**
      * Set the user supplied name of this batch.
      *
-     * @param name
-     *            The new name.
+     * @param name The new name.
      */
     public void setName(String name) {
         this.name = name;
@@ -321,8 +311,7 @@ public class Batch {
     /**
      * Set the remote bitstream error continue status.
      *
-     * @param remoteBitstreamErrorContinue
-     *            Set to true to enable ignoring errors, false to stop on errors.
+     * @param remoteBitstreamErrorContinue Set to true to enable ignoring errors, false to stop on errors.
      */
     public void setRemoteBitstreamErrorContinue(Boolean remoteBitstreamErrorContinue) {
         this.remoteBitstreamErrorContinue = remoteBitstreamErrorContinue;
@@ -331,8 +320,7 @@ public class Batch {
     /**
      * Set the remote file timeout time (in milliseconds).
      *
-     * @param itemProcessDelay
-     *            The process delay time.
+     * @param itemProcessDelay The process delay time.
      */
     public void setRemoteFileTimeout(int remoteFileTimeout) {
         this.remoteFileTimeout = remoteFileTimeout;
@@ -341,8 +329,7 @@ public class Batch {
     /**
      * Set the remote file timeout time (in milliseconds).
      *
-     * @param itemProcessDelay
-     *            The process delay time.
+     * @param itemProcessDelay The process delay time.
      */
     public void setRemoteFileTimeout(String remoteFileTimeout) {
         this.remoteFileTimeout = Integer.parseInt(remoteFileTimeout);
@@ -358,8 +345,7 @@ public class Batch {
     /**
      * Set the user agent string.
      *
-     * @param itemProcessDelay
-     *            The process delay time.
+     * @param itemProcessDelay The process delay time.
      */
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
@@ -367,5 +353,18 @@ public class Batch {
 
     public void unsetLicense() {
         license = null;
+    }
+
+    public void setFlattenDirectories(boolean b) {
+        flattenDirectories = b;
+
+    }
+
+    public Boolean getFlattenDirectories() {
+        return flattenDirectories;
+    }
+
+    public void setFlattenDirectories(Boolean flattenDirectories) {
+        this.flattenDirectories = flattenDirectories;
     }
 }

@@ -310,7 +310,11 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
                                             Bitstream bitstream = new Bitstream();
                                             bitstream.setBundle(bundle);
                                             bitstream.setSource(file.toURI());
-                                            bitstream.setRelativePath(directoryName + File.separator + file.getName());
+                                            if (batch.getFlattenDirectories()) {
+                                                bitstream.setRelativePath(file.getName());
+                                            } else {
+                                                bitstream.setRelativePath(directoryName + File.separator + file.getName());
+                                            }
                                             bitstream.setColumn(column);
                                             bitstream.setRow(linenumber);
                                             bundle.addBitstream(bitstream);

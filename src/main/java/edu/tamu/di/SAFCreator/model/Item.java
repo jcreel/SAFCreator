@@ -15,22 +15,27 @@ public class Item {
     private List<SchematicFieldSet> schemata;
     private List<Bundle> bundles;
     private String handle;
+    private Integer rowNumber;
 
     private boolean cancelled;
 
     private File itemDirectory;
 
-
     public Item(int row, Batch batch) {
+        this.rowNumber = row;
         this.batch = batch;
         schemata = new ArrayList<SchematicFieldSet>();
         bundles = new ArrayList<Bundle>();
 
-        itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + row);
+        itemDirectory = new File(batch.getOutputSAFDir().getAbsolutePath() + File.separator + getRowNumber());
         itemDirectory.mkdir();
 
         handle = null;
         cancelled = false;
+    }
+
+    public Integer getRowNumber() {
+        return rowNumber;
     }
 
     private boolean checkIsCancelled(Object object, Method method) {

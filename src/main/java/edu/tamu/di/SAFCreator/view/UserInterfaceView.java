@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -30,7 +29,6 @@ import edu.tamu.di.SAFCreator.model.verify.impl.LocalFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.model.verify.impl.RemoteFilesExistVerifierImpl;
 import edu.tamu.di.SAFCreator.model.verify.impl.ValidSchemaNameVerifierImpl;
 
-
 /**
  * A convenience JFRame user interface to be shared across the project.
  *
@@ -40,13 +38,11 @@ public final class UserInterfaceView extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-
     // defaults
     public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0";
     public static final int DEFAULT_PROCESS_DELAY = 400;
     public static final int DEFAULT_REMOTE_FILE_TIMEOUT = 10000;
     public static final String DEFAULT_CSV_OUTPUT_NAME = "SAF-Flags.csv";
-
 
     // tabbed views
     private final JPanel mainTab = new JPanel();
@@ -56,7 +52,6 @@ public final class UserInterfaceView extends JFrame {
     private final JPanel flagTableTab = new JPanel();
 
     private final JTabbedPane tabs = new JTabbedPane();
-
 
     // Components of the Batch Detail tab
     private final JButton chooseInputFileBtn = new JButton("Select metadata CSV file");
@@ -76,7 +71,6 @@ public final class UserInterfaceView extends JFrame {
     private final JTextField outputDirectoryNameField = new JTextField("", 40);
     private final JTextField actionStatusField = new JTextField("Please load a batch for processing.");
 
-
     // Components of the License tab
     private final JCheckBox addLicenseCheckbox = new JCheckBox("Add a license:");
     private final JCheckBox restrictToGroupCheckbox = new JCheckBox("Restrict read access to a group - Group name:");
@@ -94,7 +88,6 @@ public final class UserInterfaceView extends JFrame {
 
     private final JScrollPane licenseTextScrollPane = new JScrollPane(licenseTextField);
 
-
     // Components of the Verify Batch tab
     private final JButton verifyBatchBtn = new JButton("Verify Batch");
     private final JButton verifyCancelBtn = new JButton("Cancel");
@@ -103,9 +96,9 @@ public final class UserInterfaceView extends JFrame {
     private final VerifierTableModel verifierTableModel;
     private List<VerifierProperty> verifierProperties = new ArrayList<VerifierProperty>();
 
-
     // Components of the Advanced Settings tab
     private final JCheckBox ignoreFilesBox = new JCheckBox("Omit bitstreams (content files) from generated SAF.");
+    private final JCheckBox flattenDirectoryStructureBox = new JCheckBox("Flatten the generated SAF so item directories don't have subdirectories.");
     private final JCheckBox continueOnRemoteErrorBox = new JCheckBox("Allow writing even if remote bitstream verification flags an error.");
     private final JCheckBox allowSelfSignedBox = new JCheckBox("Allow Self-Signed SSL Certificates.");
 
@@ -117,13 +110,11 @@ public final class UserInterfaceView extends JFrame {
     private final JTextField remoteFileTimeoutField = new JTextField("" + DEFAULT_REMOTE_FILE_TIMEOUT, 10);
     private final JTextField userAgentField = new JTextField(DEFAULT_USER_AGENT, 48);
 
-
     // Components of the Flag List tab
     private final JButton flagsDownloadCsvBtn = new JButton("Generate CSV");
     private final JButton flagsReportSelectedBtn = new JButton("Display Selected Row");
 
     private final FlagPanel flagPanel = new FlagPanel();
-
 
     // Components shown under any tab
     private final JPanel statusPanel = new JPanel();
@@ -132,7 +123,6 @@ public final class UserInterfaceView extends JFrame {
     private final JTextArea console = new JTextArea(20, 50);
 
     private final JScrollPane scrollPane = new JScrollPane(console);
-
 
     public UserInterfaceView() {
         VerifierProperty validSchemaVerifier = new ValidSchemaNameVerifierImpl();
@@ -194,6 +184,7 @@ public final class UserInterfaceView extends JFrame {
     public JPanel getAddLicenseFilePanel() {
         return addLicenseFilePanel;
     }
+
     public JPanel getAdvancedSettingsTab() {
         return advancedSettingsTab;
     }
@@ -205,6 +196,7 @@ public final class UserInterfaceView extends JFrame {
     public JButton getChooseInputFileBtn() {
         return chooseInputFileBtn;
     }
+
     public JButton getChooseOutputDirectoryBtn() {
         return chooseOutputDirectoryBtn;
     }
@@ -239,6 +231,10 @@ public final class UserInterfaceView extends JFrame {
 
     public JCheckBox getIgnoreFilesBox() {
         return ignoreFilesBox;
+    }
+
+    public JCheckBox getFlattenDirectoryStructureBox() {
+        return flattenDirectoryStructureBox;
     }
 
     public JFileChooser getInputFileChooser() {
@@ -380,10 +376,12 @@ public final class UserInterfaceView extends JFrame {
     private void createAdvancedSettingsTab() {
         advancedSettingsTab.setLayout(new BoxLayout(advancedSettingsTab, BoxLayout.Y_AXIS));
         advancedSettingsTab.add(ignoreFilesBox);
+        advancedSettingsTab.add(flattenDirectoryStructureBox);
         advancedSettingsTab.add(continueOnRemoteErrorBox);
         advancedSettingsTab.add(allowSelfSignedBox);
 
         // default to enabled.
+        flattenDirectoryStructureBox.setSelected(true);
         allowSelfSignedBox.setSelected(true);
 
         tabs.addTab("Advanced Settings", advancedSettingsTab);
@@ -405,6 +403,7 @@ public final class UserInterfaceView extends JFrame {
 
         // initialize as disabled so that it will only be enable once a batch is assigned.
         ignoreFilesBox.setEnabled(false);
+        flattenDirectoryStructureBox.setEnabled(false);
         continueOnRemoteErrorBox.setEnabled(false);
         allowSelfSignedBox.setEnabled(false);
         itemProcessDelayField.setEnabled(false);

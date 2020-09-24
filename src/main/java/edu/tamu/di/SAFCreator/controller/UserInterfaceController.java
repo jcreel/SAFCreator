@@ -51,13 +51,11 @@ public class UserInterfaceController {
     private FieldChangeStatus remoteFileTimeoutFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
     private FieldChangeStatus userAgentFieldChangeStatus = FieldChangeStatus.NO_CHANGES;
 
-
     // file and directory names
     private String csvOutputFileName = "SAF-Flags.csv";
     private String metadataInputFileName;
     private String sourceDirectoryName;
     private String outputDirectoryName;
-
 
     // batch
     private Boolean batchVerified;
@@ -65,13 +63,11 @@ public class UserInterfaceController {
     private boolean batchContinue;
     private final Map<String, VerifierBackground> verifiers;
 
-
     // swing background process handling
     private ImportDataWriter currentWriter;
     private ImportDataCleaner currentCleaner;
     private final List<VerifierBackground> currentVerifiers;
     private int currentVerifier = -1;
-
 
     public UserInterfaceController(final ImportDataProcessor processor, final UserInterfaceView userInterface) {
         this.processor = processor;
@@ -418,11 +414,11 @@ public class UserInterfaceController {
     }
 
     public void transitionToLoaded() {
-        userInterface.getActionStatusField().setText("Your batch has not been verified.");
+        userInterface.getActionStatusField().setText("Your batch has been successfully loaded - please proceed to verification.");
         userInterface.getActionStatusField().setForeground(Color.black);
-        userInterface.getActionStatusField().setBackground(Color.red);
+        userInterface.getActionStatusField().setBackground(Color.green);
         actionStatus = ActionStatus.LOADED;
-        userInterface.getStatusIndicator().setText("Batch Status:\n Unverified");
+        userInterface.getStatusIndicator().setText("Batch Status:\n Pending Verification");
         userInterface.getStatusIndicator().setForeground(Color.white);
         userInterface.getStatusIndicator().setBackground(Color.blue);
         userInterface.getLoadBatchBtn().setText("Reload batch as specified");
@@ -444,6 +440,7 @@ public class UserInterfaceController {
         userInterface.getIgnoreFilesBox().setEnabled(true);
         userInterface.getContinueOnRemoteErrorBox().setEnabled(true);
         userInterface.getAllowSelfSignedBox().setEnabled(true);
+        userInterface.getFlattenDirectoryStructureBox().setEnabled(true);
         userInterface.getItemProcessDelayField().setEnabled(true);
         userInterface.getRemoteFileTimeoutField().setEnabled(true);
         userInterface.getUserAgentField().setEnabled(true);
@@ -1001,6 +998,26 @@ public class UserInterfaceController {
             }
         });
 
+        userInterface.getFlattenDirectoryStructureBox().addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!userInterface.getFlattenDirectoryStructureBox().isEnabled()) {
+                    // do nothing when field is disabled.
+                    return;
+                }
+
+                if (userInterface.getFlattenDirectoryStructureBox().isSelected()) {
+                    userInterface.getConsole().append("Bitstream (content) files will be placed directly under their item directories.  Note that this will cause an error in case of filename collisions.\n");
+                    batch.setFlattenDirectories(true);
+                } else {
+                    userInterface.getConsole().append("Bitstream (content) files will be placed in their original paths from the file source directory.\n");
+                    batch.setFlattenDirectories(false);
+                }
+
+            }
+        });
+
         userInterface.getContinueOnRemoteErrorBox().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1030,8 +1047,7 @@ public class UserInterfaceController {
                 if (userInterface.getAllowSelfSignedBox().isSelected()) {
                     userInterface.getConsole().append("Self-Signed SSL Certificates will always be allowed when generating SAF.\n");
                     batch.setAllowSelfSigned(true);
-                }
-                else {
+                } else {
                     userInterface.getConsole().append("Self-Signed SSL Certificates will not always be allowed when generating SAF.\n");
                     batch.setAllowSelfSigned(false);
                 }

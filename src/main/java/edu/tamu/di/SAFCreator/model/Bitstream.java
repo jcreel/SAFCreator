@@ -60,7 +60,6 @@ public class Bitstream extends CellDatumImpl {
     private String readPolicyGroupName = null;
     private MimeType mimeType = null;
 
-
     public void copyMe(List<Problem> problems) {
         // Avoid writing to existing files, primarily to avoid potential network overhead of downloading remote files.
         if (destination.exists()) {
@@ -225,8 +224,7 @@ public class Bitstream extends CellDatumImpl {
                                 FileUtils.copyToFile(input, destination);
                             } catch (IOException e) {
                                 throw e;
-                            }
-                            finally {
+                            } finally {
                                 if (input != null) {
                                     input.close();
                                 }
@@ -259,8 +257,7 @@ public class Bitstream extends CellDatumImpl {
                                 Flag flag = new Flag(Flag.INVALID_MIME, "HTTP URL did not return the expected file, reason: an HTML page or plain text page was returned.", action, this);
                                 problem = new Problem(getRow(), getColumnLabel(), true, "HTTP URL did not return the expected file.", flag);
                                 problems.add(problem);
-                            }
-                            else if (contentType.equalsIgnoreCase("application/octet-stream")) {
+                            } else if (contentType.equalsIgnoreCase("application/octet-stream")) {
                                 Flag flag = determineMimeType(destination);
                                 if (flag != null) {
                                     problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
@@ -302,8 +299,7 @@ public class Bitstream extends CellDatumImpl {
                                     problem = new Problem(getRow(), getColumnLabel(), true, flag.getCell(FlagColumns.DESCRIPTION), flag);
                                     problems.add(problem);
                                 }
-                            }
-                            else {
+                            } else {
                                 if (problem.isError() && destination.exists()) {
                                     destination.delete();
                                 }
@@ -319,8 +315,7 @@ public class Bitstream extends CellDatumImpl {
                                 problems.add(problem);
                             } else if (responseCode == 403) {
                                 Flag flag = new Flag(Flag.ACCESS_DENIED, "HTTP file access was denied, HTTP response code: " + responseCode + ".", action, this);
-                                Problem problem = new Problem(getRow(), getColumnLabel(), true,
-                                        "HTTP file access was denied, HTTP response code: " + responseCode + ".", flag);
+                                Problem problem = new Problem(getRow(), getColumnLabel(), true, "HTTP file access was denied, HTTP response code: " + responseCode + ".", flag);
                                 problems.add(problem);
                             } else if (responseCode == 500) {
                                 Flag flag = new Flag(Flag.SERVICE_ERROR, "HTTP server had an internal error, HTTP response code: " + responseCode + ".", action, this);
@@ -392,8 +387,7 @@ public class Bitstream extends CellDatumImpl {
      *
      * This is intended to be used to identify or confirm the validity of a particular file. The this.mimeType will be updated on successful detection.
      *
-     * @param destination
-     *            The file to validate.
+     * @param destination The file to validate.
      *
      * @return A Flag is returned on error, null is returned otherwise.
      */
@@ -435,8 +429,7 @@ public class Bitstream extends CellDatumImpl {
     }
 
     public String getContentsManifestLine() {
-        String line = getRelativePathForwardSlashes() + "\tbundle:" + bundle.getName().trim()
-                + (readPolicyGroupName == null ? "\n" : "\tpermissions:-r " + readPolicyGroupName) + "\n";
+        String line = getRelativePathForwardSlashes() + "\tbundle:" + bundle.getName().trim() + (readPolicyGroupName == null ? "\n" : "\tpermissions:-r " + readPolicyGroupName) + "\n";
         return line;
     }
 
@@ -521,6 +514,10 @@ public class Bitstream extends CellDatumImpl {
         this.destination = new File(destination);
     }
 
+    public void setDestination(File destination) {
+        this.destination = destination;
+    }
+
     public void setMimeType(String mimeType) throws MimeTypeException {
         this.mimeType = MimeTypes.getDefaultMimeTypes().forName(mimeType);
     }
@@ -531,7 +528,7 @@ public class Bitstream extends CellDatumImpl {
 
     public void setRelativePath(String value) {
         relativePath = value;
-        destination = new File(bundle.getItem().getSAFDirectory() + "/" + relativePath);
+        setDestination(new File(bundle.getItem().getSAFDirectory() + "/" + relativePath));
     }
 
     public void setSource(URI source) {
