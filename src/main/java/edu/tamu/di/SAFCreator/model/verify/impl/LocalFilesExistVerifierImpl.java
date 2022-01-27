@@ -38,7 +38,7 @@ public class LocalFilesExistVerifierImpl extends VerifierBackground {
 
     @Override
     public boolean generatesError() {
-        return true;
+        return false;
     }
 
     @Override
@@ -83,7 +83,7 @@ public class LocalFilesExistVerifierImpl extends VerifierBackground {
                                         file.getAbsolutePath(), bitstream.getColumnLabel(), "" + bitstream.getRow(),
                                         batch.getAction().toString());
                                 Problem missingFile = new Problem(bitstream.getRow(), bitstream.getColumnLabel(),
-                                        generatesError(), "Source file path not found.", flag);
+                                        generatesError(), "Source file path " + file.getAbsolutePath() + " not found.", flag);
                                 missingFiles.add(missingFile);
                                 if (console != null) {
                                     console.append("\t" + missingFile.toString() + "\n");
@@ -91,6 +91,7 @@ public class LocalFilesExistVerifierImpl extends VerifierBackground {
                                 if (flagPanel != null) {
                                     flagPanel.appendRow(flag);
                                 }
+                                batch.ignoreRow(item.getRowNumber());
                             }
                         }
                     }
