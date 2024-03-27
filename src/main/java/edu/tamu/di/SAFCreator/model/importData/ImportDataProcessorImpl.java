@@ -72,13 +72,7 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 
     @Override
     public Batch loadBatch(String metadataInputFileName, String sourceDirectoryName, String outputDirectoryName, JTextArea console) {
-        File sourceDirFileForChecking = new File(sourceDirectoryName);
         File outputDirFileForChecking = new File(outputDirectoryName);
-
-        if (!(sourceDirFileForChecking.exists() && sourceDirFileForChecking.isDirectory())) {
-            console.append("\tERROR: Source file directory " + sourceDirectoryName + " is not a readable directory.\n");
-            return null;
-        }
 
         if (!(outputDirFileForChecking.exists() && outputDirFileForChecking.isDirectory())) {
             console.append("\tERROR: Designated SAF output directory " + outputDirectoryName + " is not an available directory.\n");
@@ -123,7 +117,23 @@ public class ImportDataProcessorImpl implements ImportDataProcessor {
 
         Batch batch = new Batch();
         boolean errorState = false;
-        batch.setinputFilesDir(sourceDirectoryName);
+
+        boolean validSourceDir = false;
+
+        // check if source directory input provided and is a valid directory
+        if (sourceDirectoryName != null && sourceDirectoryName.length() > 0) {
+            File sourceDirFileForChecking = new File(sourceDirectoryName);
+            if (sourceDirFileForChecking.exists() && sourceDirFileForChecking.isDirectory()) {
+                batch.setinputFilesDir(sourceDirectoryName);
+                validSourceDir = true;
+            }
+        }
+
+        // only warn when no source directory is available
+        if (!validSourceDir) {
+            console.append("\tWARN: Source file directory " + sourceDirectoryName + " is not a readable directory.\n");
+        }
+
         batch.setOutputSAFDir(outputDirectoryName);
         List<ColumnLabel> columnLabels = new ArrayList<ColumnLabel>();
         CSVReader reader = null;
